@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Bebcom Delivery</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Mercado Pago SDK -->
+  <script src="https://sdk.mercadopago.com/js/v2"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h2 {
+      margin-top: 30px;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      font-size: 16px;
+    }
+    button {
+      background: #25d366;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    .box {
+      background: #fff;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    .status {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🛒 Bebcom Delivery</h1>
+
+<div class="box">
+  <h2>👤 Cliente</h2>
+  <input id="customer-name" placeholder="Nome do cliente" required>
+  <input id="customer-phone" placeholder="Telefone (WhatsApp)" required>
+</div>
+
+<div class="box">
+  <h2>📍 Endereço de Entrega</h2>
+  <input id="street" placeholder="Rua" required>
+  <input id="house-number" placeholder="Número" required>
+  <input id="neighborhood" placeholder="Bairro" required>
+  <input id="city" placeholder="Cidade" value="Bauru" required>
+  <input id="address-complement" placeholder="Complemento (opcional)">
+  <input id="reference-point" placeholder="Ponto de referência (opcional)">
+</div>
+
+<div class="box">
+  <h2>🧾 Pedido (exemplo)</h2>
+  <p>• 2x Cerveja Lata</p>
+  <p>• 1x Refrigerante 2L</p>
+</div>
+
+<div class="box">
+  <h2>🚚 Entrega</h2>
+  <p>Frete calculado automaticamente</p>
+  <p><strong id="delivery-fee">R$ 0,00</strong></p>
+</div>
+
+<div class="box">
+  <h2>💳 Pagamento</h2>
+  <button onclick="processPixPayment()">Pagar com PIX / Cartão</button>
+  <div class="status" id="payment-status"></div>
+</div>
+
+<div class="box">
+  <h2>📲 WhatsApp</h2>
+  <button id="whatsapp-btn" disabled onclick="sendWhatsApp()">Enviar Pedido no WhatsApp</button>
+</div>
+
+<script>
+/* ===============================
+   CONFIG
+================================ */
+const PRICE_PER_KM = 2.65;
+const BACKEND_URL = 'https://SEU-BACKEND.onrender.com';
+
+const mp = new MercadoPago('SUA_PUBLIC_KEY_AQUI', {
+  locale: 'pt-BR'
+});
+
+const state = {
+  currentOrderId: null,
+  paymentConfirmed: false
+};
+
+/* ===============================
+   VALIDAÇÃO DE ENDEREÇO
+================================ */
+function validateAddress() {
+  const required = ['street', 'house-number', 'neighborhood', 'city'];
+  for (const id of required) {
+    if (!document.getElementById(id).value.trim()) {
+      alert('Preencha o endereço completo com número.');
+      return false;
+    }
+  }
+  return true;
+}
+
+/* ===============================
+   PEDIDO (EXEMPLO FIXO)
+================================ */
+function prepareOrderData() {
+  const items = [
+    { name: 'Cerveja Lata', quantity: 2, price: 5.00 },
+    { name: 'Refrigerante 2L', quantity: 1, price: 10.00 }
+  ];
+
+  const itemsTotal = items.reduce((sum, i) => sum + i.quantity * i.price, 0);
+
+  const distanceKm = 5; // Exemplo fixo (você já tem sua lógica de GPS)
+  const deliveryFee = Number((distanceKm * PRICE_PER_KM).toFixed(2));
+
+  return {
+    items,
+    deliveryFee,
+    total: itemsTotal + deliveryFee,
+    orderType: 'delivery'
+  };
+}
+
+/* ===============================
+   PAGAMENTO
+================================ */
+async function processPixPayment() {
+  if (!validateAddress()) return;
+
+  const orderData = prepareOrderData();
+  document.getElementById('delivery-fee').innerText =
+    `R$ ${orderData.deliveryFee.toFixed(2)}`;
+
+  const items = orderData.items.map(item => ({
+    title: item.name.substring(0, 50),
+    quantity: item.quantity,
+    unit_price: Number(item.price.toFixed(2))
+  }));
+
+  items.push({
+    title: 'Taxa de Entrega',
+    quantity: 1,
+    unit_price: orderData.deliveryFee
+  });
+
+  state.currentOrderId = 'BEB' + Date.now();
+
+  const response = await fetch(`${BACKEND_URL}/create-payment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      orderId: state.currentOrderId,
+      payer: {
+        name: document.getElementById('customer-name').value,
+        email: 'cliente@bebcom.com'
+      },
+      items
+    })
+  });
+
+  const data = await response.json();
+
+  mp.checkout({
+    preference: { id: data.preferenceId },
+    autoOpen: true
+  });
+
+  document.getElementById('payment-status').innerText =
+    '⏳ Aguardando confirmação do pagamento...';
+
+  startOrderStatusCheck(state.currentOrderId);
+}
+
+/* ===============================
+   STATUS DO PAGAMENTO
+================================ */
+function startOrderStatusCheck(orderId) {
+  const interval = setInterval(async () => {
+    const res = await fetch(`${BACKEND_URL}/order-status/${orderId}`);
+    const data = await res.json();
+
+    if (data.paid) {
+      clearInterval(interval);
+      state.paymentConfirmed = true;
+      document.getElementById('payment-status').innerText =
+        '✅ Pagamento confirmado!';
+      document.getElementById('whatsapp-btn').disabled = false;
+    }
+  }, 5000);
+}
+
+/* ===============================
+   WHATSAPP
+================================ */
+function buildWhatsAppMessage() {
+  const order = prepareOrderData();
+
+  return encodeURIComponent(`
+🛒 *NOVO PEDIDO – BEBCOM*
+
+👤 Cliente: ${document.getElementById('customer-name').value}
+📞 Telefone: ${document.getElementById('customer-phone').value}
+
+📍 *ENDEREÇO DE ENTREGA*
+${street.value}, ${house-number.value}
+${neighborhood.value} - ${city.value}
+${address-complement.value ? 'Complemento: ' + address-complement.value : ''}
+${reference-point.value ? '📌 Referência: ' + reference-point.value : ''}
+
+🧾 *ITENS*
+${order.items.map(i => `• ${i.quantity}x ${i.name}`).join('\n')}
+
+🚚 Taxa: R$ ${order.deliveryFee.toFixed(2)}
+💰 Total: R$ ${order.total.toFixed(2)}
+
+💳 Pagamento confirmado
+`.trim());
+}
+
+function sendWhatsApp() {
+  if (!state.paymentConfirmed) return;
+  const phone = '5514999999999'; // número da loja
+  const message = buildWhatsAppMessage();
+  window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+}
+</script>
+
+</body>
+</html>
