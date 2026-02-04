@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BebCom Delivery - Sistema Completo com Gerenciamento</title>
+    <title>BebCom Delivery</title>
     
     <!-- SDK Mercado Pago -->
     <script src="https://sdk.mercadopago.com/js/v2"></script>
@@ -1019,7 +1019,7 @@
     </button>
 
     <div class="header">
-        🍹 BEBCOM DELIVERY - Sistema Completo com Gerenciamento 🔧
+        🍹 BEBCOM DELIVERY 🍹
     </div>
 
     <div class="nav-container">
@@ -1040,7 +1040,7 @@
     <div class="main-container">
         <!-- SEÇÃO DO CARDÁPIO -->
         <div class="menu-section">
-            <h2 class="section-title">🍹 Cardápio BebCom Delivery</h2>
+            <h2 class="section-title"> Cardápio BebCom </h2>
             
             <!-- Categorias -->
             <div class="categories-grid" id="categoriesGrid"></div>
@@ -1191,7 +1191,6 @@
                 <input type="password" class="password-input" id="adminPassword" placeholder="Digite a senha administrativa">
                 <button class="password-button" onclick="checkAdminPassword()">Entrar</button>
                 <p class="admin-help">
-                    Senha padrão: <strong>Bebcom25*</strong><br>
                     (Ctrl+Alt+A para abrir rapidamente)
                 </p>
             </div>
@@ -1374,7 +1373,7 @@
                     id: 'danoninho-gin', 
                     name: 'Danoninho de Gin', 
                     description: 'Batida com Gin', 
-                    price: 17.00,
+                    price: 18.00,
                     requiresFlavorSelection: true,
                     flavorType: 'gin_sabores',
                     nextStep: 'ice'
@@ -1383,7 +1382,7 @@
                     id: 'copa-gin', 
                     name: 'Copão de Gin', 
                     description: 'Drink com Gin Askov Sabores', 
-                    price: 17.00,
+                    price: 18.00,
                     requiresFlavorSelection: true,
                     flavorType: 'gin_sabores',
                     nextStep: 'ice'
@@ -1402,7 +1401,7 @@
                     id: 'danoninho-askov', 
                     name: 'Danoninho Askov', 
                     description: 'Askov de frutas com leite condensado', 
-                    price: 17.00,
+                    price: 18.00,
                     requiresFlavorSelection: true,
                     flavorType: 'vodka_sabores'
                 }
@@ -1412,7 +1411,7 @@
                     id: 'danoninho-vinho', 
                     name: 'Danoninho de Vinho', 
                     description: 'Batida de Cantinho do Valle com leite condensado', 
-                    price: 17.00,
+                    price: 18.00,
                     requiresFlavorSelection: false
                 }
             ],
@@ -1421,13 +1420,13 @@
                 { id: 'skol', name: 'Skol', description: 'Cerveja tradicional brasileira', price: 4.25 },
                 { id: 'antarctica', name: 'Antarctica', description: 'Cerveja pilsen refrescante', price: 4.25 },
                 { id: 'sub-zero', name: 'Sub-Zero', description: 'Cerveja extra gelada', price: 4.25 },
-                { id: 'amstel', name: 'Amstel', description: 'Cerveja holandesa premium', price: 4.50 },
+                { id: 'amstel', name: 'Amstel', description: 'Cerveja holandesa premium', price: 4.00 },
                 { id: 'heineken', name: 'Heineken', description: 'Cerveja importada premium', price: 6.50 },
                 { id: 'corona-long', name: 'Corona Long', description: 'Cerveja mexicana em long neck', price: 8.50 },
-                { id: 'stella-long', name: 'Stella Long', description: 'Cerveja belga em long neck', price: 7.00 },
+                { id: 'stella-long', name: 'Stella Long', description: 'Cerveja belga em long neck', price: 7.50 },
                 { id: 'brahma-zero', name: 'Brahma Zero', description: 'Cerveja sem álcool', price: 5.00 },
                 { id: 'imperio', name: 'Império', description: 'Cerveja brasileira tradicional', price: 3.75 },
-                { id: 'duplo-malte', name: 'Duplo Malte', description: 'Cerveja com duplo malte', price: 4.50 },
+                { id: 'duplo-malte', name: 'Duplo Malte', description: 'Cerveja com duplo malte', price: 5.00 },
                 { id: 'spaten', name: 'Spaten', description: 'Cerveja alemã premium', price: 5.50 },
                 { id: 'budweiser', name: 'Budweiser', description: 'Cerveja americana', price: 5.50 },
                 { id: 'burguesa', name: 'Burguesa', description: 'Cerveja artesanal brasileira', price: 3.75 },
@@ -1446,21 +1445,21 @@
                 { id: 'amstel-ultra', name: 'Amstel Ultra', description: 'Cerveja leve', price: 5.00 },
                 { id: 'spaten-long', name: 'Spaten Long', description: 'Spaten em long neck', price: 7.50 },
                 { id: 'imperio-gold', name: 'Império Gold', description: 'Cerveja premium brasileira', price: 8.00 },
-                { id: 'michelob-long', name: 'Michelob Long', description: 'Michelob em long neck', price: 8.00 },
+                { id: 'michelob-long', name: 'Michelob Long', description: 'Michelob em long neck', price: 7.50 },
                 { id: 'michelob', name: 'Michelob', description: 'Cerveja americana premium', price: 6.00 },
-                { id: 'conti-zero-grau', name: 'Conti Zero Grau', description: 'Cerveja sem álcool (Contém álcool, tem apenas o nome Zero)', price: 3.00 }
+                { id: 'conti-zero-grau', name: 'Conti Zero Grau', description: 'Cerveja com álcool', price: 3.00 }
             ],
             'destilados': [
                 { id: 'tequila', name: 'Tequila', description: 'Destilado mexicano', price: 23.00 },
-                { id: 'pinga-51', name: 'Pinga 51', description: 'Cachaça brasileira', price: 17.00 },
+                { id: 'pinga-51', name: 'Pinga 51', description: 'Cachaça brasileira', price: 19.00 },
                 { id: 'conhaque', name: 'Conhaque', description: 'Destilado envelhecido', price: 19.00 },
-                { id: 'dimel', name: 'Dimel', description: 'Licor italiano', price: 28.00 },
+                { id: 'dimel', name: 'Dimel', description: 'Licor italiano', price: 30.00 },
                 { id: 'campari', name: 'Campari', description: 'Bitter italiano', price: 65.00 },
                 { 
                     id: 'gin-askov', 
                     name: 'Gin Askov', 
                     description: 'Gin brasileiro', 
-                    price: 19.00,
+                    price: 20.00,
                     requiresFlavorSelection: true,
                     flavorType: 'gin_sabores'
                 },
@@ -1489,13 +1488,13 @@
                     requiresFlavorSelection: true,
                     flavorType: 'beats'
                 },
-                { id: 'beats-long', name: 'Beats Long', description: 'Bebida em long neck', price: 12.00 },
-                { id: 'smirnoff-ice', name: 'Smirnoff Ice', description: 'Bebida com vodka', price: 10.00 },
+                { id: 'beats-long', name: 'Beats Long', description: 'Bebida Sense em long neck', price: 9.00 },
+                { id: 'smirnoff-ice', name: 'Smirnoff Ice', description: 'Bebida de limão com vodka', price: 10.00 },
                 { id: 'velho-barreiro', name: 'Velho Barreiro', description: 'Cachaça tradicional', price: 19.00 },
-                { id: 'jack-daniels-dest', name: 'Jack Daniels', description: 'Whiskey americano', price: 56.00 },
-                { id: 'white-horse-dest', name: 'White Horse', description: 'Whisky escocês', price: 22.00 },
-                { id: 'red-label-dest', name: 'Red Label', description: 'Johnnie Walker', price: 25.00 },
-                { id: 'ballantines-dest', name: 'Ballantines', description: 'Whisky escocês', price: 28.00 },
+                { id: 'jack-daniels-dest', name: 'Jack Daniels', description: 'Whiskey americano', price: 200.00 },
+                { id: 'white-horse-dest', name: 'White Horse', description: 'Whisky escocês', price: 97.50 },
+                { id: 'red-label-dest', name: 'Red Label', description: 'Johnnie Walker', price: 140.00 },
+                { id: 'ballantines-dest', name: 'Ballantines', description: 'Whisky escocês', price: 135.00 },
                 { id: 'smirnoff-1l', name: 'Smirnoff 1L', description: 'Vodka premium 1 litro', price: 56.00 },
                 { 
                     id: 'askov-sabor-1l', 
@@ -1505,9 +1504,9 @@
                     requiresFlavorSelection: true,
                     flavorType: 'vodka_sabores'
                 },
-                { id: 'canelinha', name: 'Canelinha', description: 'Licor de canela', price: 15.00 },
-                { id: 'dom-bosco', name: 'Dom Bosco', description: 'Licor brasileiro', price: 20.00 },
-                { id: 'chapinha', name: 'Chapinha', description: 'Cachaça brasileira', price: 12.00 },
+                { id: 'canelinha', name: 'Canelinha', description: 'Canelinha da Rocha', price: 25.00 },
+                { id: 'dom-bosco', name: 'Dom Bosco', description: 'Vinho brasileiro', price: 20.00 },
+                { id: 'chapinha', name: 'Chapinha', description: 'Vinho brasileira', price: 15.00 },
                 { id: 'pergola', name: 'Pérgola', description: 'Licor premium', price: 35.00 },
                 { id: 'dom-feliciano', name: 'Dom Feliciano', description: 'Licor gaúcho', price: 20.00 },
                 { id: 'cantinho-do-valle', name: 'Cantinho do Valle', description: 'Bebida ready to drink', price: 8.00 },
@@ -1516,10 +1515,10 @@
             ],
             'aguas': [
                 { id: 'agua-500ml', name: 'Água 500ml', description: 'Água mineral natural', price: 3.00 },
-                { id: 'agua-1.5l', name: 'Água 1,5L', description: 'Água mineral família', price: 5.00 },
-                { id: 'agua-coco-1l', name: 'Água de Coco 1L', description: 'Água de coco natural', price: 10.00 },
+                { id: 'agua-1.5l', name: 'Água 1,5L', description: 'Água mineral família', price: 6.00 },
+                { id: 'agua-coco-1l', name: 'Água de Coco 1L', description: 'Água de coco natural', price: 12.00 },
                 { id: 'agua-gas-500ml', name: 'Água Gás 500ml', description: 'Água com gás', price: 3.50 },
-                { id: 'agua-gas-1.5l', name: 'Água Gás 1,5L', description: 'Água com gás família', price: 6.00 },
+                { id: 'agua-gas-1.5l', name: 'Água Gás 1,5L', description: 'Água com gás família', price: 7.00 },
                 { 
                     id: 'h2o-500ml', 
                     name: 'H2O 500ml', 
@@ -1550,8 +1549,8 @@
             ],
             'refri-pet': [
                 { id: 'coca-2l', name: 'Coca-Cola 2L', description: 'Refrigerante família', price: 13.00 },
-                { id: 'sprite-2l', name: 'Sprite 2L', description: 'Refrigerante cítrico', price: 10.00 },
-                { id: 'fanta-laranja-2l', name: 'Fanta Laranja 2L', description: 'Refrigerante laranja', price: 10.00 },
+                { id: 'sprite-2l', name: 'Sprite 2L', description: 'Refrigerante cítrico', price: 11.00 },
+                { id: 'fanta-laranja-2l', name: 'Fanta Laranja 2L', description: 'Refrigerante laranja', price: 11.00 },
                 { id: 'coca-mini', name: 'Coca Mini', description: 'Coca-Cola pequena', price: 3.00 },
                 { id: 'conq-mini', name: 'Conq. Mini', description: 'Conquista mini', price: 2.50 },
                 { id: 'coca-600ml', name: 'Coca 600ml', description: 'Coca-Cola 600ml', price: 7.00 },
@@ -1559,7 +1558,7 @@
                 { id: 'coca-1l', name: 'Coca-Cola 1L', description: 'Coca-Cola 1 litro', price: 9.00 },
                 { id: 'coca-1l-zero', name: 'Coca-Cola 1L Zero', description: 'Coca-Cola Zero 1 litro', price: 9.00 },
                 { id: 'sprite-600ml', name: 'Sprite 600ml', description: 'Sprite 600ml', price: 6.00 },
-                { id: 'schwepps-1.5l', name: 'Schwepps 1,5L', description: 'Refrigerante cítrico premium', price: 8.00 },
+                { id: 'schwepps-1.5l', name: 'Schwepps 1,5L', description: 'Refrigerante cítrico premium', price: 10.50 },
                 { id: 'guarana-2l', name: 'Antárctica 2L', description: 'Guaraná Antarctica 2 litros', price: 12.00 },
                 { id: 'guarana-2l-zero', name: 'Antárctica 2L Zero', description: 'Guaraná Antarctica Zero 2 litros', price: 12.00 },
                 { id: 'guarana-1l', name: 'Antárctica 1L', description: 'Guaraná Antarctica 1 litro', price: 9.00 },
@@ -1573,7 +1572,7 @@
                     id: 'del-valle-1l', 
                     name: 'Del Valle 1L', 
                     description: 'Suco de caixinha', 
-                    price: 10.00,
+                    price: 12.00,
                     requiresFlavorSelection: true,
                     flavorType: 'suco_delvalle'
                 },
@@ -1597,7 +1596,7 @@
                 }
             ],
             'energeticos': [
-                { id: 'big-power-2l', name: 'Big Power 2L', description: 'Energético grande', price: 12.00 },
+                { id: 'big-power-2l', name: 'Big Power 2L', description: 'Energético grande', price: 13.00 },
                 { 
                     id: 'monster-473ml', 
                     name: 'Monster 473ml', 
@@ -1606,12 +1605,12 @@
                     requiresFlavorSelection: true,
                     flavorType: 'energetico_monster'
                 },
-                { id: 'red-bull-250ml', name: 'Red Bull Tradicional 250ml', description: 'Energético pequeno', price: 13.00 },
+                { id: 'red-bull-250ml', name: 'Red Bull Tradicional 250ml', description: 'Energético pequeno', price: 14.00 },
                 { 
                     id: 'bally-2l', 
                     name: 'Bally 2L', 
                     description: 'Energético 2 litros', 
-                    price: 14.00,
+                    price: 15.00,
                     requiresFlavorSelection: true,
                     flavorType: 'energetico_bally'
                 },
@@ -1619,7 +1618,7 @@
                     id: 'bally-473ml', 
                     name: 'Bally 473ml', 
                     description: 'Energético lata grande', 
-                    price: 8.00,
+                    price: 10.00,
                     requiresFlavorSelection: true,
                     flavorType: 'energetico_bally'
                 }
@@ -1634,7 +1633,7 @@
                     flavorType: 'gelo_sabores'
                 },
                 { id: 'carvao-3kg', name: 'Carvão 3kg', description: 'Carvão para churrasco', price: 20.00 },
-                { id: 'gelo-4.5kg', name: 'Gelo 4,5Kg', description: 'Gelo em saco', price: 10.00 },
+                { id: 'gelo-4.5kg', name: 'Gelo 4,5Kg', description: 'Gelo em saco', price: 11.00 },
                 { id: 'carvao-6kg', name: 'Carvão 6Kg', description: 'Carvão grande', price: 30.00 }
             ]
         };
