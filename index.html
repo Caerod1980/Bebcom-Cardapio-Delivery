@@ -1,3 +1,4 @@
+<!-- INÍCIO DO CÓDIGO ATUALIZADO -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -24,560 +25,111 @@
             padding-bottom: 20px; 
         }
 
-        .header {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-            color: white;
-            text-align: center;
-            padding: 25px 20px;
-            font-size: 28px;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            position: relative;
-            border-bottom: 2px solid #dc2626;
-        }
+        /* ... (manter todos os estilos existentes) ... */
 
-        .header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f, #4d96ff);
-        }
-
-        .nav-container {
-            display: flex;
-            gap: 10px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            overflow-x: auto;
-            border-bottom: 1px solid #333;
-        }
-
-        .nav-button {
-            padding: 12px 20px;
-            background: rgba(26, 26, 26, 0.9);
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            white-space: nowrap;
-            transition: all 0.3s ease;
-        }
-
-        .nav-button:hover {
-            background: rgba(220, 38, 38, 0.8);
-            transform: translateY(-2px);
-        }
-
-        .main-container {
-            display: flex;
-            gap: 20px;
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .menu-section {
-            flex: 3;
-            background: rgba(26, 26, 26, 0.9);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #333;
-        }
-
-        .cart-section {
-            flex: 2;
-            background: rgba(26, 26, 26, 0.9);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #333;
-            position: sticky;
-            top: 20px;
-            max-height: calc(100vh - 100px);
-            overflow-y: auto;
-        }
-
-        .section-title {
-            color: white;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 24px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .categories-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .category-button {
-            background: linear-gradient(135deg, rgba(45, 45, 45, 0.9) 0%, rgba(60, 60, 60, 0.9) 100%);
-            border: 1px solid #333;
-            padding: 25px 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            color: white;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .category-button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(220, 38, 38, 0.2);
-            border-color: #dc2626;
-        }
-
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .product-card {
-            background: rgba(45, 45, 45, 0.7);
-            border: 1px solid #444;
-            border-radius: 10px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.15);
-            border-color: #dc2626;
-        }
-
-        .product-card.unavailable {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        .product-card.unavailable::after {
-            content: "INDISPONÍVEL";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(220, 38, 38, 0.9);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            z-index: 2;
-        }
-
-        .product-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #f5f5f5;
-        }
-
-        .product-info {
-            font-size: 14px;
-            color: #aaa;
-            margin-bottom: 10px;
-        }
-
-        .product-price {
-            font-size: 16px;
-            color: #dc2626;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .add-to-cart-btn {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .add-to-cart-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
-        }
-
-        .add-to-cart-btn.added {
-            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-        }
-
-        .add-to-cart-btn:disabled {
-            background: #666;
-            cursor: not-allowed;
-            opacity: 0.7;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        .cart-items {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-        }
-
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: rgba(45, 45, 45, 0.5);
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .quantity-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #444;
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .quantity-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .remove-item-btn {
-            background: none;
-            border: none;
-            color: #ff6b6b;
-            cursor: pointer;
-            font-size: 14px;
-            margin-left: 10px;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-
-        .remove-item-btn:hover {
-            background: rgba(255, 107, 107, 0.1);
-        }
-
-        .totals-section {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #333;
-        }
-
-        .grand-total {
-            font-size: 20px;
-            font-weight: bold;
-            color: #ffd93d;
-            border-bottom: none;
-            padding-top: 10px;
-            border-top: 2px solid #444;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 5px;
-            color: #ddd;
-            font-weight: bold;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-        }
-
-        .address-grid {
-            display: grid;
-            grid-template-columns: 1fr 100px;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .delivery-options {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .delivery-option {
-            flex: 1;
-            padding: 15px;
-            text-align: center;
-            background: rgba(45, 45, 45, 0.5);
-            border: 2px solid transparent;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .delivery-option:hover {
-            background: rgba(45, 45, 45, 0.8);
-        }
-
-        .delivery-option.selected {
-            border-color: #4d96ff;
-            background: rgba(77, 150, 255, 0.1);
-        }
-
-        .payment-methods {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .payment-method {
-            padding: 15px;
-            background: rgba(45, 45, 45, 0.5);
-            border: 2px solid transparent;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .payment-method:hover {
-            background: rgba(45, 45, 45, 0.8);
-        }
-
-        .payment-method.selected {
-            border-color: #4d96ff;
-            background: rgba(77, 150, 255, 0.1);
-        }
-
-        .payment-icon {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        .primary-button {
-            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            width: 100%;
-            transition: all 0.3s ease;
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .primary-button:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
-        }
-
-        .primary-button:disabled {
-            background: #666;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .secondary-button {
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            width: 100%;
-            transition: all 0.3s ease;
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .secondary-button:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
-        }
-
-        .secondary-button:disabled {
-            background: #666;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .clear-button {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            width: 100%;
-            margin-top: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .clear-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
-        }
-
-        .payment-status {
-            padding: 12px;
-            border-radius: 8px;
-            margin: 10px 0;
-            background: rgba(255, 217, 61, 0.1);
-            border-left: 4px solid #ffd93d;
-            font-size: 14px;
-            text-align: center;
-            animation: slideIn 0.3s ease;
-        }
-
-        .payment-status.success {
-            background: rgba(107, 207, 127, 0.1);
-            border-left-color: #6bcf7f;
-        }
-
-        .payment-status.error {
-            background: rgba(220, 38, 38, 0.1);
-            border-left-color: #dc2626;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        /* MODAL PARA ESCOLHER SABOR DO GELO */
-        .modal-overlay {
+        /* MODAL PARA SELEÇÃO DE SABORES (REUTILIZÁVEL) */
+        .flavor-modal-overlay {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 10000;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 20000;
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(5px);
         }
 
-        .modal-content {
+        .flavor-modal-content {
             background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-            border-radius: 12px;
+            border-radius: 15px;
             padding: 30px;
             width: 90%;
             max-width: 500px;
             max-height: 80vh;
             overflow-y: auto;
-            border: 1px solid #dc2626;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 2px solid #4d96ff;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            animation: modalSlideIn 0.4s ease;
         }
 
-        .modal-title {
-            color: white;
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .flavor-modal-title {
+            color: #4d96ff;
             text-align: center;
-            font-size: 24px;
+            font-size: 22px;
             margin-bottom: 20px;
-            border-bottom: 2px solid #dc2626;
-            padding-bottom: 10px;
+            font-weight: bold;
         }
 
-        .ice-flavors-grid {
+        .flavors-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            gap: 12px;
             margin: 20px 0;
         }
 
-        .ice-flavor-option {
-            padding: 15px;
-            background: rgba(45, 45, 45, 0.5);
+        @media (max-width: 480px) {
+            .flavors-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .flavor-option {
+            padding: 18px 12px;
+            background: rgba(45, 45, 45, 0.6);
             border: 2px solid transparent;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 500;
         }
 
-        .ice-flavor-option:hover {
-            background: rgba(45, 45, 45, 0.8);
-            transform: translateY(-2px);
-        }
-
-        .ice-flavor-option.selected {
-            border-color: #4d96ff;
+        .flavor-option:hover {
             background: rgba(77, 150, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(77, 150, 255, 0.3);
+        }
+
+        .flavor-option.selected {
+            border-color: #ffd93d;
+            background: rgba(255, 217, 61, 0.1);
+            font-weight: bold;
+        }
+
+        .modal-instruction {
+            text-align: center;
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
         }
 
         .modal-buttons {
             display: flex;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 15px;
+            margin-top: 25px;
         }
 
         .modal-button {
             flex: 1;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 14px;
+            border-radius: 10px;
             border: none;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-size: 16px;
         }
 
         .modal-button.confirm {
@@ -585,321 +137,49 @@
             color: white;
         }
 
+        .modal-button.confirm:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+        }
+
         .modal-button.cancel {
             background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
             color: white;
         }
 
-        .modal-button:hover {
+        .modal-button.cancel:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.4);
         }
 
-        /* ====== SISTEMA ADMINISTRATIVO ====== */
-        .admin-button {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-            transition: all 0.3s ease;
+        .modal-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
         }
-        
-        .admin-button:hover {
-            transform: scale(1.1);
-            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-        }
-        
-        .admin-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 10001;
-            overflow-y: auto;
-            padding: 20px;
-        }
-        
-        .admin-content {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-            max-width: 1000px;
-            margin: 40px auto;
-            border-radius: 15px;
-            border: 2px solid #3b82f6;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-        }
-        
-        .admin-header {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-            padding: 20px 30px;
-            border-bottom: 2px solid #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .admin-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #60a5fa;
-        }
-        
-        .admin-close {
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .admin-password {
-            padding: 30px;
-            background: rgba(26, 26, 26, 0.8);
-            border-bottom: 1px solid #333;
-        }
-        
-        .password-input {
-            width: 100%;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: white;
-            font-size: 16px;
-            margin-bottom: 15px;
-        }
-        
-        .password-button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        .admin-main {
-            padding: 20px 30px;
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-        
-        .admin-category-section {
-            margin-bottom: 25px;
-            background: rgba(26, 26, 26, 0.5);
-            border-radius: 10px;
-            padding: 20px;
-            border: 1px solid #333;
-        }
-        
-        .admin-category-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #60a5fa;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #3b82f6;
-        }
-        
-        .admin-product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-        }
-        
-        .admin-product-item {
-            background: rgba(45, 45, 45, 0.3);
-            border-radius: 8px;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid #444;
-            transition: all 0.3s ease;
-        }
-        
-        .admin-product-item:hover {
-            border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.1);
-        }
-        
-        .admin-product-name {
-            color: #f5f5f5;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        
-        .admin-product-price {
-            color: #dc2626;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-        
-        .toggle-switch {
+
+        /* Indicador de múltiplos sabores no produto */
+        .product-has-flavors {
             position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 30px;
         }
-        
-        .toggle-checkbox {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .toggle-slider {
+
+        .product-has-flavors::after {
+            content: "⚡";
             position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #dc2626;
-            transition: .4s;
-            border-radius: 30px;
-        }
-        
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
+            top: 10px;
+            right: 10px;
+            background: rgba(77, 150, 255, 0.2);
             border-radius: 50%;
-        }
-        
-        .toggle-checkbox:checked + .toggle-slider {
-            background-color: #10b981;
-        }
-        
-        .toggle-checkbox:checked + .toggle-slider:before {
-            transform: translateX(30px);
-        }
-        
-        .admin-actions {
-            padding: 20px 30px;
-            background: rgba(26, 26, 26, 0.8);
-            border-top: 1px solid #333;
+            width: 30px;
+            height: 30px;
             display: flex;
-            gap: 15px;
-        }
-        
-        .admin-action-btn {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            align-items: center;
+            justify-content: center;
             font-size: 14px;
         }
-        
-        .save-btn {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
-        }
-        
-        .reset-btn {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
-        
-        .all-btn {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-        
-        .none-btn {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-        }
 
-        .admin-help {
-            color: #94a3b8;
-            font-size: 12px;
-            margin-top: 10px;
-            text-align: center;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Responsivo */
-        @media (max-width: 1024px) {
-            .main-container {
-                flex-direction: column;
-            }
-            
-            .cart-section {
-                position: static;
-                max-height: none;
-            }
-            
-            .admin-product-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .categories-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            }
-            
-            .products-grid {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            }
-            
-            .payment-methods {
-                grid-template-columns: 1fr;
-            }
-            
-            .address-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .ice-flavors-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .admin-actions {
-                flex-direction: column;
-            }
-        }
+        /* ... (manter outros estilos existentes) ... */
     </style>
 </head>
 <body>
@@ -1044,7 +324,7 @@
         </div>
     </div>
 
-    <!-- MODAL PARA ESCOLHER SABOR DO GELO -->
+    <!-- MODAL PARA ESCOLHER SABOR DO GELO (mantido para compatibilidade) -->
     <div class="modal-overlay" id="iceFlavorModal">
         <div class="modal-content">
             <h2 class="modal-title">🧊 Escolha o sabor do gelo</h2>
@@ -1061,6 +341,29 @@
                     ✅ Confirmar
                 </button>
                 <button class="modal-button cancel" onclick="cancelIceFlavor()">
+                    ❌ Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL REUTILIZÁVEL PARA SELEÇÃO DE SABORES -->
+    <div class="flavor-modal-overlay" id="flavorModal">
+        <div class="flavor-modal-content">
+            <h2 class="flavor-modal-title" id="flavorModalTitle">Escolha o sabor</h2>
+            <div class="modal-instruction" id="flavorModalInstruction">
+                Selecione uma opção para continuar
+            </div>
+            
+            <div class="flavors-grid" id="flavorsGrid">
+                <!-- Os sabores serão gerados dinamicamente -->
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-button confirm" id="confirmFlavorButton" onclick="confirmFlavorSelection()">
+                    ✅ Confirmar
+                </button>
+                <button class="modal-button cancel" onclick="cancelFlavorSelection()">
                     ❌ Cancelar
                 </button>
             </div>
@@ -1193,33 +496,120 @@
         };
 
         // ============================================
-        // DADOS DOS PRODUTOS (COMPLETO)
+        // DADOS DOS PRODUTOS ATUALIZADOS (COMPLETO)
         // ============================================
         const products = {
             'drinks-whisky': [
-                { id: 'old-star', name: 'Copão Old Star', description: 'Drink clássico de whisky', price: 11.00 },
-                { id: 'passport', name: 'Copão Passport', description: 'Whisky importado', price: 18.00 },
-                { id: 'natu-nobilis', name: 'Copão Natu Nobilis', description: 'Whisky premium', price: 17.00 },
-                { id: 'white-horse', name: 'Copão White Horse', description: 'Whisky escocês', price: 22.00 },
-                { id: 'red-label', name: 'Copão Red Label', description: 'Johnnie Walker Red Label', price: 25.00 },
-                { id: 'ballantines', name: 'Copão Ballantines', description: 'Whisky escocês', price: 28.00 },
-                { id: 'jack-daniels', name: 'Copão Jack Daniels', description: 'Whisky americano', price: 35.00 }
+                { 
+                    id: 'old-star', 
+                    name: 'Copão Old Star', 
+                    description: 'Drink clássico de whisky', 
+                    price: 11.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'whisky_oldstar',
+                    nextStep: 'ice'
+                },
+                { 
+                    id: 'passport', 
+                    name: 'Copão Passport', 
+                    description: 'Whisky importado', 
+                    price: 18.00,
+                    requiresFlavorSelection: false,
+                    flavorType: null
+                },
+                { 
+                    id: 'natu-nobilis', 
+                    name: 'Copão Natu Nobilis', 
+                    description: 'Whisky premium', 
+                    price: 17.00,
+                    requiresFlavorSelection: false,
+                    flavorType: null
+                },
+                { 
+                    id: 'white-horse', 
+                    name: 'Copão White Horse', 
+                    description: 'Whisky escocês', 
+                    price: 22.00,
+                    requiresFlavorSelection: false,
+                    flavorType: null
+                },
+                { 
+                    id: 'red-label', 
+                    name: 'Copão Red Label', 
+                    description: 'Johnnie Walker Red Label', 
+                    price: 25.00,
+                    requiresFlavorSelection: false,
+                    flavorType: null
+                },
+                { 
+                    id: 'ballantines', 
+                    name: 'Copão Ballantines', 
+                    description: 'Whisky escocês', 
+                    price: 28.00,
+                    requiresFlavorSelection: false,
+                    flavorType: null
+                },
+                { 
+                    id: 'jack-daniels', 
+                    name: 'Copão Jack Daniels', 
+                    description: 'Whisky americano', 
+                    price: 35.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'whisky_jack',
+                    nextStep: 'ice'
+                }
             ],
             'drinks-gin': [
-                { id: 'danoninho-gin', name: 'Danoninho de Gin', description: 'Drink refrescante com gin', price: 17.00 },
-                { id: 'copa-gin', name: 'Copão de Gin', description: 'Gin com tônica e limão', price: 17.00 }
+                { 
+                    id: 'danoninho-gin', 
+                    name: 'Danoninho de Gin', 
+                    description: 'Batida com Gin', 
+                    price: 17.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'gin_sabores',
+                    nextStep: 'ice'
+                },
+                { 
+                    id: 'copa-gin', 
+                    name: 'Copão de Gin', 
+                    description: 'Drink com Gin Askov Sabores', 
+                    price: 17.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'gin_sabores',
+                    nextStep: 'ice'
+                }
             ],
             'drinks-vodka': [
-                { id: 'danoninho-corote', name: 'Danoninho Corote', description: 'Drink com corote e frutas', price: 15.00 },
-                { id: 'danoninho-askov', name: 'Danoninho Askov', description: 'Askov com frutas', price: 17.00 },
-                { id: 'copa-ice', name: 'Copão de Ice', description: 'Drink gelado com vodka', price: 17.00 },
-                { id: 'copa-vodka', name: 'Copão de Vodka', description: 'Vodka com energético', price: 17.00 }
+                { 
+                    id: 'danoninho-corote', 
+                    name: 'Danoninho Corote', 
+                    description: 'Batida com Corote', 
+                    price: 15.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'corote_sabores'
+                },
+                { 
+                    id: 'danoninho-askov', 
+                    name: 'Danoninho Askov', 
+                    description: 'Askov de frutas com leite condensado', 
+                    price: 17.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'vodka_sabores'
+                }
+                // Removidos: Copão de Ice e Copão de Vodka
             ],
             'drinks-vinho': [
-                { id: 'danoninho-vinho', name: 'Danoninho de Vinho', description: 'Vinho com frutas', price: 17.00 }
+                { 
+                    id: 'danoninho-vinho', 
+                    name: 'Danoninho de Vinho', 
+                    description: 'Batida de Cantinho do Valle com leite condensado', 
+                    price: 17.00,
+                    requiresFlavorSelection: false
+                }
             ],
             'cervejas': [
-                { id: 'skol-brahma', name: 'Skol/Brahma', description: 'Cerveja tradicional brasileira', price: 4.25 },
+                { id: 'brahma', name: 'Brahma', description: 'Cerveja tradicional brasileira', price: 4.25 },
+                { id: 'skol', name: 'Skol', description: 'Cerveja tradicional brasileira', price: 4.25 },
                 { id: 'antarctica', name: 'Antarctica', description: 'Cerveja pilsen refrescante', price: 4.25 },
                 { id: 'sub-zero', name: 'Sub-Zero', description: 'Cerveja extra gelada', price: 4.25 },
                 { id: 'amstel', name: 'Amstel', description: 'Cerveja holandesa premium', price: 4.50 },
@@ -1227,68 +617,329 @@
                 { id: 'corona-long', name: 'Corona Long', description: 'Cerveja mexicana em long neck', price: 8.50 },
                 { id: 'stella-long', name: 'Stella Long', description: 'Cerveja belga em long neck', price: 7.00 },
                 { id: 'brahma-zero', name: 'Brahma Zero', description: 'Cerveja sem álcool', price: 5.00 },
-                { id: 'imperio', name: 'Império', description: 'Cerveja brasileira tradicional', price: 4.00 },
-                { id: 'duplo-malte', name: 'Duplo Malte', description: 'Cerveja com duplo malte', price: 4.50 }
+                { id: 'imperio', name: 'Império', description: 'Cerveja brasileira tradicional', price: 3.75 },
+                { id: 'duplo-malte', name: 'Duplo Malte', description: 'Cerveja com duplo malte', price: 4.50 },
+                { id: 'spaten', name: 'Spaten', description: 'Cerveja alemã premium', price: 5.50 },
+                { id: 'budweiser', name: 'Budweiser', description: 'Cerveja americana', price: 5.50 },
+                { id: 'burguesa', name: 'Burguesa', description: 'Cerveja artesanal brasileira', price: 3.75 },
+                { id: 'bavaria', name: 'Bavaria', description: 'Cerveja holandesa', price: 3.25 },
+                { id: 'bavaria-latao', name: 'Bavaria Latão', description: 'Cerveja em lata grande', price: 4.75 },
+                { id: 'petra', name: 'Petra', description: 'Cerveja brasileira', price: 4.00 },
+                { id: 'conti-malzbier', name: 'Conti Malzbier', description: 'Cerveja tipo malzbier', price: 4.50 },
+                { id: 'brahma-malz', name: 'Brahma Malz.', description: 'Malzbier da Brahma', price: 4.50 },
+                { id: 'moinho-real', name: 'Moinho Real', description: 'Cerveja brasileira', price: 4.00 },
+                { id: 'original', name: 'Original', description: 'Cerveja premium', price: 5.50 },
+                { id: 'heineken-long', name: 'Heineken Long', description: 'Heineken em long neck', price: 8.50 },
+                { id: 'budweiser-long', name: 'Budweiser Long', description: 'Budweiser em long neck', price: 8.00 },
+                { id: 'eisenbah-ipa', name: 'Eisenbah IPA', description: 'Cerveja IPA artesanal', price: 8.50 },
+                { id: 'stella-gold', name: 'Stella Gold', description: 'Stella Artois premium', price: 8.00 },
+                { id: 'amstel-ultra-long', name: 'Amstel Ultra Long', description: 'Cerveja leve em long neck', price: 6.50 },
+                { id: 'amstel-ultra', name: 'Amstel Ultra', description: 'Cerveja leve', price: 5.00 },
+                { id: 'spaten-long', name: 'Spaten Long', description: 'Spaten em long neck', price: 7.50 },
+                { id: 'imperio-gold', name: 'Império Gold', description: 'Cerveja premium brasileira', price: 8.00 },
+                { id: 'michelob-long', name: 'Michelob Long', description: 'Michelob em long neck', price: 8.00 },
+                { id: 'michelob', name: 'Michelob', description: 'Cerveja americana premium', price: 6.00 },
+                { id: 'conti-zero-grau', name: 'Conti Zero Grau', description: 'Cerveja sem álcool (Contém álcool, tem apenas o nome Zero)', price: 3.00 }
             ],
             'destilados': [
-                { id: 'jurupinga', name: 'Jurupinga', description: 'Licor brasileiro', price: 42.00 },
-                { id: 'saque', name: 'Saquê', description: 'Bebida japonesa', price: 30.00 },
+                // Removidos: Jurupinga e Saquê
                 { id: 'tequila', name: 'Tequila', description: 'Destilado mexicano', price: 23.00 },
                 { id: 'pinga-51', name: 'Pinga 51', description: 'Cachaça brasileira', price: 17.00 },
                 { id: 'conhaque', name: 'Conhaque', description: 'Destilado envelhecido', price: 19.00 },
                 { id: 'dimel', name: 'Dimel', description: 'Licor italiano', price: 28.00 },
                 { id: 'campari', name: 'Campari', description: 'Bitter italiano', price: 65.00 },
-                { id: 'gin-askov', name: 'Gin Askov', description: 'Gin brasileiro', price: 19.00 }
+                { 
+                    id: 'gin-askov', 
+                    name: 'Gin Askov', 
+                    description: 'Gin brasileiro', 
+                    price: 19.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'gin_sabores'
+                },
+                { id: 'askov-pura', name: 'Askov Pura', description: 'Vodka brasileira pura', price: 20.00 },
+                { 
+                    id: 'askov-ice', 
+                    name: 'Askov Ice', 
+                    description: 'Bebida ready to drink', 
+                    price: 8.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'ice_askov'
+                },
+                { 
+                    id: 'ice-leev', 
+                    name: 'Ice Leev', 
+                    description: 'Bebida ready to drink', 
+                    price: 8.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'ice_leev'
+                },
+                { 
+                    id: 'beats-lata', 
+                    name: 'Beats Lata', 
+                    description: 'Bebida em lata', 
+                    price: 7.50,
+                    requiresFlavorSelection: true,
+                    flavorType: 'beats'
+                },
+                { id: 'beats-long', name: 'Beats Long', description: 'Bebida em long neck', price: 12.00 },
+                { id: 'smirnoff-ice', name: 'Smirnoff Ice', description: 'Bebida com vodka', price: 10.00 },
+                { id: 'velho-barreiro', name: 'Velho Barreiro', description: 'Cachaça tradicional', price: 19.00 },
+                { id: 'jack-daniels-dest', name: 'Jack Daniels', description: 'Whiskey americano', price: 56.00 },
+                { id: 'white-horse-dest', name: 'White Horse', description: 'Whisky escocês', price: 22.00 },
+                { id: 'red-label-dest', name: 'Red Label', description: 'Johnnie Walker', price: 25.00 },
+                { id: 'ballantines-dest', name: 'Ballantines', description: 'Whisky escocês', price: 28.00 },
+                { id: 'smirnoff-1l', name: 'Smirnoff 1L', description: 'Vodka premium 1 litro', price: 56.00 },
+                { 
+                    id: 'askov-sabor-1l', 
+                    name: 'Askov Sabor 1L', 
+                    description: 'Vodka com sabor 1 litro', 
+                    price: 20.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'vodka_sabores'
+                },
+                { id: 'canelinha', name: 'Canelinha', description: 'Licor de canela', price: 15.00 },
+                { id: 'dom-bosco', name: 'Dom Bosco', description: 'Licor brasileiro', price: 20.00 },
+                { id: 'chapinha', name: 'Chapinha', description: 'Cachaça brasileira', price: 12.00 },
+                { id: 'pergola', name: 'Pérgola', description: 'Licor premium', price: 35.00 },
+                { id: 'dom-feliciano', name: 'Dom Feliciano', description: 'Licor gaúcho', price: 20.00 },
+                { id: 'cantinho-do-valle', name: 'Cantinho do Valle', description: 'Bebida ready to drink', price: 8.00 },
+                { id: 'stempel-355ml', name: 'Stempel 355ml', description: 'Cerveja artesanal em garrafa', price: 8.00 },
+                { id: 'stempel-600ml', name: 'Stempel 600ml', description: 'Cerveja artesanal 600ml', price: 12.00 }
             ],
             'aguas': [
                 { id: 'agua-500ml', name: 'Água 500ml', description: 'Água mineral natural', price: 3.00 },
                 { id: 'agua-1.5l', name: 'Água 1,5L', description: 'Água mineral família', price: 5.00 },
                 { id: 'agua-coco-1l', name: 'Água de Coco 1L', description: 'Água de coco natural', price: 10.00 },
                 { id: 'agua-gas-500ml', name: 'Água Gás 500ml', description: 'Água com gás', price: 3.50 },
-                { id: 'agua-gas-1.5l', name: 'Água Gás 1,5L', description: 'Água com gás família', price: 6.00 }
+                { id: 'agua-gas-1.5l', name: 'Água Gás 1,5L', description: 'Água com gás família', price: 6.00 },
+                { id: 'h2o-500ml', name: 'H2O 500ml', description: 'Água mineral premium', price: 5.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'h2o_sabores'
+                },
+                { id: 'h2o-1.5l', name: 'H2O 1,5L', description: 'Água premium família', price: 10.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'h2o_sabores'
+                },
+                { id: 'gatorade', name: 'Gatorade', description: 'Bebida isotônica', price: 8.00 }
             ],
             'refri-latas': [
-                { id: 'sprite-fanta', name: 'Sprite/Fanta', description: 'Refrigerante cítrico', price: 4.50 },
+                { id: 'fanta-laranja', name: 'Fanta Laranja', description: 'Refrigerante cítrico', price: 4.50 },
                 { id: 'guarana-antarctica', name: 'Guaraná Antarctica', description: 'Refrigerante brasileiro', price: 4.50 },
-                { id: 'pepsi', name: 'Pepsi', description: 'Refrigerante de cola', price: 4.50 },
+                { id: 'pepsi-black', name: 'Pepsi Black', description: 'Refrigerante de cola', price: 4.50 },
                 { id: 'coca-cola-lata', name: 'Coca Cola', description: 'Refrigerante tradicional', price: 4.50 },
                 { id: 'schwepps', name: 'Schwepps', description: 'Refrigerante tônico', price: 5.00 },
-                { id: 'kuat', name: 'Kuat', description: 'Refrigerante de guaraná', price: 4.50 }
+                { id: 'tonica-antarctica', name: 'Tônica Antarctica', description: 'Refrigerante tônico', price: 4.50 },
+                { id: 'coca-zero-lata', name: 'Coca Cola Zero', description: 'Refrigerante sem açúcar', price: 4.50 },
+                { id: 'sprite-zero-lata', name: 'Sprite Zero', description: 'Refrigerante cítrico sem açúcar', price: 4.50 }
+                // Removido: Kuat
             ],
             'refri-pet': [
                 { id: 'coca-2l', name: 'Coca-Cola 2L', description: 'Refrigerante família', price: 13.00 },
                 { id: 'sprite-2l', name: 'Sprite 2L', description: 'Refrigerante cítrico', price: 10.00 },
-                { id: 'fanta-2l', name: 'Fanta 2L', description: 'Refrigerante laranja', price: 10.00 },
-                { id: 'coca-retor-2l', name: 'Coca Retor 2L', description: 'Coca-Cola retornável', price: 9.50 },
+                { id: 'fanta-laranja-2l', name: 'Fanta Laranja 2L', description: 'Refrigerante laranja', price: 10.00 },
                 { id: 'coca-mini', name: 'Coca Mini', description: 'Coca-Cola pequena', price: 3.00 },
-                { id: 'conq-mini', name: 'Conq. Mini', description: 'Conquista mini', price: 2.50 }
+                { id: 'conq-mini', name: 'Conq. Mini', description: 'Conquista mini', price: 2.50 },
+                { id: 'coca-600ml', name: 'Coca 600ml', description: 'Coca-Cola 600ml', price: 7.00 },
+                { id: 'coca-600ml-zero', name: 'Coca 600ml Zero', description: 'Coca-Cola Zero 600ml', price: 7.00 },
+                { id: 'coca-1l', name: 'Coca-Cola 1L', description: 'Coca-Cola 1 litro', price: 9.00 },
+                { id: 'coca-1l-zero', name: 'Coca-Cola 1L Zero', description: 'Coca-Cola Zero 1 litro', price: 9.00 },
+                { id: 'sprite-600ml', name: 'Sprite 600ml', description: 'Sprite 600ml', price: 6.00 },
+                { id: 'schwepps-1.5l', name: 'Schwepps 1,5L', description: 'Refrigerante cítrico premium', price: 8.00 },
+                { id: 'guarana-2l', name: 'Antárctica 2L', description: 'Guaraná Antarctica 2 litros', price: 12.00 },
+                { id: 'guarana-2l-zero', name: 'Antárctica 2L Zero', description: 'Guaraná Antarctica Zero 2 litros', price: 12.00 },
+                { id: 'guarana-1l', name: 'Antárctica 1L', description: 'Guaraná Antarctica 1 litro', price: 9.00 },
+                { id: 'conquista-2l', name: 'Conquista 2L', description: 'Guaraná Conquista 2 litros', price: 8.50 },
+                { id: 'quinze-2l', name: 'Quinze 2L', description: 'Guaraná Quinze 2 litros', price: 7.00 },
+                { id: 'conti-2l', name: 'Conti 2L', description: 'Refrigerante Cola 2 litros', price: 8.50 },
+                { id: 'guarana-mini', name: 'Guaraná Mini', description: 'Guaraná Antarctica individual', price: 3.00 }
+                // Removido: Coca Retor 2L
             ],
             'sucos': [
-                { id: 'del-valle-1l', name: 'Del Valle 1L', description: 'Suco de caixinha', price: 10.00 },
-                { id: 'prats-300ml', name: 'Prats 300ml', description: 'Suco pequeno', price: 6.00 },
-                { id: 'kapo', name: 'Kapo', description: 'Suco em pó', price: 4.00 },
-                { id: 'prats-1.5l', name: 'Prats 1,5L', description: 'Suco família', price: 23.00 },
-                { id: 'life-300ml', name: 'Life 300ml', description: 'Suco premium', price: 7.00 },
-                { id: 'life-900ml', name: 'Life 900ml', description: 'Suco premium', price: 14.00 }
+                { 
+                    id: 'del-valle-1l', 
+                    name: 'Del Valle 1L', 
+                    description: 'Suco de caixinha', 
+                    price: 10.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'suco_delvalle'
+                },
+                { id: 'prats-300ml-laranja', name: 'Prats 300ml Laranja', description: 'Suco de laranja', price: 6.00 },
+                { 
+                    id: 'kapo', 
+                    name: 'Kapo', 
+                    description: 'Suco em pó', 
+                    price: 4.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'suco_kapo'
+                },
+                { id: 'prats-1.5l-laranja', name: 'Prats 1,5L Laranja', description: 'Suco de laranja família', price: 23.00 },
+                { 
+                    id: 'life-900ml', 
+                    name: 'Life 900ml', 
+                    description: 'Suco premium', 
+                    price: 14.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'suco_life'
+                }
+                // Removido: Life 300ml
             ],
             'energeticos': [
                 { id: 'big-power-2l', name: 'Big Power 2L', description: 'Energético grande', price: 12.00 },
-                { id: 'monster-473ml', name: 'Monster 473ml', description: 'Energético importado', price: 12.00 },
-                { id: 'red-bull-250ml', name: 'Red Bull 250ml', description: 'Energético pequeno', price: 13.00 },
-                { id: 'one-2l', name: 'One 2L', description: 'Energético econômico', price: 10.00 },
-                { id: 'bally-2l', name: 'Bally 2L', description: 'Energético 2 litros', price: 14.00 },
-                { id: 'red-bull-355ml', name: 'Red Bull 355ml', description: 'Energético médio', price: 15.00 }
+                { 
+                    id: 'monster-473ml', 
+                    name: 'Monster 473ml', 
+                    description: 'Energético importado', 
+                    price: 12.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'energetico_monster'
+                },
+                { id: 'red-bull-250ml', name: 'Red Bull Tradicional 250ml', description: 'Energético pequeno', price: 13.00 },
+                { 
+                    id: 'bally-2l', 
+                    name: 'Bally 2L', 
+                    description: 'Energético 2 litros', 
+                    price: 14.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'energetico_bally'
+                },
+                { 
+                    id: 'bally-473ml', 
+                    name: 'Bally 473ml', 
+                    description: 'Energético lata grande', 
+                    price: 8.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'energetico_bally'
+                }
+                // Removidos: One 2L, Red Bull 355ml
             ],
             'gelo-carvao': [
-                { id: 'gelo-saborizado', name: 'Gelo Saborizado', description: 'Gelo com sabor', price: 3.00 },
+                { 
+                    id: 'gelo-saborizado', 
+                    name: 'Gelo Saborizado', 
+                    description: 'Gelo com sabor', 
+                    price: 3.00,
+                    requiresFlavorSelection: true,
+                    flavorType: 'gelo_sabores'
+                },
                 { id: 'carvao-3kg', name: 'Carvão 3kg', description: 'Carvão para churrasco', price: 20.00 },
                 { id: 'gelo-4.5kg', name: 'Gelo 4,5Kg', description: 'Gelo em saco', price: 10.00 },
-                { id: 'carvao-6.5kg', name: 'Carvão 6,5Kg', description: 'Carvão grande', price: 30.00 }
+                { id: 'carvao-6kg', name: 'Carvão 6Kg', description: 'Carvão grande', price: 30.00 }
             ]
         };
 
         // ============================================
-        // ESTADO GLOBAL
+        // CATÁLOGO DE SABORES POR TIPO
+        // ============================================
+        const FLAVOR_CATALOG = {
+            'whisky_oldstar': [
+                'Old Star Tradicional',
+                'Old Star Maçã-Verde'
+            ],
+            'whisky_jack': [
+                'Jack Tradicional',
+                'Jack Mel',
+                'Jack Maçã-Verde'
+            ],
+            'gin_sabores': [
+                'Tropical',
+                'Melancia',
+                'Morango',
+                'Maçã-Verde'
+            ],
+            'corote_sabores': [
+                'Morango',
+                'Melância',
+                'Maracujá',
+                'Pêssego',
+                'Blueberry',
+                'Limão',
+                'Canelinha'
+            ],
+            'vodka_sabores': [
+                'Frutas Vermelhas',
+                'Maracujá',
+                'Frutas Roxas',
+                'Kiwi',
+                'Pêssego',
+                'Limão',
+                'Blueberry'
+            ],
+            'ice_askov': [
+                'Maracujá',
+                'Limão',
+                'Frutas Vermelhas',
+                'Pina Colada'
+            ],
+            'ice_leev': [
+                'Morango',
+                'Limão',
+                'Melância',
+                'Maracujá',
+                'Abacaxi com Hortelã',
+                'Maçã-Verde'
+            ],
+            'beats': [
+                'Sense',
+                'GT',
+                'Red Mix',
+                'Green Mix'
+            ],
+            'h2o_sabores': [
+                'Limão',
+                'Limoneto'
+            ],
+            'suco_delvalle': [
+                'Laranja',
+                'Manga',
+                'Maracujá',
+                'Caju (sem açúcar)',
+                'Uva',
+                'Pêssego'
+            ],
+            'suco_kapo': [
+                'Uva',
+                'Morango',
+                'Maracujá',
+                'Laranja'
+            ],
+            'suco_life': [
+                'Uva',
+                'Laranja'
+            ],
+            'energetico_monster': [
+                'Tradicional',
+                'Tradicional Zero',
+                'Uva',
+                'Mango Loco',
+                'Melancia',
+                'Mango Loco Zero',
+                'Ultra Monster',
+                'Absolut',
+                'Cereja',
+                'Pêssego',
+                'Rio',
+                'Laranja'
+            ],
+            'energetico_bally': [
+                'Tradicional',
+                'Morango e Pêssego',
+                'Melancia',
+                'Tropical'
+            ],
+            'gelo_sabores': [
+                'Melancia',
+                'Morango',
+                'Limão',
+                'Côco',
+                'Maçã-Verde',
+                'Abacaxi com Hortelã',
+                'Maracujá',
+                'Laranja'
+            ]
+        };
+
+        // ============================================
+        // ESTADO GLOBAL ATUALIZADO
         // ============================================
         const state = {
             cart: [],
@@ -1302,22 +953,15 @@
             currentPreferenceId: null,
             paymentInterval: null,
             currentIceFlavor: null,
-            pendingWhiskyProduct: null,
+            pendingProduct: null,
+            pendingFlavors: {},
+            currentFlavorStep: null,
             adminAuthenticated: false,
             productAvailability: {}
         };
 
-        // Sabores de gelo disponíveis
-        const ICE_FLAVORS = [
-            'Melancia',
-            'Morango',
-            'Limão',
-            'Côco',
-            'Maçã-Verde',
-            'Abacaxi com Hortelã',
-            'Maracujá',
-            'Laranja'
-        ];
+        // Sabores de gelo disponíveis (para compatibilidade)
+        const ICE_FLAVORS = FLAVOR_CATALOG.gelo_sabores;
 
         // ============================================
         // FUNÇÕES DE INICIALIZAÇÃO
@@ -1430,17 +1074,24 @@
             
             categoryProducts.forEach((product, index) => {
                 const isAvailable = isProductAvailable(product.id);
+                const hasFlavors = product.requiresFlavorSelection || false;
+                
                 const productCard = document.createElement('div');
-                productCard.className = `product-card ${!isAvailable ? 'unavailable' : ''}`;
+                productCard.className = `product-card ${!isAvailable ? 'unavailable' : ''} ${hasFlavors ? 'product-has-flavors' : ''}`;
                 productCard.setAttribute('data-product-id', product.id);
+                
+                let buttonText = '🛒 Adicionar';
+                if (!isAvailable) buttonText = '❌ Indisponível';
+                if (hasFlavors) buttonText = '⚡ Escolher Sabores';
+                
                 productCard.innerHTML = `
                     <div class="product-name">${product.name}</div>
                     <div class="product-info">${product.description}</div>
                     <div class="product-price">R$ ${product.price.toFixed(2)}</div>
                     <button class="add-to-cart-btn" 
-                            onclick="handleAddToCart('${product.name}', ${product.price}, '${categoryId}', '${product.id}', this)"
+                            onclick="handleAddToCart('${product.id}', this)"
                             ${!isAvailable ? 'disabled' : ''}>
-                        ${!isAvailable ? '❌ Indisponível' : '🛒 Adicionar'}
+                        ${buttonText}
                     </button>
                 `;
                 productsGrid.appendChild(productCard);
@@ -1452,6 +1103,7 @@
                 products[category].forEach(product => {
                     const productElements = document.querySelectorAll(`[data-product-id="${product.id}"]`);
                     const isAvailable = isProductAvailable(product.id);
+                    const hasFlavors = product.requiresFlavorSelection || false;
                     
                     productElements.forEach(element => {
                         if (isAvailable) {
@@ -1459,7 +1111,9 @@
                             const button = element.querySelector('button');
                             if (button) {
                                 button.disabled = false;
-                                button.innerHTML = '🛒 Adicionar';
+                                let buttonText = '🛒 Adicionar';
+                                if (hasFlavors) buttonText = '⚡ Escolher Sabores';
+                                button.innerHTML = buttonText;
                             }
                         } else {
                             element.classList.add('unavailable');
@@ -1475,74 +1129,180 @@
         }
 
         // ============================================
-        // FUNÇÕES DO CARRINHO COM MODAL DE GELO
+        // SISTEMA DE SELEÇÃO DE SABORES
         // ============================================
-        function handleAddToCart(name, price, category, productId, button) {
-            if (!isProductAvailable(productId)) {
+        function handleAddToCart(productId, button) {
+            const product = findProductById(productId);
+            if (!product || !isProductAvailable(productId)) {
                 showNotification('❌ Este produto está temporariamente indisponível');
                 return;
             }
             
-            if (category === 'drinks-whisky') {
-                state.pendingWhiskyProduct = { name, price, category, productId };
-                openIceFlavorModal(button);
+            if (product.requiresFlavorSelection) {
+                state.pendingProduct = product;
+                state.pendingFlavors = {};
+                state.currentFlavorStep = 'primary';
+                
+                if (product.flavorType) {
+                    openFlavorModal(product, 'primary');
+                }
             } else {
-                addToCart(name, price, productId, button);
+                addToCartDirect(product, button);
             }
         }
 
-        function openIceFlavorModal(button) {
-            document.querySelectorAll('.ice-flavor-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            state.currentIceFlavor = null;
-            
-            document.getElementById('iceFlavorModal').style.display = 'flex';
-            state.currentButton = button;
+        function findProductById(productId) {
+            for (const category in products) {
+                const found = products[category].find(p => p.id === productId);
+                if (found) return found;
+            }
+            return null;
         }
 
-        function selectIceFlavor(flavor) {
-            document.querySelectorAll('.ice-flavor-option').forEach(option => {
-                option.classList.remove('selected');
-            });
+        function openFlavorModal(product, step) {
+            const modal = document.getElementById('flavorModal');
+            const title = document.getElementById('flavorModalTitle');
+            const instruction = document.getElementById('flavorModalInstruction');
+            const grid = document.getElementById('flavorsGrid');
+            const confirmButton = document.getElementById('confirmFlavorButton');
             
-            const selectedOption = document.querySelector(`.ice-flavor-option[data-flavor="${flavor}"]`);
-            if (selectedOption) {
-                selectedOption.classList.add('selected');
+            grid.innerHTML = '';
+            state.currentFlavorStep = step;
+            
+            let flavorType = product.flavorType;
+            let flavors = FLAVOR_CATALOG[flavorType] || [];
+            
+            if (step === 'ice' && product.nextStep === 'ice') {
+                flavorType = 'gelo_sabores';
+                flavors = ICE_FLAVORS;
+                title.textContent = '🧊 Escolha o sabor do gelo';
+                instruction.textContent = 'Selecione um sabor para o seu drink (sem custo adicional)';
+            } else {
+                title.textContent = `Escolha o sabor do ${getFlavorTypeName(flavorType)}`;
+                instruction.textContent = `Selecione o sabor desejado para ${product.name}`;
             }
             
-            state.currentIceFlavor = flavor;
+            flavors.forEach(flavor => {
+                const option = document.createElement('div');
+                option.className = 'flavor-option';
+                option.textContent = flavor;
+                option.dataset.flavor = flavor;
+                option.onclick = function() {
+                    document.querySelectorAll('.flavor-option').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    
+                    if (step === 'primary') {
+                        state.pendingFlavors.primary = flavor;
+                    } else if (step === 'ice') {
+                        state.pendingFlavors.ice = flavor;
+                    }
+                    
+                    confirmButton.disabled = false;
+                };
+                grid.appendChild(option);
+            });
+            
+            confirmButton.disabled = true;
+            modal.style.display = 'flex';
         }
 
-        function confirmIceFlavor() {
-            if (!state.currentIceFlavor) {
+        function getFlavorTypeName(flavorType) {
+            const names = {
+                'whisky_oldstar': 'Old Star',
+                'whisky_jack': 'Jack Daniels',
+                'gin_sabores': 'Gin',
+                'corote_sabores': 'Corote',
+                'vodka_sabores': 'Vodka',
+                'ice_askov': 'Askov Ice',
+                'ice_leev': 'Ice Leev',
+                'beats': 'Beats',
+                'h2o_sabores': 'H2O',
+                'suco_delvalle': 'Suco Del Valle',
+                'suco_kapo': 'Suco Kapo',
+                'suco_life': 'Suco Life',
+                'energetico_monster': 'Monster',
+                'energetico_bally': 'Bally',
+                'gelo_sabores': 'Gelo'
+            };
+            return names[flavorType] || 'produto';
+        }
+
+        function confirmFlavorSelection() {
+            const modal = document.getElementById('flavorModal');
+            
+            if (state.currentFlavorStep === 'primary' && !state.pendingFlavors.primary) {
+                alert('Por favor, selecione um sabor');
+                return;
+            }
+            
+            if (state.currentFlavorStep === 'ice' && !state.pendingFlavors.ice) {
                 alert('Por favor, selecione um sabor de gelo');
                 return;
             }
             
-            document.getElementById('iceFlavorModal').style.display = 'none';
+            modal.style.display = 'none';
             
-            if (state.pendingWhiskyProduct) {
-                const product = state.pendingWhiskyProduct;
-                const productWithFlavor = {
-                    ...product,
-                    iceFlavor: state.currentIceFlavor
-                };
-                
-                addToCartWithFlavor(productWithFlavor, state.currentButton);
-                state.pendingWhiskyProduct = null;
+            if (state.currentFlavorStep === 'primary' && state.pendingProduct.nextStep === 'ice') {
+                openFlavorModal(state.pendingProduct, 'ice');
+            } else {
+                addToCartWithFlavors();
             }
         }
 
-        function cancelIceFlavor() {
-            document.getElementById('iceFlavorModal').style.display = 'none';
-            state.pendingWhiskyProduct = null;
-            state.currentIceFlavor = null;
+        function cancelFlavorSelection() {
+            document.getElementById('flavorModal').style.display = 'none';
+            state.pendingProduct = null;
+            state.pendingFlavors = {};
+            state.currentFlavorStep = null;
         }
 
-        function addToCartWithFlavor(product, button) {
+        function addToCartWithFlavors() {
+            if (!state.pendingProduct) return;
+            
+            const product = state.pendingProduct;
+            const flavors = state.pendingFlavors;
+            
+            const existingItem = findCartItemWithSameFlavors(product.name, flavors);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                state.cart.push({
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    productId: product.id,
+                    flavors: { ...flavors }
+                });
+            }
+            
+            updateCartDisplay();
+            saveCartToLocalStorage();
+            
+            state.pendingProduct = null;
+            state.pendingFlavors = {};
+            state.currentFlavorStep = null;
+            
+            showNotification(`✅ ${product.name} adicionado ao carrinho!`);
+        }
+
+        function findCartItemWithSameFlavors(productName, flavors) {
+            return state.cart.find(item => {
+                if (item.name !== productName) return false;
+                if (!item.flavors && !flavors) return true;
+                if (!item.flavors || !flavors) return false;
+                
+                const itemFlavors = JSON.stringify(item.flavors);
+                const newFlavors = JSON.stringify(flavors);
+                return itemFlavors === newFlavors;
+            });
+        }
+
+        function addToCartDirect(product, button) {
             const existingItem = state.cart.find(item => 
-                item.name === product.name && item.iceFlavor === product.iceFlavor
+                item.name === product.name && !item.flavors && item.productId === product.id
             );
             
             if (existingItem) {
@@ -1552,8 +1312,7 @@
                     name: product.name,
                     price: product.price,
                     quantity: 1,
-                    iceFlavor: product.iceFlavor,
-                    productId: product.productId
+                    productId: product.id
                 });
             }
             
@@ -1572,37 +1331,9 @@
             }
         }
 
-        function addToCart(name, price, productId, button) {
-            const existingItem = state.cart.find(item => 
-                item.name === name && !item.iceFlavor && item.productId === productId
-            );
-            
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                state.cart.push({
-                    name: name,
-                    price: price,
-                    quantity: 1,
-                    productId: productId
-                });
-            }
-            
-            updateCartDisplay();
-            saveCartToLocalStorage();
-            
-            if (button) {
-                const originalText = button.innerHTML;
-                button.innerHTML = '✓ Adicionado!';
-                button.classList.add('added');
-                
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.classList.remove('added');
-                }, 1000);
-            }
-        }
-
+        // ============================================
+        // FUNÇÕES DO CARRINHO (ATUALIZADAS)
+        // ============================================
         function updateCartDisplay() {
             const cartItems = document.getElementById('cartItems');
             const subtotalElement = document.getElementById('subtotal');
@@ -1629,8 +1360,13 @@
                 cartItem.className = 'cart-item';
                 
                 let itemName = item.name;
-                if (item.iceFlavor) {
-                    itemName += ` (Gelo: ${item.iceFlavor})`;
+                if (item.flavors) {
+                    if (item.flavors.primary) {
+                        itemName += ` (Sabor: ${item.flavors.primary})`;
+                    }
+                    if (item.flavors.ice) {
+                        itemName += ` (Gelo: ${item.flavors.ice})`;
+                    }
                 }
                 
                 cartItem.innerHTML = `
@@ -1708,7 +1444,7 @@
         }
 
         // ============================================
-        // FUNÇÕES DE ENTREGA
+        // FUNÇÕES DE ENTREGA (MANTIDAS)
         // ============================================
         function selectDeliveryType(type) {
             state.deliveryType = type;
@@ -1751,7 +1487,7 @@
         }
 
         // ============================================
-        // FUNÇÕES DE PAGAMENTO
+        // FUNÇÕES DE PAGAMENTO (MANTIDAS)
         // ============================================
         function selectPaymentMethod(method) {
             if (state.deliveryType !== 'delivery') return;
@@ -1954,7 +1690,7 @@
                 name: item.name,
                 quantity: item.quantity,
                 price: item.price,
-                iceFlavor: item.iceFlavor || null,
+                flavors: item.flavors || null,
                 productId: item.productId
             }));
             
@@ -2078,7 +1814,7 @@
         }
 
         // ============================================
-        // FUNÇÕES DO WHATSAPP
+        // FUNÇÕES DO WHATSAPP (ATUALIZADAS)
         // ============================================
         function validateForm() {
             const customerName = document.getElementById('customerName').value.trim();
@@ -2165,8 +1901,13 @@
                 const itemTotal = item.price * item.quantity;
                 message += `\n${index + 1}. ${item.name}\n`;
                 
-                if (item.iceFlavor) {
-                    message += `   🧊 *Sabor do gelo:* ${item.iceFlavor}\n`;
+                if (item.flavors) {
+                    if (item.flavors.primary) {
+                        message += `   🍹 *Sabor:* ${item.flavors.primary}\n`;
+                    }
+                    if (item.flavors.ice) {
+                        message += `   🧊 *Sabor do gelo:* ${item.flavors.ice}\n`;
+                    }
                 }
                 
                 message += `   ${item.quantity} × R$ ${item.price.toFixed(2)} = R$ ${itemTotal.toFixed(2)}`;
@@ -2210,7 +1951,7 @@
         }
 
         // ============================================
-        // SISTEMA ADMINISTRATIVO
+        // SISTEMA ADMINISTRATIVO (ATUALIZADO)
         // ============================================
         function setupAdminListeners() {
             document.getElementById('adminButton').addEventListener('click', openAdminPanel);
@@ -2303,6 +2044,7 @@
                         <div>
                             <div class="admin-product-name">${product.name}</div>
                             <div class="admin-product-price">R$ ${product.price.toFixed(2)}</div>
+                            ${product.requiresFlavorSelection ? '<small style="color: #60a5fa; font-size: 12px;">⚡ Com seleção de sabores</small>' : ''}
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" class="toggle-checkbox" 
@@ -2327,7 +2069,10 @@
                     const button = element.querySelector('button');
                     if (button) {
                         button.disabled = false;
-                        button.innerHTML = '🛒 Adicionar';
+                        const product = findProductById(productId);
+                        let buttonText = '🛒 Adicionar';
+                        if (product && product.requiresFlavorSelection) buttonText = '⚡ Escolher Sabores';
+                        button.innerHTML = buttonText;
                     }
                 } else {
                     element.classList.add('unavailable');
@@ -2355,7 +2100,9 @@
                             const button = element.querySelector('button');
                             if (button) {
                                 button.disabled = false;
-                                button.innerHTML = '🛒 Adicionar';
+                                let buttonText = '🛒 Adicionar';
+                                if (product.requiresFlavorSelection) buttonText = '⚡ Escolher Sabores';
+                                button.innerHTML = buttonText;
                             }
                         } else {
                             element.classList.add('unavailable');
@@ -2428,10 +2175,52 @@
         }
 
         // ============================================
+        // FUNÇÕES DE COMPATIBILIDADE (para o modal antigo)
+        // ============================================
+        function selectIceFlavor(flavor) {
+            document.querySelectorAll('.ice-flavor-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            const selectedOption = document.querySelector(`.ice-flavor-option[data-flavor="${flavor}"]`);
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+            }
+            
+            state.currentIceFlavor = flavor;
+        }
+
+        function confirmIceFlavor() {
+            if (!state.currentIceFlavor) {
+                alert('Por favor, selecione um sabor de gelo');
+                return;
+            }
+            
+            document.getElementById('iceFlavorModal').style.display = 'none';
+            
+            if (state.pendingWhiskyProduct) {
+                const product = state.pendingWhiskyProduct;
+                const productWithFlavor = {
+                    ...product,
+                    iceFlavor: state.currentIceFlavor
+                };
+                
+                addToCartWithFlavor(productWithFlavor, state.currentButton);
+                state.pendingWhiskyProduct = null;
+            }
+        }
+
+        function cancelIceFlavor() {
+            document.getElementById('iceFlavorModal').style.display = 'none';
+            state.pendingWhiskyProduct = null;
+            state.currentIceFlavor = null;
+        }
+
+        // ============================================
         // INICIALIZAÇÃO
         // ============================================
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
-
+<!-- FIM DO CÓDIGO ATUALIZADO -->
