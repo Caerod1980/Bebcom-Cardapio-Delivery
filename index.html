@@ -1,249 +1,1991 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Bebcom Delivery</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BebCom Delivery - Sistema Completo</title>
+    
+    <!-- SDK Mercado Pago -->
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
 
-  <!-- Mercado Pago SDK -->
-  <script src="https://sdk.mercadopago.com/js/v2"></script>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); 
+            color: #f5f5f5; 
+            min-height: 100vh; 
+            padding-bottom: 20px; 
+        }
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-    }
-    h2 {
-      margin-top: 30px;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0;
-      font-size: 16px;
-    }
-    button {
-      background: #25d366;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-    button:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
-    .box {
-      background: #fff;
-      padding: 15px;
-      border-radius: 6px;
-      margin-bottom: 20px;
-    }
-    .status {
-      margin-top: 10px;
-      font-weight: bold;
-    }
-  </style>
+        .header {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            color: white;
+            text-align: center;
+            padding: 25px 20px;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+            border-bottom: 2px solid #dc2626;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f, #4d96ff);
+        }
+
+        .nav-container {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            overflow-x: auto;
+            border-bottom: 1px solid #333;
+        }
+
+        .nav-button {
+            padding: 12px 20px;
+            background: rgba(26, 26, 26, 0.9);
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:hover {
+            background: rgba(220, 38, 38, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .main-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .menu-section {
+            flex: 3;
+            background: rgba(26, 26, 26, 0.9);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #333;
+        }
+
+        .cart-section {
+            flex: 2;
+            background: rgba(26, 26, 26, 0.9);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #333;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+
+        .section-title {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .category-button {
+            background: linear-gradient(135deg, rgba(45, 45, 45, 0.9) 0%, rgba(60, 60, 60, 0.9) 100%);
+            border: 1px solid #333;
+            padding: 25px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .category-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(220, 38, 38, 0.2);
+            border-color: #dc2626;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: rgba(45, 45, 45, 0.7);
+            border: 1px solid #444;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.15);
+            border-color: #dc2626;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #f5f5f5;
+        }
+
+        .product-info {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        .product-price {
+            font-size: 16px;
+            color: #dc2626;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .add-to-cart-btn {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .add-to-cart-btn.added {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        }
+
+        .cart-items {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(45, 45, 45, 0.5);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quantity-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #444;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .quantity-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .remove-item-btn {
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .remove-item-btn:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .totals-section {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .grand-total {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffd93d;
+            border-bottom: none;
+            padding-top: 10px;
+            border-top: 2px solid #444;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ddd;
+            font-weight: bold;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .address-grid {
+            display: grid;
+            grid-template-columns: 1fr 100px;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .delivery-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .delivery-option {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: rgba(45, 45, 45, 0.5);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .delivery-option:hover {
+            background: rgba(45, 45, 45, 0.8);
+        }
+
+        .delivery-option.selected {
+            border-color: #4d96ff;
+            background: rgba(77, 150, 255, 0.1);
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .payment-method {
+            padding: 15px;
+            background: rgba(45, 45, 45, 0.5);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .payment-method:hover {
+            background: rgba(45, 45, 45, 0.8);
+        }
+
+        .payment-method.selected {
+            border-color: #4d96ff;
+            background: rgba(77, 150, 255, 0.1);
+        }
+
+        .payment-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .primary-button {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .primary-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .primary-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .secondary-button {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .secondary-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
+        }
+
+        .secondary-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .clear-button {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .clear-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .payment-status {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            background: rgba(255, 217, 61, 0.1);
+            border-left: 4px solid #ffd93d;
+            font-size: 14px;
+            text-align: center;
+            animation: slideIn 0.3s ease;
+        }
+
+        .payment-status.success {
+            background: rgba(107, 207, 127, 0.1);
+            border-left-color: #6bcf7f;
+        }
+
+        .payment-status.error {
+            background: rgba(220, 38, 38, 0.1);
+            border-left-color: #dc2626;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        /* MODAL PARA ESCOLHER SABOR DO GELO */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #dc2626;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .modal-title {
+            color: white;
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #dc2626;
+            padding-bottom: 10px;
+        }
+
+        .ice-flavors-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .ice-flavor-option {
+            padding: 15px;
+            background: rgba(45, 45, 45, 0.5);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .ice-flavor-option:hover {
+            background: rgba(45, 45, 45, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .ice-flavor-option.selected {
+            border-color: #4d96ff;
+            background: rgba(77, 150, 255, 0.2);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-button.confirm {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: white;
+        }
+
+        .modal-button.cancel {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .modal-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsivo */
+        @media (max-width: 1024px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .cart-section {
+                position: static;
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .categories-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+            
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .payment-methods {
+                grid-template-columns: 1fr;
+            }
+            
+            .address-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .ice-flavors-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
-
 <body>
+    <div class="header">
+        🍹 BEBCOM DELIVERY - Sistema Completo com Pagamento 🚚💳
+    </div>
 
-<h1>🛒 Bebcom Delivery</h1>
+    <div class="nav-container">
+        <button class="nav-button" onclick="showCategory('drinks-whisky')">🍸 Drinks Whisky</button>
+        <button class="nav-button" onclick="showCategory('drinks-gin')">🍸 Drinks Gin</button>
+        <button class="nav-button" onclick="showCategory('drinks-vodka')">🍸 Drinks Vodka</button>
+        <button class="nav-button" onclick="showCategory('drinks-vinho')">🍸 Drinks Vinho</button>
+        <button class="nav-button" onclick="showCategory('cervejas')">🍺 Cervejas</button>
+        <button class="nav-button" onclick="showCategory('destilados')">🥃 Destilados</button>
+        <button class="nav-button" onclick="showCategory('aguas')">🥤 Águas</button>
+        <button class="nav-button" onclick="showCategory('refri-latas')">🥤 Refri Latas</button>
+        <button class="nav-button" onclick="showCategory('refri-pet')">🥤 Refri PET</button>
+        <button class="nav-button" onclick="showCategory('sucos')">🧃 Sucos</button>
+        <button class="nav-button" onclick="showCategory('energeticos')">⚡ Energéticos</button>
+        <button class="nav-button" onclick="showCategory('gelo-carvao')">🧊 Gelo/Carvão</button>
+    </div>
 
-<div class="box">
-  <h2>👤 Cliente</h2>
-  <input id="customer-name" placeholder="Nome do cliente" required>
-  <input id="customer-phone" placeholder="Telefone (WhatsApp)" required>
-</div>
+    <div class="main-container">
+        <!-- SEÇÃO DO CARDÁPIO -->
+        <div class="menu-section">
+            <h2 class="section-title">🍹 Cardápio BebCom Delivery</h2>
+            
+            <!-- Categorias -->
+            <div class="categories-grid" id="categoriesGrid"></div>
+            
+            <!-- Produtos -->
+            <div class="products-grid" id="productsGrid">
+                <div style="text-align: center; color: #aaa; padding: 40px;">
+                    Selecione uma categoria para ver os produtos
+                </div>
+            </div>
+        </div>
 
-<div class="box">
-  <h2>📍 Endereço de Entrega</h2>
-  <input id="street" placeholder="Rua" required>
-  <input id="house-number" placeholder="Número" required>
-  <input id="neighborhood" placeholder="Bairro" required>
-  <input id="city" placeholder="Cidade" value="Bauru" required>
-  <input id="address-complement" placeholder="Complemento (opcional)">
-  <input id="reference-point" placeholder="Ponto de referência (opcional)">
-</div>
+        <!-- SEÇÃO DO CARRINHO -->
+        <div class="cart-section">
+            <h2 class="section-title">🛒 Carrinho</h2>
+            
+            <div class="cart-items" id="cartItems">
+                <div style="text-align: center; color: #aaa; padding: 40px;">
+                    Seu carrinho está vazio<br><small>Adicione produtos do cardápio</small>
+                </div>
+            </div>
 
-<div class="box">
-  <h2>🧾 Pedido (exemplo)</h2>
-  <p>• 2x Cerveja Lata</p>
-  <p>• 1x Refrigerante 2L</p>
-</div>
+            <!-- Totais -->
+            <div class="totals-section">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span>R$ <span id="subtotal">0.00</span></span>
+                </div>
+                <div class="total-row" id="deliveryRow" style="display: none;">
+                    <span>Taxa de Entrega:</span>
+                    <span>R$ <span id="deliveryFee">0.00</span></span>
+                </div>
+                <div class="total-row grand-total">
+                    <span>Total:</span>
+                    <span>R$ <span id="totalAmount">0.00</span></span>
+                </div>
+            </div>
 
-<div class="box">
-  <h2>🚚 Entrega</h2>
-  <p>Frete calculado automaticamente</p>
-  <p><strong id="delivery-fee">R$ 0,00</strong></p>
-</div>
+            <!-- Dados do Cliente -->
+            <div class="customer-section">
+                <div class="form-group">
+                    <label class="form-label">👤 Nome Completo *</label>
+                    <input type="text" class="form-input" id="customerName" placeholder="Digite seu nome" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">📞 WhatsApp *</label>
+                    <input type="tel" class="form-input" id="customerPhone" placeholder="(14) 99999-9999" required>
+                </div>
+            </div>
 
-<div class="box">
-  <h2>💳 Pagamento</h2>
-  <button onclick="processPixPayment()">Pagar com PIX / Cartão</button>
-  <div class="status" id="payment-status"></div>
-</div>
+            <!-- Tipo de Pedido -->
+            <div class="delivery-section">
+                <label class="form-label">📦 Tipo de Pedido</label>
+                <div class="delivery-options">
+                    <div class="delivery-option selected" onclick="selectDeliveryType('pickup')">🏪 Retirada</div>
+                    <div class="delivery-option" onclick="selectDeliveryType('delivery')">🚚 Entrega</div>
+                </div>
+                
+                <!-- Campos de Endereço -->
+                <div id="addressFields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">📍 Endereço Completo *</label>
+                        <div class="address-grid">
+                            <input type="text" class="form-input" id="street" placeholder="Rua/Avenida">
+                            <input type="text" class="form-input" id="number" placeholder="Número">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="address-grid">
+                            <input type="text" class="form-input" id="neighborhood" placeholder="Bairro">
+                            <input type="text" class="form-input" id="city" placeholder="Cidade" value="Bauru">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">🏠 Complemento (opcional)</label>
+                        <input type="text" class="form-input" id="addressComplement" placeholder="Apto, Bloco, Referência">
+                    </div>
+                </div>
+            </div>
 
-<div class="box">
-  <h2>📲 WhatsApp</h2>
-  <button id="whatsapp-btn" disabled onclick="sendWhatsApp()">Enviar Pedido no WhatsApp</button>
-</div>
+            <!-- Pagamento -->
+            <div class="payment-section">
+                <label class="form-label" id="paymentLabel" style="display: none;">💳 Pagamento</label>
+                <div class="payment-methods" id="paymentMethods" style="display: none;">
+                    <div class="payment-method selected" onclick="selectPaymentMethod('pix')">
+                        <div class="payment-icon">🧾</div>
+                        <div>PIX Online</div>
+                    </div>
+                    <div class="payment-method" onclick="selectPaymentMethod('card_online')">
+                        <div class="payment-icon">💳</div>
+                        <div>Cartão Online</div>
+                    </div>
+                </div>
 
-<script>
-/* ===============================
-   CONFIG
-================================ */
-const PRICE_PER_KM = 2.65;
-const BACKEND_URL = 'https://SEU-BACKEND.onrender.com';
+                <!-- Status do Pagamento -->
+                <div id="paymentStatus" class="payment-status" style="display: none;"></div>
 
-const mp = new MercadoPago('SUA_PUBLIC_KEY_AQUI', {
-  locale: 'pt-BR'
-});
+                <!-- Botões de Ação -->
+                <button class="primary-button" id="payButton" disabled onclick="processPayment()">
+                    💰 Realizar Pagamento
+                </button>
+                
+                <button class="secondary-button" id="whatsappButton" disabled onclick="sendToWhatsApp()">
+                    📱 Enviar Pedido
+                </button>
+                
+                <button class="clear-button" onclick="clearCart()">
+                    🗑️ Limpar Carrinho
+                </button>
+            </div>
+        </div>
+    </div>
 
-const state = {
-  currentOrderId: null,
-  paymentConfirmed: false
-};
+    <!-- MODAL PARA ESCOLHER SABOR DO GELO -->
+    <div class="modal-overlay" id="iceFlavorModal">
+        <div class="modal-content">
+            <h2 class="modal-title">🧊 Escolha o sabor do gelo</h2>
+            <p style="text-align: center; color: #aaa; margin-bottom: 20px;">
+                Selecione um sabor para o seu drink de whisky (sem custo adicional)
+            </p>
+            
+            <div class="ice-flavors-grid" id="iceFlavorsGrid">
+                <!-- Os sabores serão gerados dinamicamente -->
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-button confirm" onclick="confirmIceFlavor()">
+                    ✅ Confirmar
+                </button>
+                <button class="modal-button cancel" onclick="cancelIceFlavor()">
+                    ❌ Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
 
-/* ===============================
-   VALIDAÇÃO DE ENDEREÇO
-================================ */
-function validateAddress() {
-  const required = ['street', 'house-number', 'neighborhood', 'city'];
-  for (const id of required) {
-    if (!document.getElementById(id).value.trim()) {
-      alert('Preencha o endereço completo com número.');
-      return false;
-    }
-  }
-  return true;
-}
+    <script>
+        // ============================================
+        // CONFIGURAÇÕES DO SISTEMA
+        // ============================================
+        const CONFIG = {
+            // Master Password
+            masterPassword: 'Bebcom25*',
+            
+            // Backend URL (Render)
+            backendUrl: 'https://seu-backend.onrender.com',
+            
+            // WhatsApp da loja
+            whatsappNumber: '5514996130369',
+            
+            // Coordenadas do BebCom Lounge
+            storeLocation: {
+                lat: -22.35892,
+                lng: -49.0987233,
+                address: "R. José Henrique Ferraz, 18-10 - Centro, Bauru - SP"
+            },
+            
+            // Taxas de entrega
+            deliveryRates: {
+                baseFee: 5.00,
+                perKm: 2.65,
+                maxDistance: 15,
+                minDistance: 0.5,
+                freeDeliveryMin: 100.00
+            },
+            
+            // Mercado Pago Credenciais
+            mercadoPago: {
+                publicKey: 'APP_USR-b74e6ba3-6c30-4384-87c0-9b1199d2511b',
+                accessToken: 'APP_USR-8326438021246657-020121-ccc94cd396e2d69d1f86657f5292db55-49438812'
+            }
+        };
 
-/* ===============================
-   PEDIDO (EXEMPLO FIXO)
-================================ */
-function prepareOrderData() {
-  const items = [
-    { name: 'Cerveja Lata', quantity: 2, price: 5.00 },
-    { name: 'Refrigerante 2L', quantity: 1, price: 10.00 }
-  ];
+        // ============================================
+        // DADOS DOS PRODUTOS (COMPLETO DO ANEXO 2) COM CORREÇÕES
+        // ============================================
+        const products = {
+            'drinks-whisky': [
+                { 
+                    name: 'Copão Old Star', 
+                    description: 'Drink clássico de whisky',
+                    price: 11.00,
+                    category: 'drinks-whisky'
+                },
+                { 
+                    name: 'Copão Passport', 
+                    description: 'Whisky importado',
+                    price: 18.00,
+                    category: 'drinks-whisky'
+                },
+                { 
+                    name: 'Copão Natu Nobilis', 
+                    description: 'Whisky premium',
+                    price: 17.00,
+                    category: 'drinks-whisky'
+                },
+                { 
+                    name: 'Copão White Horse', 
+                    description: 'Whisky escocês',
+                    price: 22.00,
+                    category: 'drinks-whisky'
+                },
+                { 
+                    name: 'Copão Red Label', 
+                    description: 'Johnnie Walker Red Label',
+                    price: 25.00,
+                    category: 'drinks-whisky'
+                },
+                { 
+                    name: "Copão Ballantines", 
+                    description: 'Whisky escocês',
+                    price: 28.00,
+                    category: 'drinks-whisky'
+                },
+                { 
+                    name: "Copão Jack Daniels", 
+                    description: 'Whisky americano',
+                    price: 35.00,
+                    category: 'drinks-whisky'
+                }
+            ],
+            'drinks-gin': [
+                { 
+                    name: 'Danoninho de Gin', 
+                    description: 'Drink refrescante com gin',
+                    price: 17.00,
+                    category: 'drinks-gin'
+                },
+                { 
+                    name: 'Copão de Gin', 
+                    description: 'Gin com tônica e limão',
+                    price: 17.00,
+                    category: 'drinks-gin'
+                }
+            ],
+            'drinks-vodka': [
+                { 
+                    name: 'Danoninho Corote', 
+                    description: 'Drink com corote e frutas',
+                    price: 15.00,
+                    category: 'drinks-vodka'
+                },
+                { 
+                    name: 'Danoninho Askov', 
+                    description: 'Askov com frutas',
+                    price: 17.00,
+                    category: 'drinks-vodka'
+                },
+                { 
+                    name: 'Copão de Ice', 
+                    description: 'Drink gelado com vodka',
+                    price: 17.00,
+                    category: 'drinks-vodka'
+                },
+                { 
+                    name: 'Copão de Vodka', 
+                    description: 'Vodka com energético',
+                    price: 17.00,
+                    category: 'drinks-vodka'
+                }
+            ],
+            'drinks-vinho': [
+                { 
+                    name: 'Danoninho de Vinho', 
+                    description: 'Vinho com frutas',
+                    price: 17.00,
+                    category: 'drinks-vinho'
+                }
+            ],
+            'cervejas': [
+                { name: 'Skol/Brahma', description: 'Cerveja tradicional brasileira', price: 4.25, category: 'cervejas' },
+                { name: 'Antarctica', description: 'Cerveja pilsen refrescante', price: 4.25, category: 'cervejas' },
+                { name: 'Sub-Zero', description: 'Cerveja extra gelada', price: 4.25, category: 'cervejas' },
+                { name: 'Amstel', description: 'Cerveja holandesa premium', price: 4.50, category: 'cervejas' },
+                { name: 'Heineken', description: 'Cerveja importada premium', price: 6.50, category: 'cervejas' },
+                { name: 'Corona Long', description: 'Cerveja mexicana em long neck', price: 8.50, category: 'cervejas' },
+                { name: 'Stella Long', description: 'Cerveja belga em long neck', price: 7.00, category: 'cervejas' },
+                { name: 'Brahma Zero', description: 'Cerveja sem álcool', price: 5.00, category: 'cervejas' },
+                { name: 'Império', description: 'Cerveja brasileira tradicional', price: 4.00, category: 'cervejas' },
+                { name: 'Duplo Malte', description: 'Cerveja com duplo malte', price: 4.50, category: 'cervejas' },
+                { name: 'Spaten', description: 'Cerveja alemã premium', price: 5.00, category: 'cervejas' },
+                { name: 'Budweiser', description: 'Cerveja americana', price: 5.10, category: 'cervejas' },
+                { name: 'Burguesa', description: 'Cerveja artesanal brasileira', price: 4.00, category: 'cervejas' },
+                { name: 'Bavaria', description: 'Cerveja holandesa', price: 3.50, category: 'cervejas' },
+                { name: 'Bavaria Latão', description: 'Cerveja em lata grande', price: 4.75, category: 'cervejas' },
+                { name: 'Petra', description: 'Cerveja brasileira', price: 3.90, category: 'cervejas' },
+                { name: 'Conti Malzbier', description: 'Cerveja tipo malzbier', price: 4.50, category: 'cervejas' },
+                { name: 'Brahma Malz.', description: 'Malzbier da Brahma', price: 5.00, category: 'cervejas' },
+                { name: 'Moinho Real', description: 'Cerveja brasileira', price: 4.25, category: 'cervejas' },
+                { name: 'Original', description: 'Cerveja premium', price: 5.00, category: 'cervejas' },
+                { name: 'Heineken Long', description: 'Heineken em long neck', price: 8.00, category: 'cervejas' },
+                { name: 'Budweiser Long', description: 'Budweiser em long neck', price: 7.50, category: 'cervejas' },
+                { name: 'Patagônia Long', description: 'Cerveja argentina em long neck', price: 8.50, category: 'cervejas' },
+                { name: 'Eisenbah IPA', description: 'Cerveja IPA artesanal', price: 8.50, category: 'cervejas' },
+                { name: 'Stella Gold', description: 'Stella Artois premium', price: 7.50, category: 'cervejas' },
+                { name: 'Amstel Ultra', description: 'Cerveja leve', price: 6.00, category: 'cervejas' },
+                { name: 'Spaten Long', description: 'Spaten em long neck', price: 7.60, category: 'cervejas' },
+                { name: 'Michelob Long', description: 'Michelob em long neck', price: 8.00, category: 'cervejas' },
+                { name: 'Michelob', description: 'Cerveja americana premium', price: 8.00, category: 'cervejas' },
+                { name: 'Conti Zero Grau', description: 'Cerveja sem álcool', price: 3.50, category: 'cervejas' }
+            ],
+            'destilados': [
+                { name: 'Jurupinga', description: 'Licor brasileiro', price: 42.00, category: 'destilados' },
+                { name: 'Saquê', description: 'Bebida japonesa', price: 30.00, category: 'destilados' },
+                { name: 'Tequila', description: 'Destilado mexicano', price: 23.00, category: 'destilados' },
+                { name: 'Pinga 51', description: 'Cachaça brasileira', price: 17.00, category: 'destilados' },
+                { name: 'Conhaque', description: 'Destilado envelhecido', price: 19.00, category: 'destilados' },
+                { name: 'Dimel', description: 'Licor italiano', price: 28.00, category: 'destilados' },
+                { name: 'Campari', description: 'Bitter italiano', price: 65.00, category: 'destilados' },
+                { name: 'Gin Askov', description: 'Gin brasileiro', price: 19.00, category: 'destilados' },
+                { name: 'Askov Pura', description: 'Vodka Askov pura', price: 17.50, category: 'destilados' },
+                { name: 'Ice', description: 'Bebida ready to drink', price: 7.00, category: 'destilados' },
+                { name: 'Beats Lata', description: 'Bebida em lata', price: 7.50, category: 'destilados' },
+                { name: 'Beats Long', description: 'Bebida em long neck', price: 9.00, category: 'destilados' },
+                { name: 'Smirnoff Ice', description: 'Bebida com vodka', price: 9.50, category: 'destilados' },
+                { name: 'Black Label', description: 'Whisky escocês', price: 197.50, category: 'destilados' },
+                { name: 'Jack Daniels', description: 'Whiskey americano', price: 192.00, category: 'destilados' },
+                { name: 'Velho Barreiro', description: 'Cachaça tradicional', price: 18.50, category: 'destilados' },
+                { name: 'Old Star', description: 'Whisky nacional', price: 17.00, category: 'destilados' },
+                { name: 'Passport', description: 'Whisky escocês', price: 72.00, category: 'destilados' },
+                { name: 'Natu Nobilis', description: 'Whisky brasileiro', price: 54.00, category: 'destilados' },
+                { name: 'White Horse', description: 'Whisky escocês', price: 97.50, category: 'destilados' },
+                { name: 'Red Label', description: 'Johnnie Walker', price: 125.00, category: 'destilados' },
+                { name: 'Ballantines', description: 'Whisky escocês', price: 120.00, category: 'destilados' },
+                { name: 'Smirnoff 1L', description: 'Vodka Smirnoff 1 litro', price: 46.00, category: 'destilados' },
+                { name: 'Askov Sabor 1L', description: 'Vodka com sabor 1 litro', price: 19.00, category: 'destilados' },
+                { name: 'Canelinha', description: 'Licor de canela', price: 23.00, category: 'destilados' },
+                { name: 'Dom Bosco', description: 'Licor brasileiro', price: 19.00, category: 'destilados' },
+                { name: 'Chapinha', description: 'Cachaça brasileira', price: 14.00, category: 'destilados' },
+                { name: '3 Medallas', description: 'Cachaça premium', price: 35.00, category: 'destilados' },
+                { name: 'Pérgola', description: 'Licor premium', price: 35.00, category: 'destilados' },
+                { name: 'Chalise', description: 'Licor', price: 19.00, category: 'destilados' },
+                { name: 'Dom Feliciano', description: 'Licor gaúcho', price: 19.00, category: 'destilados' },
+                { name: 'Cantinho', description: 'Bebida ready to drink', price: 8.00, category: 'destilados' },
+                { name: 'Stempel 355ml', description: 'Cerveja em garrafa', price: 6.75, category: 'destilados' },
+                { name: 'Stempel 600ml', description: 'Cerveja artesanal', price: 11.00, category: 'destilados' }
+            ],
+            'aguas': [
+                { name: 'Água 500ml', description: 'Água mineral natural', price: 3.00, category: 'aguas' },
+                { name: 'Água 1,5L', description: 'Água mineral família', price: 5.00, category: 'aguas' },
+                { name: 'Água de Coco 1L', description: 'Água de coco natural', price: 10.00, category: 'aguas' },
+                { name: 'Água Gás 500ml', description: 'Água com gás', price: 3.50, category: 'aguas' },
+                { name: 'Água Gás 1,5L', description: 'Água com gás família', price: 6.00, category: 'aguas' },
+                { name: 'H2O 500ml', description: 'Água mineral premium', price: 5.00, category: 'aguas' },
+                { name: 'H2O 1,5L', description: 'Água premium família', price: 9.50, category: 'aguas' },
+                { name: 'Gatorade', description: 'Bebida isotônica', price: 7.00, category: 'aguas' }
+            ],
+            'refri-latas': [
+                { name: 'Sprite/Fanta', description: 'Refrigerante cítrico', price: 4.50, category: 'refri-latas' },
+                { name: 'Guaraná Antarctica', description: 'Refrigerante brasileiro', price: 4.50, category: 'refri-latas' },
+                { name: 'Pepsi', description: 'Refrigerante de cola', price: 4.50, category: 'refri-latas' },
+                { name: 'Coca Cola', description: 'Refrigerante tradicional', price: 4.50, category: 'refri-latas' },
+                { name: 'Schwepps', description: 'Refrigerante tônico', price: 5.00, category: 'refri-latas' },
+                { name: 'Kuat', description: 'Refrigerante de guaraná', price: 4.50, category: 'refri-latas' },
+                { name: 'Tônica', description: 'Água tônica', price: 4.50, category: 'refri-latas' },
+                { name: 'Sukita', description: 'Refrigerante cítrico', price: 4.00, category: 'refri-latas' }
+            ],
+            'refri-pet': [
+                { name: 'Coca-Cola 2L', description: 'Refrigerante família', price: 13.00, category: 'refri-pet' },
+                { name: 'Sprite 2L', description: 'Refrigerante cítrico', price: 10.00, category: 'refri-pet' },
+                { name: 'Fanta 2L', description: 'Refrigerante laranja', price: 10.00, category: 'refri-pet' },
+                { name: 'Coca Retor 2L', description: 'Coca-Cola retornável', price: 9.50, category: 'refri-pet' },
+                { name: 'Coca Mini', description: 'Coca-Cola pequena', price: 3.00, category: 'refri-pet' },
+                { name: 'Conq. Mini', description: 'Conquista mini', price: 2.50, category: 'refri-pet' },
+                { name: 'Coca 600ml', description: 'Coca-Cola 600ml', price: 7.00, category: 'refri-pet' },
+                { name: 'Coca Cola 1L', description: 'Coca-Cola 1 litro', price: 9.00, category: 'refri-pet' },
+                { name: 'Sprite 600ml', description: 'Sprite 600ml', price: 6.00, category: 'refri-pet' },
+                { name: 'Schwepps 1,5L', description: 'Schwepps 1,5 litros', price: 10.50, category: 'refri-pet' },
+                { name: 'Antárctica 2L', description: 'Guaraná 2 litros', price: 11.00, category: 'refri-pet' },
+                { name: 'Antárctica 1L', description: 'Guaraná 1 litro', price: 8.00, category: 'refri-pet' },
+                { name: 'Conquista 2L', description: 'Refrigerante 2 litros', price: 8.50, category: 'refri-pet' },
+                { name: 'Conquista 600ml', description: 'Refrigerante 600ml', price: 5.00, category: 'refri-pet' },
+                { name: 'Quinze 2L', description: 'Refrigerante econômico', price: 7.50, category: 'refri-pet' },
+                { name: 'Conti 2L', description: 'Refrigerante 2 litros', price: 8.50, category: 'refri-pet' },
+                { name: 'Conti 600ml', description: 'Refrigerante 600ml', price: 5.00, category: 'refri-pet' },
+                { name: 'Guaraná Mini', description: 'Guaraná individual', price: 2.50, category: 'refri-pet' }
+            ],
+            'sucos': [
+                { name: 'Del Valle 1L', description: 'Suco de caixinha', price: 10.00, category: 'sucos' },
+                { name: 'Prats 300ml', description: 'Suco pequeno', price: 6.00, category: 'sucos' },
+                { name: 'Kapo', description: 'Suco em pó', price: 4.00, category: 'sucos' },
+                { name: 'Prats 1,5L', description: 'Suco família', price: 23.00, category: 'sucos' },
+                { name: 'Life 300ml', description: 'Suco premium', price: 7.00, category: 'sucos' },
+                { name: 'Life 900ml', description: 'Suco premium', price: 14.00, category: 'sucos' }
+            ],
+            'energeticos': [
+                { name: 'Big Power 2L', description: 'Energético grande', price: 12.00, category: 'energeticos' },
+                { name: 'Monster 473ml', description: 'Energético importado', price: 12.00, category: 'energeticos' },
+                { name: 'Red Bull 250ml', description: 'Energético pequeno', price: 13.00, category: 'energeticos' },
+                { name: 'One 2L', description: 'Energético econômico', price: 10.00, category: 'energeticos' },
+                { name: 'Bally 2L', description: 'Energético 2 litros', price: 14.00, category: 'energeticos' },
+                { name: 'Red Bull 355ml', description: 'Energético médio', price: 15.00, category: 'energeticos' },
+                { name: 'Bally 473ml', description: 'Energético lata grande', price: 10.00, category: 'energeticos' },
+                { name: 'Bally 250ml', description: 'Energético pequeno', price: 6.50, category: 'energeticos' }
+            ],
+            'gelo-carvao': [
+                { name: 'Gelo Saborizado', description: 'Gelo com sabor', price: 3.00, category: 'gelo-carvao' },
+                { name: 'Carvão 3kg', description: 'Carvão para churrasco', price: 20.00, category: 'gelo-carvao' },
+                { name: 'Gelo 4,5Kg', description: 'Gelo em saco', price: 10.00, category: 'gelo-carvao' },
+                { name: 'Carvão 6,5Kg', description: 'Carvão grande', price: 30.00, category: 'gelo-carvao' }
+            ]
+        };
 
-  const itemsTotal = items.reduce((sum, i) => sum + i.quantity * i.price, 0);
+        // ============================================
+        // ESTADO GLOBAL
+        // ============================================
+        const state = {
+            cart: [],
+            currentCategory: 'drinks-whisky',
+            deliveryType: 'pickup',
+            paymentMethod: null, // Inicialmente nulo para retirada
+            paymentConfirmed: false,
+            paymentProcessing: false,
+            mercadoPago: null,
+            currentOrderId: null,
+            currentPreferenceId: null,
+            paymentInterval: null,
+            // NOVO: Estado para controle do sabor do gelo
+            currentIceFlavor: null,
+            pendingWhiskyProduct: null
+        };
 
-  const distanceKm = 5; // Exemplo fixo (você já tem sua lógica de GPS)
-  const deliveryFee = Number((distanceKm * PRICE_PER_KM).toFixed(2));
+        // Sabores de gelo disponíveis
+        const ICE_FLAVORS = [
+            'Melancia',
+            'Morango',
+            'Limão',
+            'Côco',
+            'Maçã-Verde',
+            'Abacaxi com Hortelã',
+            'Maracujá',
+            'Laranja'
+        ];
 
-  return {
-    items,
-    deliveryFee,
-    total: itemsTotal + deliveryFee,
-    orderType: 'delivery'
-  };
-}
+        // ============================================
+        // FUNÇÕES DE INICIALIZAÇÃO
+        // ============================================
+        function init() {
+            showCategory('drinks-whisky');
+            updateCartDisplay();
+            initializeMercadoPago();
+            setupEventListeners();
+            initializeIceFlavorsModal();
+            
+            // Configuração inicial para retirada
+            selectDeliveryType('pickup');
+            
+            // Carregar carrinho do localStorage
+            try {
+                const savedCart = localStorage.getItem('bebcom_cart');
+                if (savedCart) {
+                    state.cart = JSON.parse(savedCart);
+                    updateCartDisplay();
+                }
+            } catch (e) {
+                console.log('Não foi possível carregar carrinho salvo');
+            }
+        }
 
-/* ===============================
-   PAGAMENTO
-================================ */
-async function processPixPayment() {
-  if (!validateAddress()) return;
+        function initializeMercadoPago() {
+            try {
+                if (!CONFIG.mercadoPago.publicKey) {
+                    console.error('Chave pública do Mercado Pago não configurada');
+                    return;
+                }
+                
+                state.mercadoPago = new MercadoPago(CONFIG.mercadoPago.publicKey, {
+                    locale: 'pt-BR'
+                });
+                console.log('Mercado Pago inicializado');
+            } catch (error) {
+                console.error('Erro ao inicializar Mercado Pago:', error);
+                showNotification('⚠️ Sistema de pagamento offline. Use PIX manual.');
+            }
+        }
 
-  const orderData = prepareOrderData();
-  document.getElementById('delivery-fee').innerText =
-    `R$ ${orderData.deliveryFee.toFixed(2)}`;
+        function initializeIceFlavorsModal() {
+            const iceFlavorsGrid = document.getElementById('iceFlavorsGrid');
+            iceFlavorsGrid.innerHTML = '';
+            
+            ICE_FLAVORS.forEach((flavor, index) => {
+                const flavorOption = document.createElement('div');
+                flavorOption.className = 'ice-flavor-option';
+                flavorOption.textContent = flavor;
+                flavorOption.dataset.flavor = flavor;
+                flavorOption.onclick = function() {
+                    selectIceFlavor(flavor);
+                };
+                iceFlavorsGrid.appendChild(flavorOption);
+            });
+        }
 
-  const items = orderData.items.map(item => ({
-    title: item.name.substring(0, 50),
-    quantity: item.quantity,
-    unit_price: Number(item.price.toFixed(2))
-  }));
+        // ============================================
+        // FUNÇÕES DO CARDÁPIO
+        // ============================================
+        function showCategory(categoryId) {
+            state.currentCategory = categoryId;
+            const productsGrid = document.getElementById('productsGrid');
+            productsGrid.innerHTML = '';
+            
+            const categoryProducts = products[categoryId] || [];
+            
+            if (categoryProducts.length === 0) {
+                productsGrid.innerHTML = '<div style="text-align: center; color: #aaa; padding: 40px;">Nenhum produto nesta categoria</div>';
+                return;
+            }
+            
+            categoryProducts.forEach((product, index) => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-info">${product.description}</div>
+                    <div class="product-price">R$ ${product.price.toFixed(2)}</div>
+                    <button class="add-to-cart-btn" onclick="handleAddToCart('${product.name}', ${product.price}, '${product.category}', this)">
+                        🛒 Adicionar
+                    </button>
+                `;
+                productsGrid.appendChild(productCard);
+            });
+        }
 
-  items.push({
-    title: 'Taxa de Entrega',
-    quantity: 1,
-    unit_price: orderData.deliveryFee
-  });
+        // ============================================
+        // FUNÇÕES DO CARRINHO COM MODAL DE GELO
+        // ============================================
+        function handleAddToCart(name, price, category, button) {
+            // Verificar se é um drink de whisky
+            if (category === 'drinks-whisky') {
+                // Salvar o produto pendente e abrir o modal
+                state.pendingWhiskyProduct = { name, price, category };
+                openIceFlavorModal(button);
+            } else {
+                // Para outros produtos, adicionar normalmente
+                addToCart(name, price, button);
+            }
+        }
 
-  state.currentOrderId = 'BEB' + Date.now();
+        function openIceFlavorModal(button) {
+            // Resetar seleção anterior
+            document.querySelectorAll('.ice-flavor-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            state.currentIceFlavor = null;
+            
+            // Mostrar modal
+            document.getElementById('iceFlavorModal').style.display = 'flex';
+            
+            // Salvar referência ao botão para feedback visual posterior
+            state.currentButton = button;
+        }
 
-  const response = await fetch(`${BACKEND_URL}/create-payment`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      orderId: state.currentOrderId,
-      payer: {
-        name: document.getElementById('customer-name').value,
-        email: 'cliente@bebcom.com'
-      },
-      items
-    })
-  });
+        function selectIceFlavor(flavor) {
+            // Remover seleção anterior
+            document.querySelectorAll('.ice-flavor-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Selecionar novo sabor
+            const selectedOption = document.querySelector(`.ice-flavor-option[data-flavor="${flavor}"]`);
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+            }
+            
+            state.currentIceFlavor = flavor;
+        }
 
-  const data = await response.json();
+        function confirmIceFlavor() {
+            if (!state.currentIceFlavor) {
+                alert('Por favor, selecione um sabor de gelo');
+                return;
+            }
+            
+            // Fechar modal
+            document.getElementById('iceFlavorModal').style.display = 'none';
+            
+            // Adicionar produto ao carrinho com o sabor do gelo
+            if (state.pendingWhiskyProduct) {
+                const product = state.pendingWhiskyProduct;
+                const productWithFlavor = {
+                    ...product,
+                    iceFlavor: state.currentIceFlavor
+                };
+                
+                addToCartWithFlavor(productWithFlavor, state.currentButton);
+                state.pendingWhiskyProduct = null;
+            }
+        }
 
-  mp.checkout({
-    preference: { id: data.preferenceId },
-    autoOpen: true
-  });
+        function cancelIceFlavor() {
+            // Fechar modal sem adicionar
+            document.getElementById('iceFlavorModal').style.display = 'none';
+            state.pendingWhiskyProduct = null;
+            state.currentIceFlavor = null;
+        }
 
-  document.getElementById('payment-status').innerText =
-    '⏳ Aguardando confirmação do pagamento...';
+        function addToCartWithFlavor(product, button) {
+            const existingItem = state.cart.find(item => 
+                item.name === product.name && item.iceFlavor === product.iceFlavor
+            );
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                state.cart.push({
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    iceFlavor: product.iceFlavor,
+                    category: product.category
+                });
+            }
+            
+            updateCartDisplay();
+            saveCartToLocalStorage();
+            
+            // Feedback visual no botão clicado
+            if (button) {
+                const originalText = button.innerHTML;
+                button.innerHTML = '✓ Adicionado!';
+                button.classList.add('added');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('added');
+                }, 1000);
+            }
+        }
 
-  startOrderStatusCheck(state.currentOrderId);
-}
+        function addToCart(name, price, button) {
+            const existingItem = state.cart.find(item => 
+                item.name === name && !item.iceFlavor
+            );
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                state.cart.push({
+                    name: name,
+                    price: price,
+                    quantity: 1
+                });
+            }
+            
+            updateCartDisplay();
+            saveCartToLocalStorage();
+            
+            // Feedback visual apenas no botão clicado
+            if (button) {
+                const originalText = button.innerHTML;
+                button.innerHTML = '✓ Adicionado!';
+                button.classList.add('added');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('added');
+                }, 1000);
+            }
+        }
 
-/* ===============================
-   STATUS DO PAGAMENTO
-================================ */
-function startOrderStatusCheck(orderId) {
-  const interval = setInterval(async () => {
-    const res = await fetch(`${BACKEND_URL}/order-status/${orderId}`);
-    const data = await res.json();
+        function updateCartDisplay() {
+            const cartItems = document.getElementById('cartItems');
+            const subtotalElement = document.getElementById('subtotal');
+            const totalAmountElement = document.getElementById('totalAmount');
+            const deliveryRow = document.getElementById('deliveryRow');
+            const deliveryFeeElement = document.getElementById('deliveryFee');
+            
+            let subtotal = 0;
+            
+            if (state.cart.length === 0) {
+                cartItems.innerHTML = '<div style="text-align: center; color: #aaa; padding: 40px;">Seu carrinho está vazio<br><small>Adicione produtos do cardápio</small></div>';
+                subtotalElement.textContent = '0.00';
+                totalAmountElement.textContent = '0.00';
+                return;
+            }
+            
+            cartItems.innerHTML = '';
+            
+            state.cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                
+                const cartItem = document.createElement('div');
+                cartItem.className = 'cart-item';
+                
+                // Adicionar informação do sabor do gelo se existir
+                let itemName = item.name;
+                if (item.iceFlavor) {
+                    itemName += ` (Gelo: ${item.iceFlavor})`;
+                }
+                
+                cartItem.innerHTML = `
+                    <div>
+                        <strong>${itemName}</strong><br>
+                        <small>R$${item.price.toFixed(2)} un.</small>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button onclick="updateQuantity(${index}, -1)" class="quantity-btn">-</button>
+                        <span style="min-width: 20px; text-align: center;">${item.quantity}</span>
+                        <button onclick="updateQuantity(${index}, 1)" class="quantity-btn">+</button>
+                        <span style="margin-left: 10px; font-weight: bold;">R$${itemTotal.toFixed(2)}</span>
+                        <button onclick="removeFromCart(${index})" class="remove-item-btn">✕</button>
+                    </div>
+                `;
+                cartItems.appendChild(cartItem);
+            });
+            
+            // Calcular taxa de entrega
+            let deliveryFee = 0;
+            if (state.deliveryType === 'delivery') {
+                deliveryFee = CONFIG.deliveryRates.baseFee;
+                if (subtotal >= CONFIG.deliveryRates.freeDeliveryMin) {
+                    deliveryFee = 0;
+                }
+                deliveryRow.style.display = 'flex';
+                deliveryFeeElement.textContent = deliveryFee.toFixed(2);
+            } else {
+                deliveryRow.style.display = 'none';
+            }
+            
+            const total = subtotal + deliveryFee;
+            
+            subtotalElement.textContent = subtotal.toFixed(2);
+            totalAmountElement.textContent = total.toFixed(2);
+            
+            validateForm();
+        }
 
-    if (data.paid) {
-      clearInterval(interval);
-      state.paymentConfirmed = true;
-      document.getElementById('payment-status').innerText =
-        '✅ Pagamento confirmado!';
-      document.getElementById('whatsapp-btn').disabled = false;
-    }
-  }, 5000);
-}
+        function updateQuantity(index, change) {
+            if (state.cart[index]) {
+                const newQuantity = state.cart[index].quantity + change;
+                
+                if (newQuantity < 1) {
+                    removeFromCart(index);
+                } else {
+                    state.cart[index].quantity = newQuantity;
+                    updateCartDisplay();
+                }
+            }
+        }
 
-/* ===============================
-   WHATSAPP
-================================ */
-function buildWhatsAppMessage() {
-  const order = prepareOrderData();
+        function removeFromCart(index) {
+            if (confirm('Remover este item do carrinho?')) {
+                state.cart.splice(index, 1);
+                updateCartDisplay();
+            }
+        }
 
-  return encodeURIComponent(`
-🛒 *NOVO PEDIDO – BEBCOM*
+        function clearCart() {
+            if (state.cart.length === 0) return;
+            
+            if (confirm('Tem certeza que deseja limpar o carrinho?')) {
+                state.cart = [];
+                updateCartDisplay();
+                saveCartToLocalStorage();
+            }
+        }
 
-👤 Cliente: ${document.getElementById('customer-name').value}
-📞 Telefone: ${document.getElementById('customer-phone').value}
+        function saveCartToLocalStorage() {
+            try {
+                localStorage.setItem('bebcom_cart', JSON.stringify(state.cart));
+            } catch (e) {
+                console.log('Não foi possível salvar carrinho');
+            }
+        }
 
-📍 *ENDEREÇO DE ENTREGA*
-${street.value}, ${house-number.value}
-${neighborhood.value} - ${city.value}
-${address-complement.value ? 'Complemento: ' + address-complement.value : ''}
-${reference-point.value ? '📌 Referência: ' + reference-point.value : ''}
+        // ============================================
+        // FUNÇÕES DE ENTREGA (CORREÇÃO)
+        // ============================================
+        function selectDeliveryType(type) {
+            state.deliveryType = type;
+            const paymentLabel = document.getElementById('paymentLabel');
+            const paymentMethods = document.getElementById('paymentMethods');
+            const payButton = document.getElementById('payButton');
+            
+            const pickupBtn = document.querySelector('.delivery-option:nth-child(1)');
+            const deliveryBtn = document.querySelector('.delivery-option:nth-child(2)');
+            const addressFields = document.getElementById('addressFields');
+            
+            if (type === 'pickup') {
+                // PARA RETIRADA
+                pickupBtn.classList.add('selected');
+                deliveryBtn.classList.remove('selected');
+                addressFields.style.display = 'none';
+                
+                // Esconder métodos de pagamento online
+                paymentLabel.style.display = 'none';
+                paymentMethods.style.display = 'none';
+                
+                // Desabilitar botão de pagamento
+                payButton.disabled = true;
+                payButton.textContent = '🏪 Retirada no Local';
+                
+                // Resetar estado de pagamento
+                state.paymentMethod = null;
+                state.paymentConfirmed = false;
+                
+            } else {
+                // PARA ENTREGA
+                pickupBtn.classList.remove('selected');
+                deliveryBtn.classList.add('selected');
+                addressFields.style.display = 'block';
+                
+                // Mostrar métodos de pagamento
+                paymentLabel.style.display = 'block';
+                paymentMethods.style.display = 'grid';
+                
+                // Habilitar botão de pagamento e selecionar PIX por padrão
+                payButton.disabled = false;
+                selectPaymentMethod('pix');
+            }
+            
+            updateCartDisplay();
+            validateForm();
+        }
 
-🧾 *ITENS*
-${order.items.map(i => `• ${i.quantity}x ${i.name}`).join('\n')}
+        // ============================================
+        // FUNÇÕES DE PAGAMENTO
+        // ============================================
+        function selectPaymentMethod(method) {
+            // Apenas se for entrega
+            if (state.deliveryType !== 'delivery') return;
+            
+            state.paymentMethod = method;
+            
+            // Atualizar UI dos botões
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            const selectedMethod = document.querySelector(`.payment-method:nth-child(${getPaymentMethodIndex(method)})`);
+            if (selectedMethod) {
+                selectedMethod.classList.add('selected');
+            }
+            
+            updatePayButtonText();
+            validateForm();
+        }
 
-🚚 Taxa: R$ ${order.deliveryFee.toFixed(2)}
-💰 Total: R$ ${order.total.toFixed(2)}
+        function getPaymentMethodIndex(method) {
+            switch(method) {
+                case 'pix': return 1;
+                case 'card_online': return 2;
+                default: return 1;
+            }
+        }
 
-💳 Pagamento confirmado
-`.trim());
-}
+        function updatePayButtonText() {
+            const button = document.getElementById('payButton');
+            if (state.deliveryType === 'delivery') {
+                const texts = {
+                    pix: '🧾 Pagar com PIX',
+                    card_online: '💳 Pagar com Cartão'
+                };
+                button.innerHTML = texts[state.paymentMethod] || '💰 Realizar Pagamento';
+            } else {
+                button.innerHTML = '🏪 Retirada no Local';
+            }
+        }
 
-function sendWhatsApp() {
-  if (!state.paymentConfirmed) return;
-  const phone = '5514999999999'; // número da loja
-  const message = buildWhatsAppMessage();
-  window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-}
-</script>
+        function validateOrder() {
+            const errors = [];
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+            
+            if (!customerName) errors.push('• Digite seu nome completo');
+            if (!customerPhone || customerPhone.length < 10) errors.push('• Digite um WhatsApp válido');
+            if (state.cart.length === 0) errors.push('• Adicione itens ao carrinho');
+            
+            if (state.deliveryType === 'delivery') {
+                const street = document.getElementById('street').value.trim();
+                const number = document.getElementById('number').value.trim();
+                const neighborhood = document.getElementById('neighborhood').value.trim();
+                const city = document.getElementById('city').value.trim();
+                
+                if (!street) errors.push('• Digite a rua');
+                if (!number) errors.push('• Digite o número');
+                if (!neighborhood) errors.push('• Digite o bairro');
+                if (!city) errors.push('• Digite a cidade');
+                
+                // Para entrega, precisa de método de pagamento selecionado
+                if (!state.paymentMethod) errors.push('• Selecione um método de pagamento');
+            }
+            
+            return errors;
+        }
 
+        async function processPayment() {
+            // Para retirada, não processar pagamento
+            if (state.deliveryType === 'pickup') {
+                alert('Para retirada, o pagamento será realizado no local.');
+                return;
+            }
+            
+            if (state.paymentProcessing) return;
+            
+            const errors = validateOrder();
+            if (errors.length > 0) {
+                alert(errors.join('\n'));
+                return;
+            }
+            
+            state.paymentProcessing = true;
+            const button = document.getElementById('payButton');
+            const originalText = button.innerHTML;
+            const statusDiv = document.getElementById('paymentStatus');
+            
+            // Mostrar loading
+            button.innerHTML = '<span class="loading-spinner"></span> Processando...';
+            button.disabled = true;
+            
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'payment-status';
+            statusDiv.innerHTML = '🔄 Processando seu pedido...';
+            
+            try {
+                await processOnlinePayment();
+            } catch (error) {
+                console.error('Erro no processamento:', error);
+                statusDiv.className = 'payment-status error';
+                statusDiv.innerHTML = `❌ ${error.message || 'Erro ao processar pedido'}`;
+                resetPayButton(originalText);
+            }
+        }
+
+        async function processOnlinePayment() {
+            try {
+                const orderData = prepareOrderData();
+                state.currentOrderId = 'BEB' + Date.now().toString().slice(-8);
+                
+                // Criar items para Mercado Pago
+                const items = orderData.items.map(item => ({
+                    title: item.name.substring(0, 50),
+                    quantity: item.quantity,
+                    unit_price: Number(item.price.toFixed(2))
+                }));
+                
+                // Adicionar taxa de entrega se houver
+                if (orderData.deliveryFee > 0) {
+                    items.push({
+                        title: 'Taxa de Entrega',
+                        quantity: 1,
+                        unit_price: orderData.deliveryFee
+                    });
+                }
+                
+                // Criar preferência de pagamento
+                const response = await fetch(`${CONFIG.backendUrl}/create-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId: state.currentOrderId,
+                        payer: {
+                            name: document.getElementById('customerName').value,
+                            email: 'cliente@bebcom.com'
+                        },
+                        items: items,
+                        paymentMethod: state.paymentMethod
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao criar pagamento no servidor');
+                }
+                
+                const data = await response.json();
+                
+                if (data.preferenceId) {
+                    // Abrir checkout do Mercado Pago
+                    state.mercadoPago.checkout({
+                        preference: { id: data.preferenceId },
+                        autoOpen: true
+                    });
+                    
+                    // Iniciar verificação do status
+                    startPaymentStatusCheck(state.currentOrderId);
+                } else {
+                    throw new Error('Resposta inválida do servidor');
+                }
+                
+            } catch (error) {
+                // Fallback: mostrar QR Code PIX manual
+                if (state.paymentMethod === 'pix') {
+                    showManualPixPayment();
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        function showManualPixPayment() {
+            const statusDiv = document.getElementById('paymentStatus');
+            const orderData = prepareOrderData();
+            const total = orderData.total;
+            
+            statusDiv.className = 'payment-status';
+            statusDiv.innerHTML = `
+                <div style="text-align: center;">
+                    <h4 style="margin-bottom: 15px;">🧾 PIX Manual</h4>
+                    <p>Valor: <strong>R$ ${total.toFixed(2)}</strong></p>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <strong>Chave PIX:</strong><br>
+                        <span style="font-family: monospace; word-break: break-all;">
+                            bebcom@lounge.com
+                        </span>
+                    </div>
+                    <p style="font-size: 14px; color: #aaa;">
+                        ⏱️ Após pagar, clique em "Já Paguei" para confirmar
+                    </p>
+                    <button onclick="confirmPayment()" style="
+                        background: #28a745; color: white; border: none; 
+                        padding: 12px 24px; border-radius: 8px; cursor: pointer;
+                        margin: 10px; font-weight: bold;">
+                        ✅ Já Paguei
+                    </button>
+                    <button onclick="cancelPayment()" style="
+                        background: #dc3545; color: white; border: none; 
+                        padding: 12px 24px; border-radius: 8px; cursor: pointer;
+                        margin: 10px; font-weight: bold;">
+                        ❌ Cancelar
+                    </button>
+                </div>
+            `;
+            
+            state.paymentProcessing = false;
+            document.getElementById('payButton').style.display = 'none';
+        }
+
+        function cancelPayment() {
+            resetPaymentState();
+            document.getElementById('paymentStatus').style.display = 'none';
+            document.getElementById('payButton').style.display = 'block';
+        }
+
+        function prepareOrderData() {
+            const items = state.cart.map(item => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+                iceFlavor: item.iceFlavor || null
+            }));
+            
+            const itemsTotal = items.reduce((sum, i) => sum + (i.quantity * i.price), 0);
+            
+            // Calcular taxa de entrega
+            let deliveryFee = 0;
+            if (state.deliveryType === 'delivery') {
+                deliveryFee = CONFIG.deliveryRates.baseFee;
+                if (itemsTotal >= CONFIG.deliveryRates.freeDeliveryMin) {
+                    deliveryFee = 0;
+                }
+            }
+            
+            return {
+                items,
+                deliveryFee,
+                total: itemsTotal + deliveryFee,
+                orderType: state.deliveryType,
+                paymentMethod: state.paymentMethod
+            };
+        }
+
+        function startPaymentStatusCheck(orderId) {
+            if (state.paymentInterval) clearInterval(state.paymentInterval);
+            
+            state.paymentInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${CONFIG.backendUrl}/order-status/${orderId}`);
+                    if (!response.ok) return;
+                    
+                    const data = await response.json();
+                    
+                    if (data.paid) {
+                        clearInterval(state.paymentInterval);
+                        confirmPayment();
+                    }
+                } catch (error) {
+                    console.error('Erro ao verificar status:', error);
+                }
+            }, 5000);
+            
+            // Timeout após 30 minutos
+            setTimeout(() => {
+                if (state.paymentInterval) {
+                    clearInterval(state.paymentInterval);
+                    showPaymentError('Tempo limite excedido. Tente novamente.');
+                }
+            }, 30 * 60 * 1000);
+        }
+
+        function confirmPayment() {
+            // Apenas confirma pagamento para entrega
+            if (state.deliveryType === 'delivery') {
+                state.paymentConfirmed = true;
+            }
+            
+            state.paymentProcessing = false;
+            
+            if (state.paymentInterval) {
+                clearInterval(state.paymentInterval);
+                state.paymentInterval = null;
+            }
+            
+            const statusDiv = document.getElementById('paymentStatus');
+            statusDiv.className = 'payment-status success';
+            statusDiv.innerHTML = state.deliveryType === 'delivery' 
+                ? '✅ Pagamento confirmado com sucesso!' 
+                : '✅ Pedido confirmado para retirada!';
+            
+            const payButton = document.getElementById('payButton');
+            payButton.innerHTML = state.deliveryType === 'delivery' 
+                ? '✅ Pagamento Confirmado' 
+                : '✅ Retirada Confirmada';
+            payButton.disabled = true;
+            
+            const whatsappButton = document.getElementById('whatsappButton');
+            whatsappButton.disabled = false;
+            
+            showNotification(state.deliveryType === 'delivery' 
+                ? 'Pagamento confirmado! Agora envie o pedido pelo WhatsApp.' 
+                : 'Pedido confirmado! Agora envie o pedido pelo WhatsApp.');
+        }
+
+        function showPaymentError(message) {
+            const statusDiv = document.getElementById('paymentStatus');
+            statusDiv.className = 'payment-status error';
+            statusDiv.innerHTML = `❌ ${message}`;
+            state.paymentProcessing = false;
+            resetPayButton();
+        }
+
+        function resetPayButton(originalText) {
+            const button = document.getElementById('payButton');
+            if (state.deliveryType === 'delivery') {
+                button.innerHTML = originalText || '💰 Realizar Pagamento';
+                button.disabled = false;
+            } else {
+                button.innerHTML = '🏪 Retirada no Local';
+                button.disabled = true;
+            }
+            state.paymentProcessing = false;
+        }
+
+        function resetPaymentState() {
+            state.paymentConfirmed = false;
+            state.paymentProcessing = false;
+            state.currentOrderId = null;
+            state.currentPreferenceId = null;
+            
+            if (state.paymentInterval) {
+                clearInterval(state.paymentInterval);
+                state.paymentInterval = null;
+            }
+            
+            document.getElementById('paymentStatus').style.display = 'none';
+            document.getElementById('whatsappButton').disabled = true;
+            
+            // Resetar método de pagamento baseado no tipo
+            if (state.deliveryType === 'delivery') {
+                selectPaymentMethod('pix');
+            } else {
+                state.paymentMethod = null;
+            }
+        }
+
+        // ============================================
+        // FUNÇÕES DO WHATSAPP (COM INFORMAÇÃO DO GELO)
+        // ============================================
+        function validateForm() {
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+            const whatsappButton = document.getElementById('whatsappButton');
+            
+            let isValid = customerName.length > 0 && 
+                         customerPhone.length >= 10 && 
+                         state.cart.length > 0;
+            
+            if (state.deliveryType === 'delivery') {
+                const street = document.getElementById('street').value.trim();
+                const number = document.getElementById('number').value.trim();
+                const neighborhood = document.getElementById('neighborhood').value.trim();
+                const city = document.getElementById('city').value.trim();
+                
+                isValid = isValid && street.length > 0 && number.length > 0 && 
+                         neighborhood.length > 0 && city.length > 0;
+                
+                // Para entrega, precisa de pagamento confirmado
+                isValid = isValid && state.paymentConfirmed;
+            }
+            // Para retirada, não precisa de pagamento confirmado
+            
+            whatsappButton.disabled = !isValid;
+            return isValid;
+        }
+
+        function sendToWhatsApp() {
+            if (!validateForm()) {
+                alert('Complete todas as informações antes de enviar!');
+                return;
+            }
+            
+            try {
+                const message = prepareWhatsAppMessage();
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodedMessage}`;
+                
+                // Abrir WhatsApp em nova aba
+                window.open(whatsappUrl, '_blank');
+                
+                // Feedback
+                alert('✅ Pedido enviado! Aguarde nosso contato no WhatsApp.');
+                
+                // Manter carrinho para possível novo pedido
+                // Apenas resetar estado de pagamento
+                resetPaymentState();
+                
+            } catch (error) {
+                console.error('Erro ao enviar:', error);
+                alert('❌ Erro ao preparar pedido. Tente novamente.');
+            }
+        }
+
+        function prepareWhatsAppMessage() {
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+            const street = document.getElementById('street').value.trim();
+            const number = document.getElementById('number').value.trim();
+            const neighborhood = document.getElementById('neighborhood').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const complement = document.getElementById('addressComplement').value.trim();
+            
+            const orderData = prepareOrderData();
+            const orderId = state.currentOrderId || 'BEB' + Date.now().toString().slice(-8);
+            
+            let message = `*🍹 PEDIDO BEBCOM DELIVERY 🚚*\n`;
+            message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+            message += `📋 *Nº do Pedido:* ${orderId}\n`;
+            message += `👤 *Cliente:* ${customerName}\n`;
+            message += `📞 *WhatsApp:* ${customerPhone}\n`;
+            message += `📦 *Tipo:* ${state.deliveryType === 'delivery' ? 'ENTREGA' : 'RETIRADA'}\n`;
+            
+            if (state.deliveryType === 'delivery') {
+                // Montar endereço completo para entrega
+                const fullAddress = `${street}, ${number} - ${neighborhood}, ${city}`;
+                message += `📍 *Endereço:* ${fullAddress}\n`;
+                if (complement) {
+                    message += `🏠 *Complemento:* ${complement}\n`;
+                }
+                
+                // Para entrega, mostrar forma de pagamento
+                message += `💳 *Pagamento:* ${getPaymentMethodText()}\n`;
+            } else {
+                // Para retirada, NÃO mostrar informação de pagamento
+                // Pagamento será realizado no local
+            }
+            
+            message += `📅 *Data/Hora:* ${new Date().toLocaleString('pt-BR')}\n`;
+            message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+            message += `\n🛒 *ITENS DO PEDIDO:*\n`;
+            
+            orderData.items.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                message += `\n${index + 1}. ${item.name}\n`;
+                
+                // Adicionar informação do sabor do gelo se existir
+                if (item.iceFlavor) {
+                    message += `   🧊 *Sabor do gelo:* ${item.iceFlavor}\n`;
+                }
+                
+                message += `   ${item.quantity} × R$ ${item.price.toFixed(2)} = R$ ${itemTotal.toFixed(2)}`;
+            });
+            
+            message += `\n\n━━━━━━━━━━━━━━━━━━━━━━\n`;
+            message += `💰 *Subtotal:* R$ ${(orderData.total - orderData.deliveryFee).toFixed(2)}\n`;
+            
+            if (state.deliveryType === 'delivery') {
+                message += `🚚 *Taxa de Entrega:* R$ ${orderData.deliveryFee.toFixed(2)}\n`;
+                if (orderData.deliveryFee === 0 && (orderData.total - orderData.deliveryFee) >= CONFIG.deliveryRates.freeDeliveryMin) {
+                    message += `🎉 *Frete Grátis!*\n`;
+                }
+            }
+            
+            message += `💳 *Total Geral:* R$ ${orderData.total.toFixed(2)}\n`;
+            message += `\n━━━━━━━━━━━━━━━━━━━━━━\n`;
+            message += `✅ *Pedido confirmado!*\n`;
+            
+            // Apenas mostrar tempo estimado para entrega
+            if (state.deliveryType === 'delivery') {
+                message += `⏱️ *Tempo estimado:* 40-60 minutos\n`;
+            }
+            
+            message += `📞 *Dúvidas:* (14) 99613-0369\n`;
+            message += `\n🎉 *Obrigado pela preferência!*\n`;
+            message += `_BebCom Delivery - Seu momento, nossa companhia_`;
+            
+            return message;
+        }
+
+        function getPaymentMethodText() {
+            if (state.deliveryType === 'delivery') {
+                // Para entrega
+                switch(state.paymentMethod) {
+                    case 'pix': return 'PIX Online' + (state.paymentConfirmed ? ' ✅ PAGO' : '');
+                    case 'card_online': return 'Cartão Online' + (state.paymentConfirmed ? ' ✅ PAGO' : '');
+                    default: return '';
+                }
+            } else {
+                // Para retirada, retornar string vazia (não mostra no WhatsApp)
+                return '';
+            }
+        }
+
+        // ============================================
+        // FUNÇÕES UTILITÁRIAS
+        // ============================================
+        function showNotification(text) {
+            // Criar notificação temporária
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = text;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+
+        function setupEventListeners() {
+            document.getElementById('customerName').addEventListener('input', validateForm);
+            document.getElementById('customerPhone').addEventListener('input', validateForm);
+            document.getElementById('street').addEventListener('input', validateForm);
+            document.getElementById('number').addEventListener('input', validateForm);
+            document.getElementById('neighborhood').addEventListener('input', validateForm);
+            document.getElementById('city').addEventListener('input', validateForm);
+            document.getElementById('addressComplement').addEventListener('input', validateForm);
+        }
+
+        // ============================================
+        // INICIALIZAÇÃO
+        // ============================================
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
+
