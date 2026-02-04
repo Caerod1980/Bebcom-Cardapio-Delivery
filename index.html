@@ -565,6 +565,39 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
+        /* INTEGRAÇÃO STATUS */
+        .integration-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(26, 26, 26, 0.95);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            font-size: 12px;
+            color: #aaa;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .status-online {
+            background: #6bcf7f;
+        }
+        
+        .status-offline {
+            background: #dc2626;
+        }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -742,6 +775,11 @@
                 <button class="clear-button" onclick="clearCart()">
                     🗑️ Limpar Carrinho
                 </button>
+
+                <!-- Botão de Exportação -->
+                <button class="clear-button" onclick="exportOrderData()" style="background: linear-gradient(135deg, #4d96ff 0%, #357abd 100%); margin-top: 10px;">
+                    📤 Exportar Dados do Pedido
+                </button>
             </div>
         </div>
     </div>
@@ -767,6 +805,12 @@
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- STATUS DA INTEGRAÇÃO -->
+    <div class="integration-status" id="integrationStatus" style="display: none;">
+        <span class="status-indicator status-online" id="statusIndicator"></span>
+        <span id="statusText">Conectado ao sistema</span>
     </div>
 
     <script>
@@ -874,6 +918,15 @@
         };
 
         // ============================================
+        // CONFIGURAÇÕES DE INTEGRAÇÃO
+        // ============================================
+        const INTEGRATION_CONFIG = {
+            backendUrl: 'https://seu-backend.onrender.com',
+            syncInterval: 60000, // 1 minuto
+            autoSaveOrders: true
+        };
+
+        // ============================================
         // ESTADO GLOBAL
         // ============================================
         const state = {
@@ -924,6 +977,9 @@
             } catch (e) {
                 console.log('Não foi possível carregar carrinho salvo');
             }
+            
+            // Inicializar integração
+            initializeIntegration();
         }
 
         function initializeMercadoPago() {
@@ -956,6 +1012,158 @@
                 };
                 iceFlavorsGrid.appendChild(flavorOption);
             });
+        }
+
+        // ============================================
+        // FUNÇÕES DE INTEGRAÇÃO
+        // ============================================
+        function initializeIntegration() {
+            // Verificar conexão inicial
+            checkBackendConnection();
+            
+            // Configurar retry automático
+            setInterval(retryPendingOrders, 300000); // 5 minutos
+            
+            // Configurar monitoramento de conexão
+            setInterval(checkBackendConnection, 60000); // 1 minuto
+        }
+
+        async function checkBackendConnection() {
+            try {
+                const response = await fetch(`${INTEGRATION_CONFIG.backendUrl}/api/health`);
+                if (response.ok) {
+                    updateIntegrationStatus(true, 'Sistema online');
+                } else {
+                    updateIntegrationStatus(false, 'Sistema offline');
+                }
+            } catch (error) {
+                updateIntegrationStatus(false, 'Sem conexão');
+            }
+        }
+
+        function updateIntegrationStatus(isOnline, message) {
+            const indicator = document.getElementById('statusIndicator');
+            const text = document.getElementById('statusText');
+            
+            if (isOnline) {
+                indicator.className = 'status-indicator status-online';
+                text.textContent = message || 'Conectado ao sistema';
+            } else {
+                indicator.className = 'status-indicator status-offline';
+                text.textContent = message || 'Sistema offline - Pedido salvo localmente';
+            }
+            
+            // Mostrar temporariamente
+            const statusDiv = document.getElementById('integrationStatus');
+            statusDiv.style.display = 'flex';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        async function sendOrderToBackend(orderData) {
+            try {
+                const response = await fetch(`${INTEGRATION_CONFIG.backendUrl}/api/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        order: orderData,
+                        timestamp: new Date().toISOString(),
+                        source: 'web_order_system'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Pedido enviado com sucesso:', data);
+                    updateIntegrationStatus(true, 'Pedido sincronizado');
+                    return data.orderId;
+                } else {
+                    throw new Error('Erro ao enviar pedido');
+                }
+            } catch (error) {
+                console.error('Erro na integração:', error);
+                updateIntegrationStatus(false, 'Falha na sincronização');
+                
+                // Fallback: salvar localmente para envio posterior
+                if (INTEGRATION_CONFIG.autoSaveOrders) {
+                    saveOrderLocally(orderData);
+                }
+                
+                return null;
+            }
+        }
+
+        function saveOrderLocally(orderData) {
+            try {
+                const pendingOrders = JSON.parse(localStorage.getItem('bebcom_pending_orders') || '[]');
+                orderData.localSaveTime = new Date().toISOString();
+                orderData.retryCount = 0;
+                pendingOrders.push(orderData);
+                localStorage.setItem('bebcom_pending_orders', JSON.stringify(pendingOrders));
+                console.log('Pedido salvo localmente para envio posterior');
+            } catch (error) {
+                console.error('Erro ao salvar localmente:', error);
+            }
+        }
+
+        async function retryPendingOrders() {
+            try {
+                const pendingOrders = JSON.parse(localStorage.getItem('bebcom_pending_orders') || '[]');
+                if (pendingOrders.length === 0) return;
+                
+                console.log(`Tentando enviar ${pendingOrders.length} pedidos pendentes...`);
+                
+                const successfulOrders = [];
+                
+                for (let i = pendingOrders.length - 1; i >= 0; i--) {
+                    const order = pendingOrders[i];
+                    try {
+                        const response = await fetch(`${INTEGRATION_CONFIG.backendUrl}/api/orders`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                order: order,
+                                timestamp: order.localSaveTime,
+                                source: 'web_order_system',
+                                retry: true
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            successfulOrders.push(i);
+                        } else {
+                            order.retryCount = (order.retryCount || 0) + 1;
+                            if (order.retryCount >= 3) {
+                                // Remover após 3 tentativas falhas
+                                successfulOrders.push(i);
+                                console.log(`Pedido removido após 3 tentativas falhas: ${order.id}`);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Erro ao reenviar pedido:', error);
+                    }
+                }
+                
+                // Remover pedidos enviados com sucesso
+                successfulOrders.forEach(index => {
+                    pendingOrders.splice(index, 1);
+                });
+                
+                localStorage.setItem('bebcom_pending_orders', JSON.stringify(pendingOrders));
+                
+                if (successfulOrders.length > 0) {
+                    updateIntegrationStatus(true, `${successfulOrders.length} pedidos sincronizados`);
+                }
+                
+            } catch (error) {
+                console.error('Erro no retry de pedidos:', error);
+            }
         }
 
         // ============================================
@@ -1504,7 +1712,7 @@
             return isValid;
         }
 
-        function sendToWhatsApp() {
+        async function sendToWhatsApp() {
             if (!validateForm()) {
                 alert('Complete todas as informações antes de enviar!');
                 return;
@@ -1512,14 +1720,52 @@
             
             try {
                 const message = prepareWhatsAppMessage();
-                const encodedMessage = encodeURIComponent(message);
+                const orderData = prepareOrderData();
+                
+                // Gerar ID único para o pedido
+                const orderId = 'BEB' + Date.now().toString().slice(-8);
+                
+                // Adicionar ID ao orderData
+                orderData.id = orderId;
+                orderData.status = 'pending';
+                orderData.customerName = document.getElementById('customerName').value.trim();
+                orderData.customerPhone = document.getElementById('customerPhone').value.trim();
+                
+                if (state.deliveryType === 'delivery') {
+                    const street = document.getElementById('street').value.trim();
+                    const number = document.getElementById('number').value.trim();
+                    const neighborhood = document.getElementById('neighborhood').value.trim();
+                    const city = document.getElementById('city').value.trim();
+                    const complement = document.getElementById('addressComplement').value.trim();
+                    
+                    orderData.address = `${street}, ${number} - ${neighborhood}, ${city}`;
+                    if (complement) orderData.addressComplement = complement;
+                }
+                
+                orderData.paymentMethod = state.paymentMethod;
+                orderData.paymentStatus = state.paymentConfirmed ? 'confirmed' : 'pending';
+                orderData.timestamp = new Date().toISOString();
+                
+                // Enviar para o backend
+                const backendOrderId = await sendOrderToBackend(orderData);
+                
+                // Adicionar ID do backend à mensagem
+                const finalMessage = message.replace('Nº do Pedido:', `Nº do Pedido: ${backendOrderId || orderId}`);
+                
+                const encodedMessage = encodeURIComponent(finalMessage);
                 const whatsappUrl = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodedMessage}`;
                 
                 window.open(whatsappUrl, '_blank');
                 
-                alert('✅ Pedido enviado! Aguarde nosso contato no WhatsApp.');
+                showNotification('✅ Pedido enviado! Aguarde nosso contato.');
                 
-                resetPaymentState();
+                // Limpar carrinho após envio bem-sucedido
+                setTimeout(() => {
+                    state.cart = [];
+                    updateCartDisplay();
+                    saveCartToLocalStorage();
+                    resetPaymentState();
+                }, 2000);
                 
             } catch (error) {
                 console.error('Erro ao enviar:', error);
@@ -1642,6 +1888,41 @@
             document.getElementById('neighborhood').addEventListener('input', validateForm);
             document.getElementById('city').addEventListener('input', validateForm);
             document.getElementById('addressComplement').addEventListener('input', validateForm);
+        }
+
+        // ============================================
+        // FUNÇÃO PARA EXPORTAR DADOS
+        // ============================================
+        function exportOrderData() {
+            const orderData = prepareOrderData();
+            orderData.customerName = document.getElementById('customerName').value.trim();
+            orderData.customerPhone = document.getElementById('customerPhone').value.trim();
+            
+            if (state.deliveryType === 'delivery') {
+                orderData.address = {
+                    street: document.getElementById('street').value.trim(),
+                    number: document.getElementById('number').value.trim(),
+                    neighborhood: document.getElementById('neighborhood').value.trim(),
+                    city: document.getElementById('city').value.trim(),
+                    complement: document.getElementById('addressComplement').value.trim()
+                };
+            }
+            
+            orderData.paymentMethod = state.paymentMethod;
+            orderData.paymentConfirmed = state.paymentConfirmed;
+            orderData.deliveryType = state.deliveryType;
+            
+            const dataStr = JSON.stringify(orderData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `pedido-bebcom-${Date.now()}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showNotification('📥 Dados do pedido exportados');
         }
 
         // ============================================
