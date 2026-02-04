@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BebCom Delivery - Sistema Completo</title>
+    <title>BebCom Delivery - Sistema Completo com Gerenciamento</title>
     
     <!-- SDK Mercado Pago -->
     <script src="https://sdk.mercadopago.com/js/v2"></script>
     
     <style>
+        /* ====== ESTILOS GERAIS ====== */
         * { 
             margin: 0; 
             padding: 0; 
@@ -146,12 +147,33 @@
             padding: 20px;
             transition: all 0.3s ease;
             cursor: pointer;
+            position: relative;
         }
 
         .product-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(220, 38, 38, 0.15);
             border-color: #dc2626;
+        }
+
+        .product-card.unavailable {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .product-card.unavailable::after {
+            content: "INDISPONÍVEL";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 2;
         }
 
         .product-name {
@@ -194,6 +216,14 @@
 
         .add-to-cart-btn.added {
             background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        }
+
+        .add-to-cart-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none !important;
+            box-shadow: none !important;
         }
 
         .cart-items {
@@ -565,37 +595,259 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
-        /* INTEGRAÇÃO STATUS */
-        .integration-status {
+        /* ====== SISTEMA ADMINISTRATIVO ====== */
+        .admin-button {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(26, 26, 26, 0.95);
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            font-size: 12px;
-            color: #aaa;
-            z-index: 1000;
+            top: 15px;
+            right: 15px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 9999;
             display: flex;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s ease;
         }
         
-        .status-indicator {
-            width: 8px;
-            height: 8px;
+        .admin-button:hover {
+            transform: scale(1.1);
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        }
+        
+        .admin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10001;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .admin-content {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            max-width: 1000px;
+            margin: 40px auto;
+            border-radius: 15px;
+            border: 2px solid #3b82f6;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            padding: 20px 30px;
+            border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #60a5fa;
+        }
+        
+        .admin-close {
+            background: #ef4444;
+            color: white;
+            border: none;
             border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .admin-password {
+            padding: 30px;
+            background: rgba(26, 26, 26, 0.8);
+            border-bottom: 1px solid #333;
+        }
+        
+        .password-input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .password-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .admin-main {
+            padding: 20px 30px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .admin-category-section {
+            margin-bottom: 25px;
+            background: rgba(26, 26, 26, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #333;
+        }
+        
+        .admin-category-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3b82f6;
+        }
+        
+        .admin-product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .admin-product-item {
+            background: rgba(45, 45, 45, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #444;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-product-item:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .admin-product-name {
+            color: #f5f5f5;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .admin-product-price {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .toggle-switch {
+            position: relative;
             display: inline-block;
+            width: 60px;
+            height: 30px;
         }
         
-        .status-online {
-            background: #6bcf7f;
+        .toggle-checkbox {
+            opacity: 0;
+            width: 0;
+            height: 0;
         }
         
-        .status-offline {
-            background: #dc2626;
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #dc2626;
+            transition: .4s;
+            border-radius: 30px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        .toggle-checkbox:checked + .toggle-slider {
+            background-color: #10b981;
+        }
+        
+        .toggle-checkbox:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+        
+        .admin-actions {
+            padding: 20px 30px;
+            background: rgba(26, 26, 26, 0.8);
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .admin-action-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .save-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+        }
+        
+        .reset-btn {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        .all-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .none-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .admin-help {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 10px;
+            text-align: center;
         }
 
         @keyframes spin {
@@ -616,6 +868,10 @@
             .cart-section {
                 position: static;
                 max-height: none;
+            }
+            
+            .admin-product-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -639,12 +895,21 @@
             .ice-flavors-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .admin-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Botão Admin -->
+    <button class="admin-button" id="adminButton" title="Painel Administrativo">
+        🔧
+    </button>
+
     <div class="header">
-        🍹 BEBCOM DELIVERY - Sistema Completo com Pagamento 🚚💳
+        🍹 BEBCOM DELIVERY - Sistema Completo com Gerenciamento 🔧
     </div>
 
     <div class="nav-container">
@@ -775,11 +1040,6 @@
                 <button class="clear-button" onclick="clearCart()">
                     🗑️ Limpar Carrinho
                 </button>
-
-                <!-- Botão de Exportação -->
-                <button class="clear-button" onclick="exportOrderData()" style="background: linear-gradient(135deg, #4d96ff 0%, #357abd 100%); margin-top: 10px;">
-                    📤 Exportar Dados do Pedido
-                </button>
             </div>
         </div>
     </div>
@@ -807,10 +1067,103 @@
         </div>
     </div>
 
-    <!-- STATUS DA INTEGRAÇÃO -->
-    <div class="integration-status" id="integrationStatus" style="display: none;">
-        <span class="status-indicator status-online" id="statusIndicator"></span>
-        <span id="statusText">Conectado ao sistema</span>
+    <!-- MODAL ADMINISTRATIVO -->
+    <div class="admin-modal" id="adminModal">
+        <div class="admin-content">
+            <div class="admin-header">
+                <h2 class="admin-title">🔧 Gerenciamento de Produtos - BebCom Delivery</h2>
+                <button class="admin-close" id="adminClose">×</button>
+            </div>
+            
+            <!-- Tela de Senha -->
+            <div class="admin-password" id="passwordSection">
+                <h3 style="color: #60a5fa; margin-bottom: 20px; text-align: center;">🔐 Acesso Administrativo</h3>
+                <input type="password" class="password-input" id="adminPassword" placeholder="Digite a senha administrativa">
+                <button class="password-button" onclick="checkAdminPassword()">Entrar</button>
+                <p class="admin-help">
+                    Senha padrão: <strong>Bebcom25*</strong><br>
+                    (Ctrl+Alt+A para abrir rapidamente)
+                </p>
+            </div>
+            
+            <!-- Painel Principal -->
+            <div class="admin-main" id="adminMain" style="display: none;">
+                <div class="admin-category-section">
+                    <h3 class="admin-category-title">🥃 Drinks Whisky</h3>
+                    <div class="admin-product-grid" id="adminWhiskyProducts"></div>
+                </div>
+                
+                <div class="admin-category-section">
+                    <h3 class="admin-category-title">🍸 Drinks Gin</h3>
+                    <div class="admin-product-grid" id="adminGinProducts"></div>
+                </div>
+                
+                <div class="admin-category-section">
+                    <h3 class="admin-category-title">🍸 Drinks Vodka</h3>
+                    <div class="admin-product-grid" id="adminVodkaProducts"></div>
+                </div>
+                
+                <div class="admin-category-section">
+                    <h3 class="admin-category-title">🍸 Drinks Vinho</h3>
+                    <div class="admin-product-grid" id="adminVinhoProducts"></div>
+                </div>
+                
+                <div class="admin-category-section">
+                    <h3 class="admin-category-title">🍺 Cervejas</h3>
+                    <div class="admin-product-grid" id="adminCervejaProducts"></div>
+                </div>
+                
+                <div class="admin-category-section">
+                    <h3 class="admin-category-title">🥃 Destilados</h3>
+                    <div class="admin-product-grid" id="adminDestiladoProducts"></div>
+                </div>
+                
+                <div class="admin-category-section">
+                    <h3 class="admin-category-title">🥤 Águas</h3>
+                    <div class="admin-product-grid" id="adminAguaProducts"></div>
+                </div>
+                
+                <div class="admin-category-section">
+                    <h3 class="admin-category-title">🥤 Refri Latas</h3>
+                    <div class="admin-product-grid" id="adminRefriLataProducts"></div>
+                </div>
+                
+                <div class="admin-category-section">
+                    <h3 class="admin-category-title">🥤 Refri PET</h3>
+                    <div class="admin-product-grid" id="adminRefriPetProducts"></div>
+                </div>
+                
+                <div class="admin-category-section">
+                    <h3 class="admin-category-title">🧃 Sucos</h3>
+                    <div class="admin-product-grid" id="adminSucoProducts"></div>
+                </div>
+                
+                <div class="admin-category-section">
+                    <h3 class="admin-category-title">⚡ Energéticos</h3>
+                    <div class="admin-product-grid" id="adminEnergeticoProducts"></div>
+                </div>
+                
+                <div class="admin-category-section">
+                    <h3 class="admin-category-title">🧊 Gelo/Carvão</h3>
+                    <div class="admin-product-grid" id="adminGeloProducts"></div>
+                </div>
+            </div>
+            
+            <div class="admin-actions" id="adminActions" style="display: none;">
+                <button class="admin-action-btn all-btn" onclick="setAllAvailable(true)">
+                    ✅ Marcar Todos Disponível
+                </button>
+                <button class="admin-action-btn none-btn" onclick="setAllAvailable(false)">
+                    ❌ Marcar Todos Indisponível
+                </button>
+                <button class="admin-action-btn save-btn" onclick="saveAvailability()">
+                    💾 Salvar Alterações
+                </button>
+                <button class="admin-action-btn reset-btn" onclick="resetAvailability()">
+                    🔄 Restaurar Padrão
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -818,23 +1171,13 @@
         // CONFIGURAÇÕES DO SISTEMA
         // ============================================
         const CONFIG = {
-            // Master Password
-            masterPassword: 'Bebcom25*',
-            
-            // Backend URL (Render) - ATUALIZE ESTE VALOR COM SEU BACKEND
             backendUrl: 'https://seu-backend.onrender.com',
-            
-            // WhatsApp da loja
             whatsappNumber: '5514996130369',
-            
-            // Coordenadas do BebCom Lounge
             storeLocation: {
                 lat: -22.35892,
                 lng: -49.0987233,
                 address: "R. José Henrique Ferraz, 18-10 - Centro, Bauru - SP"
             },
-            
-            // Taxas de entrega
             deliveryRates: {
                 baseFee: 5.00,
                 perKm: 2.65,
@@ -842,88 +1185,106 @@
                 minDistance: 0.5,
                 freeDeliveryMin: 100.00
             },
-            
-            // Mercado Pago Credenciais - ATUALIZE COM SUAS CREDENCIAIS
             mercadoPago: {
-                publicKey: 'SUA_CHAVE_PUBLICA_AQUI',
-                accessToken: 'SEU_ACCESS_TOKEN_AQUI'
-            }
+                publicKey: 'APP_USR-b74e6ba3-6c30-4384-87c0-9b1199d2511b',
+                accessToken: 'APP_USR-8326438021246657-020121-ccc94cd396e2d69d1f86657f5292db55-49438812'
+            },
+            adminPassword: 'Bebcom25*'
         };
 
         // ============================================
-        // DADOS DOS PRODUTOS
+        // DADOS DOS PRODUTOS (COMPLETO)
         // ============================================
         const products = {
             'drinks-whisky': [
-                { name: 'Copão Old Star', description: 'Drink clássico de whisky', price: 11.00, category: 'drinks-whisky' },
-                { name: 'Copão Passport', description: 'Whisky importado', price: 18.00, category: 'drinks-whisky' },
-                { name: 'Copão Natu Nobilis', description: 'Whisky premium', price: 17.00, category: 'drinks-whisky' },
-                { name: 'Copão White Horse', description: 'Whisky escocês', price: 22.00, category: 'drinks-whisky' },
-                { name: 'Copão Red Label', description: 'Johnnie Walker Red Label', price: 25.00, category: 'drinks-whisky' },
-                { name: "Copão Ballantines", description: 'Whisky escocês', price: 28.00, category: 'drinks-whisky' },
-                { name: "Copão Jack Daniels", description: 'Whisky americano', price: 35.00, category: 'drinks-whisky' }
+                { id: 'old-star', name: 'Copão Old Star', description: 'Drink clássico de whisky', price: 11.00 },
+                { id: 'passport', name: 'Copão Passport', description: 'Whisky importado', price: 18.00 },
+                { id: 'natu-nobilis', name: 'Copão Natu Nobilis', description: 'Whisky premium', price: 17.00 },
+                { id: 'white-horse', name: 'Copão White Horse', description: 'Whisky escocês', price: 22.00 },
+                { id: 'red-label', name: 'Copão Red Label', description: 'Johnnie Walker Red Label', price: 25.00 },
+                { id: 'ballantines', name: 'Copão Ballantines', description: 'Whisky escocês', price: 28.00 },
+                { id: 'jack-daniels', name: 'Copão Jack Daniels', description: 'Whisky americano', price: 35.00 }
             ],
             'drinks-gin': [
-                { name: 'Danoninho de Gin', description: 'Drink refrescante com gin', price: 17.00, category: 'drinks-gin' },
-                { name: 'Copão de Gin', description: 'Gin com tônica e limão', price: 17.00, category: 'drinks-gin' }
+                { id: 'danoninho-gin', name: 'Danoninho de Gin', description: 'Drink refrescante com gin', price: 17.00 },
+                { id: 'copa-gin', name: 'Copão de Gin', description: 'Gin com tônica e limão', price: 17.00 }
             ],
             'drinks-vodka': [
-                { name: 'Danoninho Corote', description: 'Drink com corote e frutas', price: 15.00, category: 'drinks-vodka' },
-                { name: 'Danoninho Askov', description: 'Askov com frutas', price: 17.00, category: 'drinks-vodka' },
-                { name: 'Copão de Ice', description: 'Drink gelado com vodka', price: 17.00, category: 'drinks-vodka' },
-                { name: 'Copão de Vodka', description: 'Vodka com energético', price: 17.00, category: 'drinks-vodka' }
+                { id: 'danoninho-corote', name: 'Danoninho Corote', description: 'Drink com corote e frutas', price: 15.00 },
+                { id: 'danoninho-askov', name: 'Danoninho Askov', description: 'Askov com frutas', price: 17.00 },
+                { id: 'copa-ice', name: 'Copão de Ice', description: 'Drink gelado com vodka', price: 17.00 },
+                { id: 'copa-vodka', name: 'Copão de Vodka', description: 'Vodka com energético', price: 17.00 }
             ],
             'drinks-vinho': [
-                { name: 'Danoninho de Vinho', description: 'Vinho com frutas', price: 17.00, category: 'drinks-vinho' }
+                { id: 'danoninho-vinho', name: 'Danoninho de Vinho', description: 'Vinho com frutas', price: 17.00 }
             ],
             'cervejas': [
-                { name: 'Skol/Brahma', description: 'Cerveja tradicional brasileira', price: 4.25, category: 'cervejas' },
-                { name: 'Antarctica', description: 'Cerveja pilsen refrescante', price: 4.25, category: 'cervejas' },
-                { name: 'Sub-Zero', description: 'Cerveja extra gelada', price: 4.25, category: 'cervejas' },
-                { name: 'Amstel', description: 'Cerveja holandesa premium', price: 4.50, category: 'cervejas' },
-                { name: 'Heineken', description: 'Cerveja importada premium', price: 6.50, category: 'cervejas' },
-                { name: 'Corona Long', description: 'Cerveja mexicana em long neck', price: 8.50, category: 'cervejas' },
-                { name: 'Stella Long', description: 'Cerveja belga em long neck', price: 7.00, category: 'cervejas' },
-                { name: 'Brahma Zero', description: 'Cerveja sem álcool', price: 5.00, category: 'cervejas' }
+                { id: 'skol-brahma', name: 'Skol/Brahma', description: 'Cerveja tradicional brasileira', price: 4.25 },
+                { id: 'antarctica', name: 'Antarctica', description: 'Cerveja pilsen refrescante', price: 4.25 },
+                { id: 'sub-zero', name: 'Sub-Zero', description: 'Cerveja extra gelada', price: 4.25 },
+                { id: 'amstel', name: 'Amstel', description: 'Cerveja holandesa premium', price: 4.50 },
+                { id: 'heineken', name: 'Heineken', description: 'Cerveja importada premium', price: 6.50 },
+                { id: 'corona-long', name: 'Corona Long', description: 'Cerveja mexicana em long neck', price: 8.50 },
+                { id: 'stella-long', name: 'Stella Long', description: 'Cerveja belga em long neck', price: 7.00 },
+                { id: 'brahma-zero', name: 'Brahma Zero', description: 'Cerveja sem álcool', price: 5.00 },
+                { id: 'imperio', name: 'Império', description: 'Cerveja brasileira tradicional', price: 4.00 },
+                { id: 'duplo-malte', name: 'Duplo Malte', description: 'Cerveja com duplo malte', price: 4.50 }
             ],
             'destilados': [
-                { name: 'Jack Daniels', description: 'Whiskey americano', price: 192.00, category: 'destilados' },
-                { name: 'Red Label', description: 'Johnnie Walker', price: 125.00, category: 'destilados' },
-                { name: 'Smirnoff 1L', description: 'Vodka Smirnoff 1 litro', price: 46.00, category: 'destilados' }
+                { id: 'jurupinga', name: 'Jurupinga', description: 'Licor brasileiro', price: 42.00 },
+                { id: 'saque', name: 'Saquê', description: 'Bebida japonesa', price: 30.00 },
+                { id: 'tequila', name: 'Tequila', description: 'Destilado mexicano', price: 23.00 },
+                { id: 'pinga-51', name: 'Pinga 51', description: 'Cachaça brasileira', price: 17.00 },
+                { id: 'conhaque', name: 'Conhaque', description: 'Destilado envelhecido', price: 19.00 },
+                { id: 'dimel', name: 'Dimel', description: 'Licor italiano', price: 28.00 },
+                { id: 'campari', name: 'Campari', description: 'Bitter italiano', price: 65.00 },
+                { id: 'gin-askov', name: 'Gin Askov', description: 'Gin brasileiro', price: 19.00 }
             ],
             'aguas': [
-                { name: 'Água 500ml', description: 'Água mineral natural', price: 3.00, category: 'aguas' },
-                { name: 'Água 1,5L', description: 'Água mineral família', price: 5.00, category: 'aguas' }
+                { id: 'agua-500ml', name: 'Água 500ml', description: 'Água mineral natural', price: 3.00 },
+                { id: 'agua-1.5l', name: 'Água 1,5L', description: 'Água mineral família', price: 5.00 },
+                { id: 'agua-coco-1l', name: 'Água de Coco 1L', description: 'Água de coco natural', price: 10.00 },
+                { id: 'agua-gas-500ml', name: 'Água Gás 500ml', description: 'Água com gás', price: 3.50 },
+                { id: 'agua-gas-1.5l', name: 'Água Gás 1,5L', description: 'Água com gás família', price: 6.00 }
             ],
             'refri-latas': [
-                { name: 'Coca Cola', description: 'Refrigerante tradicional', price: 4.50, category: 'refri-latas' },
-                { name: 'Guaraná Antarctica', description: 'Refrigerante brasileiro', price: 4.50, category: 'refri-latas' }
+                { id: 'sprite-fanta', name: 'Sprite/Fanta', description: 'Refrigerante cítrico', price: 4.50 },
+                { id: 'guarana-antarctica', name: 'Guaraná Antarctica', description: 'Refrigerante brasileiro', price: 4.50 },
+                { id: 'pepsi', name: 'Pepsi', description: 'Refrigerante de cola', price: 4.50 },
+                { id: 'coca-cola-lata', name: 'Coca Cola', description: 'Refrigerante tradicional', price: 4.50 },
+                { id: 'schwepps', name: 'Schwepps', description: 'Refrigerante tônico', price: 5.00 },
+                { id: 'kuat', name: 'Kuat', description: 'Refrigerante de guaraná', price: 4.50 }
             ],
             'refri-pet': [
-                { name: 'Coca-Cola 2L', description: 'Refrigerante família', price: 13.00, category: 'refri-pet' },
-                { name: 'Sprite 2L', description: 'Refrigerante cítrico', price: 10.00, category: 'refri-pet' }
+                { id: 'coca-2l', name: 'Coca-Cola 2L', description: 'Refrigerante família', price: 13.00 },
+                { id: 'sprite-2l', name: 'Sprite 2L', description: 'Refrigerante cítrico', price: 10.00 },
+                { id: 'fanta-2l', name: 'Fanta 2L', description: 'Refrigerante laranja', price: 10.00 },
+                { id: 'coca-retor-2l', name: 'Coca Retor 2L', description: 'Coca-Cola retornável', price: 9.50 },
+                { id: 'coca-mini', name: 'Coca Mini', description: 'Coca-Cola pequena', price: 3.00 },
+                { id: 'conq-mini', name: 'Conq. Mini', description: 'Conquista mini', price: 2.50 }
             ],
             'sucos': [
-                { name: 'Del Valle 1L', description: 'Suco de caixinha', price: 10.00, category: 'sucos' },
-                { name: 'Prats 300ml', description: 'Suco pequeno', price: 6.00, category: 'sucos' }
+                { id: 'del-valle-1l', name: 'Del Valle 1L', description: 'Suco de caixinha', price: 10.00 },
+                { id: 'prats-300ml', name: 'Prats 300ml', description: 'Suco pequeno', price: 6.00 },
+                { id: 'kapo', name: 'Kapo', description: 'Suco em pó', price: 4.00 },
+                { id: 'prats-1.5l', name: 'Prats 1,5L', description: 'Suco família', price: 23.00 },
+                { id: 'life-300ml', name: 'Life 300ml', description: 'Suco premium', price: 7.00 },
+                { id: 'life-900ml', name: 'Life 900ml', description: 'Suco premium', price: 14.00 }
             ],
             'energeticos': [
-                { name: 'Red Bull 250ml', description: 'Energético pequeno', price: 13.00, category: 'energeticos' },
-                { name: 'Monster 473ml', description: 'Energético importado', price: 12.00, category: 'energeticos' }
+                { id: 'big-power-2l', name: 'Big Power 2L', description: 'Energético grande', price: 12.00 },
+                { id: 'monster-473ml', name: 'Monster 473ml', description: 'Energético importado', price: 12.00 },
+                { id: 'red-bull-250ml', name: 'Red Bull 250ml', description: 'Energético pequeno', price: 13.00 },
+                { id: 'one-2l', name: 'One 2L', description: 'Energético econômico', price: 10.00 },
+                { id: 'bally-2l', name: 'Bally 2L', description: 'Energético 2 litros', price: 14.00 },
+                { id: 'red-bull-355ml', name: 'Red Bull 355ml', description: 'Energético médio', price: 15.00 }
             ],
             'gelo-carvao': [
-                { name: 'Gelo Saborizado', description: 'Gelo com sabor', price: 3.00, category: 'gelo-carvao' },
-                { name: 'Gelo 4,5Kg', description: 'Gelo em saco', price: 10.00, category: 'gelo-carvao' }
+                { id: 'gelo-saborizado', name: 'Gelo Saborizado', description: 'Gelo com sabor', price: 3.00 },
+                { id: 'carvao-3kg', name: 'Carvão 3kg', description: 'Carvão para churrasco', price: 20.00 },
+                { id: 'gelo-4.5kg', name: 'Gelo 4,5Kg', description: 'Gelo em saco', price: 10.00 },
+                { id: 'carvao-6.5kg', name: 'Carvão 6,5Kg', description: 'Carvão grande', price: 30.00 }
             ]
-        };
-
-        // ============================================
-        // CONFIGURAÇÕES DE INTEGRAÇÃO
-        // ============================================
-        const INTEGRATION_CONFIG = {
-            backendUrl: 'https://seu-backend.onrender.com',
-            syncInterval: 60000, // 1 minuto
-            autoSaveOrders: true
         };
 
         // ============================================
@@ -941,7 +1302,9 @@
             currentPreferenceId: null,
             paymentInterval: null,
             currentIceFlavor: null,
-            pendingWhiskyProduct: null
+            pendingWhiskyProduct: null,
+            adminAuthenticated: false,
+            productAvailability: {}
         };
 
         // Sabores de gelo disponíveis
@@ -965,6 +1328,7 @@
             initializeMercadoPago();
             setupEventListeners();
             initializeIceFlavorsModal();
+            loadProductAvailability();
             
             selectDeliveryType('pickup');
             
@@ -978,14 +1342,15 @@
                 console.log('Não foi possível carregar carrinho salvo');
             }
             
-            // Inicializar integração
-            initializeIntegration();
+            setupAdminListeners();
+            
+            console.log('✅ Sistema BebCom Delivery inicializado');
         }
 
         function initializeMercadoPago() {
             try {
-                if (!CONFIG.mercadoPago.publicKey || CONFIG.mercadoPago.publicKey === 'SUA_CHAVE_PUBLICA_AQUI') {
-                    console.log('Mercado Pago não configurado - usando modo manual');
+                if (!CONFIG.mercadoPago.publicKey) {
+                    console.error('Chave pública do Mercado Pago não configurada');
                     return;
                 }
                 
@@ -995,6 +1360,7 @@
                 console.log('Mercado Pago inicializado');
             } catch (error) {
                 console.error('Erro ao inicializar Mercado Pago:', error);
+                showNotification('⚠️ Sistema de pagamento offline. Use PIX manual.');
             }
         }
 
@@ -1002,7 +1368,7 @@
             const iceFlavorsGrid = document.getElementById('iceFlavorsGrid');
             iceFlavorsGrid.innerHTML = '';
             
-            ICE_FLAVORS.forEach((flavor) => {
+            ICE_FLAVORS.forEach((flavor, index) => {
                 const flavorOption = document.createElement('div');
                 flavorOption.className = 'ice-flavor-option';
                 flavorOption.textContent = flavor;
@@ -1014,156 +1380,37 @@
             });
         }
 
-        // ============================================
-        // FUNÇÕES DE INTEGRAÇÃO
-        // ============================================
-        function initializeIntegration() {
-            // Verificar conexão inicial
-            checkBackendConnection();
-            
-            // Configurar retry automático
-            setInterval(retryPendingOrders, 300000); // 5 minutos
-            
-            // Configurar monitoramento de conexão
-            setInterval(checkBackendConnection, 60000); // 1 minuto
-        }
-
-        async function checkBackendConnection() {
+        function loadProductAvailability() {
             try {
-                const response = await fetch(`${INTEGRATION_CONFIG.backendUrl}/api/health`);
-                if (response.ok) {
-                    updateIntegrationStatus(true, 'Sistema online');
-                } else {
-                    updateIntegrationStatus(false, 'Sistema offline');
-                }
-            } catch (error) {
-                updateIntegrationStatus(false, 'Sem conexão');
-            }
-        }
-
-        function updateIntegrationStatus(isOnline, message) {
-            const indicator = document.getElementById('statusIndicator');
-            const text = document.getElementById('statusText');
-            
-            if (isOnline) {
-                indicator.className = 'status-indicator status-online';
-                text.textContent = message || 'Conectado ao sistema';
-            } else {
-                indicator.className = 'status-indicator status-offline';
-                text.textContent = message || 'Sistema offline - Pedido salvo localmente';
-            }
-            
-            // Mostrar temporariamente
-            const statusDiv = document.getElementById('integrationStatus');
-            statusDiv.style.display = 'flex';
-            
-            setTimeout(() => {
-                statusDiv.style.display = 'none';
-            }, 3000);
-        }
-
-        async function sendOrderToBackend(orderData) {
-            try {
-                const response = await fetch(`${INTEGRATION_CONFIG.backendUrl}/api/orders`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        order: orderData,
-                        timestamp: new Date().toISOString(),
-                        source: 'web_order_system'
-                    })
-                });
+                const saved = localStorage.getItem('bebcom_product_availability');
+                state.productAvailability = saved ? JSON.parse(saved) : {};
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Pedido enviado com sucesso:', data);
-                    updateIntegrationStatus(true, 'Pedido sincronizado');
-                    return data.orderId;
-                } else {
-                    throw new Error('Erro ao enviar pedido');
-                }
-            } catch (error) {
-                console.error('Erro na integração:', error);
-                updateIntegrationStatus(false, 'Falha na sincronização');
-                
-                // Fallback: salvar localmente para envio posterior
-                if (INTEGRATION_CONFIG.autoSaveOrders) {
-                    saveOrderLocally(orderData);
-                }
-                
-                return null;
-            }
-        }
-
-        function saveOrderLocally(orderData) {
-            try {
-                const pendingOrders = JSON.parse(localStorage.getItem('bebcom_pending_orders') || '[]');
-                orderData.localSaveTime = new Date().toISOString();
-                orderData.retryCount = 0;
-                pendingOrders.push(orderData);
-                localStorage.setItem('bebcom_pending_orders', JSON.stringify(pendingOrders));
-                console.log('Pedido salvo localmente para envio posterior');
-            } catch (error) {
-                console.error('Erro ao salvar localmente:', error);
-            }
-        }
-
-        async function retryPendingOrders() {
-            try {
-                const pendingOrders = JSON.parse(localStorage.getItem('bebcom_pending_orders') || '[]');
-                if (pendingOrders.length === 0) return;
-                
-                console.log(`Tentando enviar ${pendingOrders.length} pedidos pendentes...`);
-                
-                const successfulOrders = [];
-                
-                for (let i = pendingOrders.length - 1; i >= 0; i--) {
-                    const order = pendingOrders[i];
-                    try {
-                        const response = await fetch(`${INTEGRATION_CONFIG.backendUrl}/api/orders`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                order: order,
-                                timestamp: order.localSaveTime,
-                                source: 'web_order_system',
-                                retry: true
-                            })
-                        });
-                        
-                        if (response.ok) {
-                            successfulOrders.push(i);
-                        } else {
-                            order.retryCount = (order.retryCount || 0) + 1;
-                            if (order.retryCount >= 3) {
-                                // Remover após 3 tentativas falhas
-                                successfulOrders.push(i);
-                                console.log(`Pedido removido após 3 tentativas falhas: ${order.id}`);
-                            }
+                Object.keys(products).forEach(category => {
+                    products[category].forEach(product => {
+                        if (state.productAvailability[product.id] === undefined) {
+                            state.productAvailability[product.id] = true;
                         }
-                    } catch (error) {
-                        console.error('Erro ao reenviar pedido:', error);
-                    }
-                }
-                
-                // Remover pedidos enviados com sucesso
-                successfulOrders.forEach(index => {
-                    pendingOrders.splice(index, 1);
+                    });
                 });
-                
-                localStorage.setItem('bebcom_pending_orders', JSON.stringify(pendingOrders));
-                
-                if (successfulOrders.length > 0) {
-                    updateIntegrationStatus(true, `${successfulOrders.length} pedidos sincronizados`);
-                }
-                
             } catch (error) {
-                console.error('Erro no retry de pedidos:', error);
+                state.productAvailability = {};
             }
+        }
+
+        function saveProductAvailability() {
+            try {
+                localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
+                updateMenuAvailability();
+                showNotification('💾 Disponibilidade salva!');
+                return true;
+            } catch (error) {
+                showNotification('❌ Erro ao salvar disponibilidade');
+                return false;
+            }
+        }
+
+        function isProductAvailable(productId) {
+            return state.productAvailability[productId] !== false;
         }
 
         // ============================================
@@ -1181,30 +1428,66 @@
                 return;
             }
             
-            categoryProducts.forEach((product) => {
+            categoryProducts.forEach((product, index) => {
+                const isAvailable = isProductAvailable(product.id);
                 const productCard = document.createElement('div');
-                productCard.className = 'product-card';
+                productCard.className = `product-card ${!isAvailable ? 'unavailable' : ''}`;
+                productCard.setAttribute('data-product-id', product.id);
                 productCard.innerHTML = `
                     <div class="product-name">${product.name}</div>
                     <div class="product-info">${product.description}</div>
                     <div class="product-price">R$ ${product.price.toFixed(2)}</div>
-                    <button class="add-to-cart-btn" onclick="handleAddToCart('${product.name}', ${product.price}, '${product.category}', this)">
-                        🛒 Adicionar
+                    <button class="add-to-cart-btn" 
+                            onclick="handleAddToCart('${product.name}', ${product.price}, '${categoryId}', '${product.id}', this)"
+                            ${!isAvailable ? 'disabled' : ''}>
+                        ${!isAvailable ? '❌ Indisponível' : '🛒 Adicionar'}
                     </button>
                 `;
                 productsGrid.appendChild(productCard);
             });
         }
 
+        function updateMenuAvailability() {
+            Object.keys(products).forEach(category => {
+                products[category].forEach(product => {
+                    const productElements = document.querySelectorAll(`[data-product-id="${product.id}"]`);
+                    const isAvailable = isProductAvailable(product.id);
+                    
+                    productElements.forEach(element => {
+                        if (isAvailable) {
+                            element.classList.remove('unavailable');
+                            const button = element.querySelector('button');
+                            if (button) {
+                                button.disabled = false;
+                                button.innerHTML = '🛒 Adicionar';
+                            }
+                        } else {
+                            element.classList.add('unavailable');
+                            const button = element.querySelector('button');
+                            if (button) {
+                                button.disabled = true;
+                                button.innerHTML = '❌ Indisponível';
+                            }
+                        }
+                    });
+                });
+            });
+        }
+
         // ============================================
-        // FUNÇÕES DO CARRINHO
+        // FUNÇÕES DO CARRINHO COM MODAL DE GELO
         // ============================================
-        function handleAddToCart(name, price, category, button) {
+        function handleAddToCart(name, price, category, productId, button) {
+            if (!isProductAvailable(productId)) {
+                showNotification('❌ Este produto está temporariamente indisponível');
+                return;
+            }
+            
             if (category === 'drinks-whisky') {
-                state.pendingWhiskyProduct = { name, price, category };
+                state.pendingWhiskyProduct = { name, price, category, productId };
                 openIceFlavorModal(button);
             } else {
-                addToCart(name, price, button);
+                addToCart(name, price, productId, button);
             }
         }
 
@@ -1213,6 +1496,7 @@
                 option.classList.remove('selected');
             });
             state.currentIceFlavor = null;
+            
             document.getElementById('iceFlavorModal').style.display = 'flex';
             state.currentButton = button;
         }
@@ -1269,7 +1553,7 @@
                     price: product.price,
                     quantity: 1,
                     iceFlavor: product.iceFlavor,
-                    category: product.category
+                    productId: product.productId
                 });
             }
             
@@ -1288,9 +1572,9 @@
             }
         }
 
-        function addToCart(name, price, button) {
+        function addToCart(name, price, productId, button) {
             const existingItem = state.cart.find(item => 
-                item.name === name && !item.iceFlavor
+                item.name === name && !item.iceFlavor && item.productId === productId
             );
             
             if (existingItem) {
@@ -1299,7 +1583,8 @@
                 state.cart.push({
                     name: name,
                     price: price,
-                    quantity: 1
+                    quantity: 1,
+                    productId: productId
                 });
             }
             
@@ -1439,18 +1724,24 @@
                 pickupBtn.classList.add('selected');
                 deliveryBtn.classList.remove('selected');
                 addressFields.style.display = 'none';
+                
                 paymentLabel.style.display = 'none';
                 paymentMethods.style.display = 'none';
+                
                 payButton.disabled = true;
                 payButton.textContent = '🏪 Retirada no Local';
+                
                 state.paymentMethod = null;
                 state.paymentConfirmed = false;
+                
             } else {
                 pickupBtn.classList.remove('selected');
                 deliveryBtn.classList.add('selected');
                 addressFields.style.display = 'block';
+                
                 paymentLabel.style.display = 'block';
                 paymentMethods.style.display = 'grid';
+                
                 payButton.disabled = false;
                 selectPaymentMethod('pix');
             }
@@ -1546,17 +1837,71 @@
             statusDiv.innerHTML = '🔄 Processando seu pedido...';
             
             try {
-                // Se Mercado Pago não estiver configurado, usar PIX manual
-                if (!state.mercadoPago || state.paymentMethod === 'pix') {
-                    showManualPixPayment();
-                } else {
-                    await processOnlinePayment();
-                }
+                await processOnlinePayment();
             } catch (error) {
                 console.error('Erro no processamento:', error);
                 statusDiv.className = 'payment-status error';
                 statusDiv.innerHTML = `❌ ${error.message || 'Erro ao processar pedido'}`;
                 resetPayButton(originalText);
+            }
+        }
+
+        async function processOnlinePayment() {
+            try {
+                const orderData = prepareOrderData();
+                state.currentOrderId = 'BEB' + Date.now().toString().slice(-8);
+                
+                const items = orderData.items.map(item => ({
+                    title: item.name.substring(0, 50),
+                    quantity: item.quantity,
+                    unit_price: Number(item.price.toFixed(2))
+                }));
+                
+                if (orderData.deliveryFee > 0) {
+                    items.push({
+                        title: 'Taxa de Entrega',
+                        quantity: 1,
+                        unit_price: orderData.deliveryFee
+                    });
+                }
+                
+                const response = await fetch(`${CONFIG.backendUrl}/create-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId: state.currentOrderId,
+                        payer: {
+                            name: document.getElementById('customerName').value,
+                            email: 'cliente@bebcom.com'
+                        },
+                        items: items,
+                        paymentMethod: state.paymentMethod
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao criar pagamento no servidor');
+                }
+                
+                const data = await response.json();
+                
+                if (data.preferenceId) {
+                    state.mercadoPago.checkout({
+                        preference: { id: data.preferenceId },
+                        autoOpen: true
+                    });
+                    
+                    startPaymentStatusCheck(state.currentOrderId);
+                } else {
+                    throw new Error('Resposta inválida do servidor');
+                }
+                
+            } catch (error) {
+                if (state.paymentMethod === 'pix') {
+                    showManualPixPayment();
+                } else {
+                    throw error;
+                }
             }
         }
 
@@ -1609,7 +1954,8 @@
                 name: item.name,
                 quantity: item.quantity,
                 price: item.price,
-                iceFlavor: item.iceFlavor || null
+                iceFlavor: item.iceFlavor || null,
+                productId: item.productId
             }));
             
             const itemsTotal = items.reduce((sum, i) => sum + (i.quantity * i.price), 0);
@@ -1629,6 +1975,33 @@
                 orderType: state.deliveryType,
                 paymentMethod: state.paymentMethod
             };
+        }
+
+        function startPaymentStatusCheck(orderId) {
+            if (state.paymentInterval) clearInterval(state.paymentInterval);
+            
+            state.paymentInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${CONFIG.backendUrl}/order-status/${orderId}`);
+                    if (!response.ok) return;
+                    
+                    const data = await response.json();
+                    
+                    if (data.paid) {
+                        clearInterval(state.paymentInterval);
+                        confirmPayment();
+                    }
+                } catch (error) {
+                    console.error('Erro ao verificar status:', error);
+                }
+            }, 5000);
+            
+            setTimeout(() => {
+                if (state.paymentInterval) {
+                    clearInterval(state.paymentInterval);
+                    showPaymentError('Tempo limite excedido. Tente novamente.');
+                }
+            }, 30 * 60 * 1000);
         }
 
         function confirmPayment() {
@@ -1661,6 +2034,26 @@
             showNotification(state.deliveryType === 'delivery' 
                 ? 'Pagamento confirmado! Agora envie o pedido pelo WhatsApp.' 
                 : 'Pedido confirmado! Agora envie o pedido pelo WhatsApp.');
+        }
+
+        function showPaymentError(message) {
+            const statusDiv = document.getElementById('paymentStatus');
+            statusDiv.className = 'payment-status error';
+            statusDiv.innerHTML = `❌ ${message}`;
+            state.paymentProcessing = false;
+            resetPayButton();
+        }
+
+        function resetPayButton(originalText) {
+            const button = document.getElementById('payButton');
+            if (state.deliveryType === 'delivery') {
+                button.innerHTML = originalText || '💰 Realizar Pagamento';
+                button.disabled = false;
+            } else {
+                button.innerHTML = '🏪 Retirada no Local';
+                button.disabled = true;
+            }
+            state.paymentProcessing = false;
         }
 
         function resetPaymentState() {
@@ -1712,7 +2105,7 @@
             return isValid;
         }
 
-        async function sendToWhatsApp() {
+        function sendToWhatsApp() {
             if (!validateForm()) {
                 alert('Complete todas as informações antes de enviar!');
                 return;
@@ -1720,52 +2113,14 @@
             
             try {
                 const message = prepareWhatsAppMessage();
-                const orderData = prepareOrderData();
-                
-                // Gerar ID único para o pedido
-                const orderId = 'BEB' + Date.now().toString().slice(-8);
-                
-                // Adicionar ID ao orderData
-                orderData.id = orderId;
-                orderData.status = 'pending';
-                orderData.customerName = document.getElementById('customerName').value.trim();
-                orderData.customerPhone = document.getElementById('customerPhone').value.trim();
-                
-                if (state.deliveryType === 'delivery') {
-                    const street = document.getElementById('street').value.trim();
-                    const number = document.getElementById('number').value.trim();
-                    const neighborhood = document.getElementById('neighborhood').value.trim();
-                    const city = document.getElementById('city').value.trim();
-                    const complement = document.getElementById('addressComplement').value.trim();
-                    
-                    orderData.address = `${street}, ${number} - ${neighborhood}, ${city}`;
-                    if (complement) orderData.addressComplement = complement;
-                }
-                
-                orderData.paymentMethod = state.paymentMethod;
-                orderData.paymentStatus = state.paymentConfirmed ? 'confirmed' : 'pending';
-                orderData.timestamp = new Date().toISOString();
-                
-                // Enviar para o backend
-                const backendOrderId = await sendOrderToBackend(orderData);
-                
-                // Adicionar ID do backend à mensagem
-                const finalMessage = message.replace('Nº do Pedido:', `Nº do Pedido: ${backendOrderId || orderId}`);
-                
-                const encodedMessage = encodeURIComponent(finalMessage);
+                const encodedMessage = encodeURIComponent(message);
                 const whatsappUrl = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodedMessage}`;
                 
                 window.open(whatsappUrl, '_blank');
                 
-                showNotification('✅ Pedido enviado! Aguarde nosso contato.');
+                alert('✅ Pedido enviado! Aguarde nosso contato no WhatsApp.');
                 
-                // Limpar carrinho após envio bem-sucedido
-                setTimeout(() => {
-                    state.cart = [];
-                    updateCartDisplay();
-                    saveCartToLocalStorage();
-                    resetPaymentState();
-                }, 2000);
+                resetPaymentState();
                 
             } catch (error) {
                 console.error('Erro ao enviar:', error);
@@ -1855,6 +2210,187 @@
         }
 
         // ============================================
+        // SISTEMA ADMINISTRATIVO
+        // ============================================
+        function setupAdminListeners() {
+            document.getElementById('adminButton').addEventListener('click', openAdminPanel);
+            document.getElementById('adminClose').addEventListener('click', closeAdminPanel);
+            document.getElementById('adminModal').addEventListener('click', function(e) {
+                if (e.target === this) closeAdminPanel();
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.altKey && e.key === 'a') {
+                    e.preventDefault();
+                    openAdminPanel();
+                }
+                
+                if (e.key === 'Escape') {
+                    closeAdminPanel();
+                }
+            });
+        }
+
+        function openAdminPanel() {
+            document.getElementById('adminModal').style.display = 'block';
+            
+            if (!state.adminAuthenticated) {
+                document.getElementById('passwordSection').style.display = 'block';
+                document.getElementById('adminMain').style.display = 'none';
+                document.getElementById('adminActions').style.display = 'none';
+                document.getElementById('adminPassword').value = '';
+                document.getElementById('adminPassword').focus();
+            } else {
+                document.getElementById('passwordSection').style.display = 'none';
+                document.getElementById('adminMain').style.display = 'block';
+                document.getElementById('adminActions').style.display = 'block';
+                loadAdminProducts();
+            }
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminModal').style.display = 'none';
+            state.adminAuthenticated = false;
+        }
+
+        function checkAdminPassword() {
+            const password = document.getElementById('adminPassword').value;
+            
+            if (password === CONFIG.adminPassword) {
+                state.adminAuthenticated = true;
+                document.getElementById('passwordSection').style.display = 'none';
+                document.getElementById('adminMain').style.display = 'block';
+                document.getElementById('adminActions').style.display = 'block';
+                loadAdminProducts();
+                showNotification('✅ Acesso administrativo concedido');
+            } else {
+                alert('❌ Senha incorreta!');
+                document.getElementById('adminPassword').value = '';
+                document.getElementById('adminPassword').focus();
+            }
+        }
+
+        function loadAdminProducts() {
+            const categoryContainers = {
+                'drinks-whisky': 'adminWhiskyProducts',
+                'drinks-gin': 'adminGinProducts',
+                'drinks-vodka': 'adminVodkaProducts',
+                'drinks-vinho': 'adminVinhoProducts',
+                'cervejas': 'adminCervejaProducts',
+                'destilados': 'adminDestiladoProducts',
+                'aguas': 'adminAguaProducts',
+                'refri-latas': 'adminRefriLataProducts',
+                'refri-pet': 'adminRefriPetProducts',
+                'sucos': 'adminSucoProducts',
+                'energeticos': 'adminEnergeticoProducts',
+                'gelo-carvao': 'adminGeloProducts'
+            };
+
+            Object.keys(categoryContainers).forEach(category => {
+                const containerId = categoryContainers[category];
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                const categoryProducts = products[category] || [];
+                categoryProducts.forEach(product => {
+                    const isAvailable = isProductAvailable(product.id);
+                    
+                    const productDiv = document.createElement('div');
+                    productDiv.className = 'admin-product-item';
+                    productDiv.innerHTML = `
+                        <div>
+                            <div class="admin-product-name">${product.name}</div>
+                            <div class="admin-product-price">R$ ${product.price.toFixed(2)}</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" class="toggle-checkbox" 
+                                   id="admin_toggle_${product.id}" 
+                                   ${isAvailable ? 'checked' : ''}
+                                   onchange="adminToggleProductAvailability('${product.id}', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    `;
+                    container.appendChild(productDiv);
+                });
+            });
+        }
+
+        function adminToggleProductAvailability(productId, isAvailable) {
+            state.productAvailability[productId] = isAvailable;
+            
+            const productElements = document.querySelectorAll(`[data-product-id="${productId}"]`);
+            productElements.forEach(element => {
+                if (isAvailable) {
+                    element.classList.remove('unavailable');
+                    const button = element.querySelector('button');
+                    if (button) {
+                        button.disabled = false;
+                        button.innerHTML = '🛒 Adicionar';
+                    }
+                } else {
+                    element.classList.add('unavailable');
+                    const button = element.querySelector('button');
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = '❌ Indisponível';
+                    }
+                }
+            });
+        }
+
+        function setAllAvailable(isAvailable) {
+            Object.keys(products).forEach(category => {
+                products[category].forEach(product => {
+                    state.productAvailability[product.id] = isAvailable;
+                    
+                    const toggle = document.getElementById(`admin_toggle_${product.id}`);
+                    if (toggle) toggle.checked = isAvailable;
+                    
+                    const productElements = document.querySelectorAll(`[data-product-id="${product.id}"]`);
+                    productElements.forEach(element => {
+                        if (isAvailable) {
+                            element.classList.remove('unavailable');
+                            const button = element.querySelector('button');
+                            if (button) {
+                                button.disabled = false;
+                                button.innerHTML = '🛒 Adicionar';
+                            }
+                        } else {
+                            element.classList.add('unavailable');
+                            const button = element.querySelector('button');
+                            if (button) {
+                                button.disabled = true;
+                                button.innerHTML = '❌ Indisponível';
+                            }
+                        }
+                    });
+                });
+            });
+            
+            showNotification(isAvailable ? '✅ Todos os produtos marcados como disponíveis' : '❌ Todos os produtos marcados como indisponíveis');
+        }
+
+        function saveAvailability() {
+            if (saveProductAvailability()) {
+                setTimeout(() => {
+                    closeAdminPanel();
+                }, 1000);
+            }
+        }
+
+        function resetAvailability() {
+            if (confirm('Restaurar todos os produtos como disponíveis?')) {
+                localStorage.removeItem('bebcom_product_availability');
+                loadProductAvailability();
+                loadAdminProducts();
+                updateMenuAvailability();
+                showNotification('🔄 Disponibilidade restaurada para o padrão');
+            }
+        }
+
+        // ============================================
         // FUNÇÕES UTILITÁRIAS
         // ============================================
         function showNotification(text) {
@@ -1870,6 +2406,7 @@
                 box-shadow: 0 4px 15px rgba(0,0,0,0.3);
                 z-index: 10000;
                 animation: slideIn 0.3s ease;
+                font-weight: bold;
             `;
             notification.textContent = text;
             document.body.appendChild(notification);
@@ -1888,41 +2425,6 @@
             document.getElementById('neighborhood').addEventListener('input', validateForm);
             document.getElementById('city').addEventListener('input', validateForm);
             document.getElementById('addressComplement').addEventListener('input', validateForm);
-        }
-
-        // ============================================
-        // FUNÇÃO PARA EXPORTAR DADOS
-        // ============================================
-        function exportOrderData() {
-            const orderData = prepareOrderData();
-            orderData.customerName = document.getElementById('customerName').value.trim();
-            orderData.customerPhone = document.getElementById('customerPhone').value.trim();
-            
-            if (state.deliveryType === 'delivery') {
-                orderData.address = {
-                    street: document.getElementById('street').value.trim(),
-                    number: document.getElementById('number').value.trim(),
-                    neighborhood: document.getElementById('neighborhood').value.trim(),
-                    city: document.getElementById('city').value.trim(),
-                    complement: document.getElementById('addressComplement').value.trim()
-                };
-            }
-            
-            orderData.paymentMethod = state.paymentMethod;
-            orderData.paymentConfirmed = state.paymentConfirmed;
-            orderData.deliveryType = state.deliveryType;
-            
-            const dataStr = JSON.stringify(orderData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `pedido-bebcom-${Date.now()}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            showNotification('📥 Dados do pedido exportados');
         }
 
         // ============================================
