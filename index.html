@@ -777,7 +777,7 @@
             // Master Password
             masterPassword: 'Bebcom25*',
             
-            // Backend URL (Render)
+            // Backend URL (Render) - ATUALIZE ESTE VALOR COM SEU BACKEND
             backendUrl: 'https://seu-backend.onrender.com',
             
             // WhatsApp da loja
@@ -799,108 +799,38 @@
                 freeDeliveryMin: 100.00
             },
             
-            // Mercado Pago Credenciais
+            // Mercado Pago Credenciais - ATUALIZE COM SUAS CREDENCIAIS
             mercadoPago: {
-                publicKey: 'APP_USR-b74e6ba3-6c30-4384-87c0-9b1199d2511b',
-                accessToken: 'APP_USR-8326438021246657-020121-ccc94cd396e2d69d1f86657f5292db55-49438812'
+                publicKey: 'SUA_CHAVE_PUBLICA_AQUI',
+                accessToken: 'SEU_ACCESS_TOKEN_AQUI'
             }
         };
 
         // ============================================
-        // DADOS DOS PRODUTOS (COMPLETO DO ANEXO 2) COM CORREÇÕES
+        // DADOS DOS PRODUTOS
         // ============================================
         const products = {
             'drinks-whisky': [
-                { 
-                    name: 'Copão Old Star', 
-                    description: 'Drink clássico de whisky',
-                    price: 11.00,
-                    category: 'drinks-whisky'
-                },
-                { 
-                    name: 'Copão Passport', 
-                    description: 'Whisky importado',
-                    price: 18.00,
-                    category: 'drinks-whisky'
-                },
-                { 
-                    name: 'Copão Natu Nobilis', 
-                    description: 'Whisky premium',
-                    price: 17.00,
-                    category: 'drinks-whisky'
-                },
-                { 
-                    name: 'Copão White Horse', 
-                    description: 'Whisky escocês',
-                    price: 22.00,
-                    category: 'drinks-whisky'
-                },
-                { 
-                    name: 'Copão Red Label', 
-                    description: 'Johnnie Walker Red Label',
-                    price: 25.00,
-                    category: 'drinks-whisky'
-                },
-                { 
-                    name: "Copão Ballantines", 
-                    description: 'Whisky escocês',
-                    price: 28.00,
-                    category: 'drinks-whisky'
-                },
-                { 
-                    name: "Copão Jack Daniels", 
-                    description: 'Whisky americano',
-                    price: 35.00,
-                    category: 'drinks-whisky'
-                }
+                { name: 'Copão Old Star', description: 'Drink clássico de whisky', price: 11.00, category: 'drinks-whisky' },
+                { name: 'Copão Passport', description: 'Whisky importado', price: 18.00, category: 'drinks-whisky' },
+                { name: 'Copão Natu Nobilis', description: 'Whisky premium', price: 17.00, category: 'drinks-whisky' },
+                { name: 'Copão White Horse', description: 'Whisky escocês', price: 22.00, category: 'drinks-whisky' },
+                { name: 'Copão Red Label', description: 'Johnnie Walker Red Label', price: 25.00, category: 'drinks-whisky' },
+                { name: "Copão Ballantines", description: 'Whisky escocês', price: 28.00, category: 'drinks-whisky' },
+                { name: "Copão Jack Daniels", description: 'Whisky americano', price: 35.00, category: 'drinks-whisky' }
             ],
             'drinks-gin': [
-                { 
-                    name: 'Danoninho de Gin', 
-                    description: 'Drink refrescante com gin',
-                    price: 17.00,
-                    category: 'drinks-gin'
-                },
-                { 
-                    name: 'Copão de Gin', 
-                    description: 'Gin com tônica e limão',
-                    price: 17.00,
-                    category: 'drinks-gin'
-                }
+                { name: 'Danoninho de Gin', description: 'Drink refrescante com gin', price: 17.00, category: 'drinks-gin' },
+                { name: 'Copão de Gin', description: 'Gin com tônica e limão', price: 17.00, category: 'drinks-gin' }
             ],
             'drinks-vodka': [
-                { 
-                    name: 'Danoninho Corote', 
-                    description: 'Drink com corote e frutas',
-                    price: 15.00,
-                    category: 'drinks-vodka'
-                },
-                { 
-                    name: 'Danoninho Askov', 
-                    description: 'Askov com frutas',
-                    price: 17.00,
-                    category: 'drinks-vodka'
-                },
-                { 
-                    name: 'Copão de Ice', 
-                    description: 'Drink gelado com vodka',
-                    price: 17.00,
-                    category: 'drinks-vodka'
-                },
-                { 
-                    name: 'Copão de Vodka', 
-                    description: 'Vodka com energético',
-                    price: 17.00,
-                    category: 'drinks-vodka'
-                }
+                { name: 'Danoninho Corote', description: 'Drink com corote e frutas', price: 15.00, category: 'drinks-vodka' },
+                { name: 'Danoninho Askov', description: 'Askov com frutas', price: 17.00, category: 'drinks-vodka' },
+                { name: 'Copão de Ice', description: 'Drink gelado com vodka', price: 17.00, category: 'drinks-vodka' },
+                { name: 'Copão de Vodka', description: 'Vodka com energético', price: 17.00, category: 'drinks-vodka' }
             ],
             'drinks-vinho': [
-                { 
-                    name: 'Danoninho de Vinho', 
-                    description: 'Vinho com frutas',
-                    price: 17.00,
-                    category: 'drinks-vinho'
-                }
+                { name: 'Danoninho de Vinho', description: 'Vinho com frutas', price: 17.00, category: 'drinks-vinho' }
             ],
             'cervejas': [
                 { name: 'Skol/Brahma', description: 'Cerveja tradicional brasileira', price: 4.25, category: 'cervejas' },
@@ -910,129 +840,36 @@
                 { name: 'Heineken', description: 'Cerveja importada premium', price: 6.50, category: 'cervejas' },
                 { name: 'Corona Long', description: 'Cerveja mexicana em long neck', price: 8.50, category: 'cervejas' },
                 { name: 'Stella Long', description: 'Cerveja belga em long neck', price: 7.00, category: 'cervejas' },
-                { name: 'Brahma Zero', description: 'Cerveja sem álcool', price: 5.00, category: 'cervejas' },
-                { name: 'Império', description: 'Cerveja brasileira tradicional', price: 4.00, category: 'cervejas' },
-                { name: 'Duplo Malte', description: 'Cerveja com duplo malte', price: 4.50, category: 'cervejas' },
-                { name: 'Spaten', description: 'Cerveja alemã premium', price: 5.00, category: 'cervejas' },
-                { name: 'Budweiser', description: 'Cerveja americana', price: 5.10, category: 'cervejas' },
-                { name: 'Burguesa', description: 'Cerveja artesanal brasileira', price: 4.00, category: 'cervejas' },
-                { name: 'Bavaria', description: 'Cerveja holandesa', price: 3.50, category: 'cervejas' },
-                { name: 'Bavaria Latão', description: 'Cerveja em lata grande', price: 4.75, category: 'cervejas' },
-                { name: 'Petra', description: 'Cerveja brasileira', price: 3.90, category: 'cervejas' },
-                { name: 'Conti Malzbier', description: 'Cerveja tipo malzbier', price: 4.50, category: 'cervejas' },
-                { name: 'Brahma Malz.', description: 'Malzbier da Brahma', price: 5.00, category: 'cervejas' },
-                { name: 'Moinho Real', description: 'Cerveja brasileira', price: 4.25, category: 'cervejas' },
-                { name: 'Original', description: 'Cerveja premium', price: 5.00, category: 'cervejas' },
-                { name: 'Heineken Long', description: 'Heineken em long neck', price: 8.00, category: 'cervejas' },
-                { name: 'Budweiser Long', description: 'Budweiser em long neck', price: 7.50, category: 'cervejas' },
-                { name: 'Patagônia Long', description: 'Cerveja argentina em long neck', price: 8.50, category: 'cervejas' },
-                { name: 'Eisenbah IPA', description: 'Cerveja IPA artesanal', price: 8.50, category: 'cervejas' },
-                { name: 'Stella Gold', description: 'Stella Artois premium', price: 7.50, category: 'cervejas' },
-                { name: 'Amstel Ultra', description: 'Cerveja leve', price: 6.00, category: 'cervejas' },
-                { name: 'Spaten Long', description: 'Spaten em long neck', price: 7.60, category: 'cervejas' },
-                { name: 'Michelob Long', description: 'Michelob em long neck', price: 8.00, category: 'cervejas' },
-                { name: 'Michelob', description: 'Cerveja americana premium', price: 8.00, category: 'cervejas' },
-                { name: 'Conti Zero Grau', description: 'Cerveja sem álcool', price: 3.50, category: 'cervejas' }
+                { name: 'Brahma Zero', description: 'Cerveja sem álcool', price: 5.00, category: 'cervejas' }
             ],
             'destilados': [
-                { name: 'Jurupinga', description: 'Licor brasileiro', price: 42.00, category: 'destilados' },
-                { name: 'Saquê', description: 'Bebida japonesa', price: 30.00, category: 'destilados' },
-                { name: 'Tequila', description: 'Destilado mexicano', price: 23.00, category: 'destilados' },
-                { name: 'Pinga 51', description: 'Cachaça brasileira', price: 17.00, category: 'destilados' },
-                { name: 'Conhaque', description: 'Destilado envelhecido', price: 19.00, category: 'destilados' },
-                { name: 'Dimel', description: 'Licor italiano', price: 28.00, category: 'destilados' },
-                { name: 'Campari', description: 'Bitter italiano', price: 65.00, category: 'destilados' },
-                { name: 'Gin Askov', description: 'Gin brasileiro', price: 19.00, category: 'destilados' },
-                { name: 'Askov Pura', description: 'Vodka Askov pura', price: 17.50, category: 'destilados' },
-                { name: 'Ice', description: 'Bebida ready to drink', price: 7.00, category: 'destilados' },
-                { name: 'Beats Lata', description: 'Bebida em lata', price: 7.50, category: 'destilados' },
-                { name: 'Beats Long', description: 'Bebida em long neck', price: 9.00, category: 'destilados' },
-                { name: 'Smirnoff Ice', description: 'Bebida com vodka', price: 9.50, category: 'destilados' },
-                { name: 'Black Label', description: 'Whisky escocês', price: 197.50, category: 'destilados' },
                 { name: 'Jack Daniels', description: 'Whiskey americano', price: 192.00, category: 'destilados' },
-                { name: 'Velho Barreiro', description: 'Cachaça tradicional', price: 18.50, category: 'destilados' },
-                { name: 'Old Star', description: 'Whisky nacional', price: 17.00, category: 'destilados' },
-                { name: 'Passport', description: 'Whisky escocês', price: 72.00, category: 'destilados' },
-                { name: 'Natu Nobilis', description: 'Whisky brasileiro', price: 54.00, category: 'destilados' },
-                { name: 'White Horse', description: 'Whisky escocês', price: 97.50, category: 'destilados' },
                 { name: 'Red Label', description: 'Johnnie Walker', price: 125.00, category: 'destilados' },
-                { name: 'Ballantines', description: 'Whisky escocês', price: 120.00, category: 'destilados' },
-                { name: 'Smirnoff 1L', description: 'Vodka Smirnoff 1 litro', price: 46.00, category: 'destilados' },
-                { name: 'Askov Sabor 1L', description: 'Vodka com sabor 1 litro', price: 19.00, category: 'destilados' },
-                { name: 'Canelinha', description: 'Licor de canela', price: 23.00, category: 'destilados' },
-                { name: 'Dom Bosco', description: 'Licor brasileiro', price: 19.00, category: 'destilados' },
-                { name: 'Chapinha', description: 'Cachaça brasileira', price: 14.00, category: 'destilados' },
-                { name: '3 Medallas', description: 'Cachaça premium', price: 35.00, category: 'destilados' },
-                { name: 'Pérgola', description: 'Licor premium', price: 35.00, category: 'destilados' },
-                { name: 'Chalise', description: 'Licor', price: 19.00, category: 'destilados' },
-                { name: 'Dom Feliciano', description: 'Licor gaúcho', price: 19.00, category: 'destilados' },
-                { name: 'Cantinho', description: 'Bebida ready to drink', price: 8.00, category: 'destilados' },
-                { name: 'Stempel 355ml', description: 'Cerveja em garrafa', price: 6.75, category: 'destilados' },
-                { name: 'Stempel 600ml', description: 'Cerveja artesanal', price: 11.00, category: 'destilados' }
+                { name: 'Smirnoff 1L', description: 'Vodka Smirnoff 1 litro', price: 46.00, category: 'destilados' }
             ],
             'aguas': [
                 { name: 'Água 500ml', description: 'Água mineral natural', price: 3.00, category: 'aguas' },
-                { name: 'Água 1,5L', description: 'Água mineral família', price: 5.00, category: 'aguas' },
-                { name: 'Água de Coco 1L', description: 'Água de coco natural', price: 10.00, category: 'aguas' },
-                { name: 'Água Gás 500ml', description: 'Água com gás', price: 3.50, category: 'aguas' },
-                { name: 'Água Gás 1,5L', description: 'Água com gás família', price: 6.00, category: 'aguas' },
-                { name: 'H2O 500ml', description: 'Água mineral premium', price: 5.00, category: 'aguas' },
-                { name: 'H2O 1,5L', description: 'Água premium família', price: 9.50, category: 'aguas' },
-                { name: 'Gatorade', description: 'Bebida isotônica', price: 7.00, category: 'aguas' }
+                { name: 'Água 1,5L', description: 'Água mineral família', price: 5.00, category: 'aguas' }
             ],
             'refri-latas': [
-                { name: 'Sprite/Fanta', description: 'Refrigerante cítrico', price: 4.50, category: 'refri-latas' },
-                { name: 'Guaraná Antarctica', description: 'Refrigerante brasileiro', price: 4.50, category: 'refri-latas' },
-                { name: 'Pepsi', description: 'Refrigerante de cola', price: 4.50, category: 'refri-latas' },
                 { name: 'Coca Cola', description: 'Refrigerante tradicional', price: 4.50, category: 'refri-latas' },
-                { name: 'Schwepps', description: 'Refrigerante tônico', price: 5.00, category: 'refri-latas' },
-                { name: 'Kuat', description: 'Refrigerante de guaraná', price: 4.50, category: 'refri-latas' },
-                { name: 'Tônica', description: 'Água tônica', price: 4.50, category: 'refri-latas' },
-                { name: 'Sukita', description: 'Refrigerante cítrico', price: 4.00, category: 'refri-latas' }
+                { name: 'Guaraná Antarctica', description: 'Refrigerante brasileiro', price: 4.50, category: 'refri-latas' }
             ],
             'refri-pet': [
                 { name: 'Coca-Cola 2L', description: 'Refrigerante família', price: 13.00, category: 'refri-pet' },
-                { name: 'Sprite 2L', description: 'Refrigerante cítrico', price: 10.00, category: 'refri-pet' },
-                { name: 'Fanta 2L', description: 'Refrigerante laranja', price: 10.00, category: 'refri-pet' },
-                { name: 'Coca Retor 2L', description: 'Coca-Cola retornável', price: 9.50, category: 'refri-pet' },
-                { name: 'Coca Mini', description: 'Coca-Cola pequena', price: 3.00, category: 'refri-pet' },
-                { name: 'Conq. Mini', description: 'Conquista mini', price: 2.50, category: 'refri-pet' },
-                { name: 'Coca 600ml', description: 'Coca-Cola 600ml', price: 7.00, category: 'refri-pet' },
-                { name: 'Coca Cola 1L', description: 'Coca-Cola 1 litro', price: 9.00, category: 'refri-pet' },
-                { name: 'Sprite 600ml', description: 'Sprite 600ml', price: 6.00, category: 'refri-pet' },
-                { name: 'Schwepps 1,5L', description: 'Schwepps 1,5 litros', price: 10.50, category: 'refri-pet' },
-                { name: 'Antárctica 2L', description: 'Guaraná 2 litros', price: 11.00, category: 'refri-pet' },
-                { name: 'Antárctica 1L', description: 'Guaraná 1 litro', price: 8.00, category: 'refri-pet' },
-                { name: 'Conquista 2L', description: 'Refrigerante 2 litros', price: 8.50, category: 'refri-pet' },
-                { name: 'Conquista 600ml', description: 'Refrigerante 600ml', price: 5.00, category: 'refri-pet' },
-                { name: 'Quinze 2L', description: 'Refrigerante econômico', price: 7.50, category: 'refri-pet' },
-                { name: 'Conti 2L', description: 'Refrigerante 2 litros', price: 8.50, category: 'refri-pet' },
-                { name: 'Conti 600ml', description: 'Refrigerante 600ml', price: 5.00, category: 'refri-pet' },
-                { name: 'Guaraná Mini', description: 'Guaraná individual', price: 2.50, category: 'refri-pet' }
+                { name: 'Sprite 2L', description: 'Refrigerante cítrico', price: 10.00, category: 'refri-pet' }
             ],
             'sucos': [
                 { name: 'Del Valle 1L', description: 'Suco de caixinha', price: 10.00, category: 'sucos' },
-                { name: 'Prats 300ml', description: 'Suco pequeno', price: 6.00, category: 'sucos' },
-                { name: 'Kapo', description: 'Suco em pó', price: 4.00, category: 'sucos' },
-                { name: 'Prats 1,5L', description: 'Suco família', price: 23.00, category: 'sucos' },
-                { name: 'Life 300ml', description: 'Suco premium', price: 7.00, category: 'sucos' },
-                { name: 'Life 900ml', description: 'Suco premium', price: 14.00, category: 'sucos' }
+                { name: 'Prats 300ml', description: 'Suco pequeno', price: 6.00, category: 'sucos' }
             ],
             'energeticos': [
-                { name: 'Big Power 2L', description: 'Energético grande', price: 12.00, category: 'energeticos' },
-                { name: 'Monster 473ml', description: 'Energético importado', price: 12.00, category: 'energeticos' },
                 { name: 'Red Bull 250ml', description: 'Energético pequeno', price: 13.00, category: 'energeticos' },
-                { name: 'One 2L', description: 'Energético econômico', price: 10.00, category: 'energeticos' },
-                { name: 'Bally 2L', description: 'Energético 2 litros', price: 14.00, category: 'energeticos' },
-                { name: 'Red Bull 355ml', description: 'Energético médio', price: 15.00, category: 'energeticos' },
-                { name: 'Bally 473ml', description: 'Energético lata grande', price: 10.00, category: 'energeticos' },
-                { name: 'Bally 250ml', description: 'Energético pequeno', price: 6.50, category: 'energeticos' }
+                { name: 'Monster 473ml', description: 'Energético importado', price: 12.00, category: 'energeticos' }
             ],
             'gelo-carvao': [
                 { name: 'Gelo Saborizado', description: 'Gelo com sabor', price: 3.00, category: 'gelo-carvao' },
-                { name: 'Carvão 3kg', description: 'Carvão para churrasco', price: 20.00, category: 'gelo-carvao' },
-                { name: 'Gelo 4,5Kg', description: 'Gelo em saco', price: 10.00, category: 'gelo-carvao' },
-                { name: 'Carvão 6,5Kg', description: 'Carvão grande', price: 30.00, category: 'gelo-carvao' }
+                { name: 'Gelo 4,5Kg', description: 'Gelo em saco', price: 10.00, category: 'gelo-carvao' }
             ]
         };
 
@@ -1043,14 +880,13 @@
             cart: [],
             currentCategory: 'drinks-whisky',
             deliveryType: 'pickup',
-            paymentMethod: null, // Inicialmente nulo para retirada
+            paymentMethod: null,
             paymentConfirmed: false,
             paymentProcessing: false,
             mercadoPago: null,
             currentOrderId: null,
             currentPreferenceId: null,
             paymentInterval: null,
-            // NOVO: Estado para controle do sabor do gelo
             currentIceFlavor: null,
             pendingWhiskyProduct: null
         };
@@ -1077,10 +913,8 @@
             setupEventListeners();
             initializeIceFlavorsModal();
             
-            // Configuração inicial para retirada
             selectDeliveryType('pickup');
             
-            // Carregar carrinho do localStorage
             try {
                 const savedCart = localStorage.getItem('bebcom_cart');
                 if (savedCart) {
@@ -1094,8 +928,8 @@
 
         function initializeMercadoPago() {
             try {
-                if (!CONFIG.mercadoPago.publicKey) {
-                    console.error('Chave pública do Mercado Pago não configurada');
+                if (!CONFIG.mercadoPago.publicKey || CONFIG.mercadoPago.publicKey === 'SUA_CHAVE_PUBLICA_AQUI') {
+                    console.log('Mercado Pago não configurado - usando modo manual');
                     return;
                 }
                 
@@ -1105,7 +939,6 @@
                 console.log('Mercado Pago inicializado');
             } catch (error) {
                 console.error('Erro ao inicializar Mercado Pago:', error);
-                showNotification('⚠️ Sistema de pagamento offline. Use PIX manual.');
             }
         }
 
@@ -1113,7 +946,7 @@
             const iceFlavorsGrid = document.getElementById('iceFlavorsGrid');
             iceFlavorsGrid.innerHTML = '';
             
-            ICE_FLAVORS.forEach((flavor, index) => {
+            ICE_FLAVORS.forEach((flavor) => {
                 const flavorOption = document.createElement('div');
                 flavorOption.className = 'ice-flavor-option';
                 flavorOption.textContent = flavor;
@@ -1140,7 +973,7 @@
                 return;
             }
             
-            categoryProducts.forEach((product, index) => {
+            categoryProducts.forEach((product) => {
                 const productCard = document.createElement('div');
                 productCard.className = 'product-card';
                 productCard.innerHTML = `
@@ -1156,41 +989,31 @@
         }
 
         // ============================================
-        // FUNÇÕES DO CARRINHO COM MODAL DE GELO
+        // FUNÇÕES DO CARRINHO
         // ============================================
         function handleAddToCart(name, price, category, button) {
-            // Verificar se é um drink de whisky
             if (category === 'drinks-whisky') {
-                // Salvar o produto pendente e abrir o modal
                 state.pendingWhiskyProduct = { name, price, category };
                 openIceFlavorModal(button);
             } else {
-                // Para outros produtos, adicionar normalmente
                 addToCart(name, price, button);
             }
         }
 
         function openIceFlavorModal(button) {
-            // Resetar seleção anterior
             document.querySelectorAll('.ice-flavor-option').forEach(option => {
                 option.classList.remove('selected');
             });
             state.currentIceFlavor = null;
-            
-            // Mostrar modal
             document.getElementById('iceFlavorModal').style.display = 'flex';
-            
-            // Salvar referência ao botão para feedback visual posterior
             state.currentButton = button;
         }
 
         function selectIceFlavor(flavor) {
-            // Remover seleção anterior
             document.querySelectorAll('.ice-flavor-option').forEach(option => {
                 option.classList.remove('selected');
             });
             
-            // Selecionar novo sabor
             const selectedOption = document.querySelector(`.ice-flavor-option[data-flavor="${flavor}"]`);
             if (selectedOption) {
                 selectedOption.classList.add('selected');
@@ -1205,10 +1028,8 @@
                 return;
             }
             
-            // Fechar modal
             document.getElementById('iceFlavorModal').style.display = 'none';
             
-            // Adicionar produto ao carrinho com o sabor do gelo
             if (state.pendingWhiskyProduct) {
                 const product = state.pendingWhiskyProduct;
                 const productWithFlavor = {
@@ -1222,7 +1043,6 @@
         }
 
         function cancelIceFlavor() {
-            // Fechar modal sem adicionar
             document.getElementById('iceFlavorModal').style.display = 'none';
             state.pendingWhiskyProduct = null;
             state.currentIceFlavor = null;
@@ -1248,7 +1068,6 @@
             updateCartDisplay();
             saveCartToLocalStorage();
             
-            // Feedback visual no botão clicado
             if (button) {
                 const originalText = button.innerHTML;
                 button.innerHTML = '✓ Adicionado!';
@@ -1279,7 +1098,6 @@
             updateCartDisplay();
             saveCartToLocalStorage();
             
-            // Feedback visual apenas no botão clicado
             if (button) {
                 const originalText = button.innerHTML;
                 button.innerHTML = '✓ Adicionado!';
@@ -1317,7 +1135,6 @@
                 const cartItem = document.createElement('div');
                 cartItem.className = 'cart-item';
                 
-                // Adicionar informação do sabor do gelo se existir
                 let itemName = item.name;
                 if (item.iceFlavor) {
                     itemName += ` (Gelo: ${item.iceFlavor})`;
@@ -1339,7 +1156,6 @@
                 cartItems.appendChild(cartItem);
             });
             
-            // Calcular taxa de entrega
             let deliveryFee = 0;
             if (state.deliveryType === 'delivery') {
                 deliveryFee = CONFIG.deliveryRates.baseFee;
@@ -1399,7 +1215,7 @@
         }
 
         // ============================================
-        // FUNÇÕES DE ENTREGA (CORREÇÃO)
+        // FUNÇÕES DE ENTREGA
         // ============================================
         function selectDeliveryType(type) {
             state.deliveryType = type;
@@ -1412,34 +1228,21 @@
             const addressFields = document.getElementById('addressFields');
             
             if (type === 'pickup') {
-                // PARA RETIRADA
                 pickupBtn.classList.add('selected');
                 deliveryBtn.classList.remove('selected');
                 addressFields.style.display = 'none';
-                
-                // Esconder métodos de pagamento online
                 paymentLabel.style.display = 'none';
                 paymentMethods.style.display = 'none';
-                
-                // Desabilitar botão de pagamento
                 payButton.disabled = true;
                 payButton.textContent = '🏪 Retirada no Local';
-                
-                // Resetar estado de pagamento
                 state.paymentMethod = null;
                 state.paymentConfirmed = false;
-                
             } else {
-                // PARA ENTREGA
                 pickupBtn.classList.remove('selected');
                 deliveryBtn.classList.add('selected');
                 addressFields.style.display = 'block';
-                
-                // Mostrar métodos de pagamento
                 paymentLabel.style.display = 'block';
                 paymentMethods.style.display = 'grid';
-                
-                // Habilitar botão de pagamento e selecionar PIX por padrão
                 payButton.disabled = false;
                 selectPaymentMethod('pix');
             }
@@ -1452,31 +1255,21 @@
         // FUNÇÕES DE PAGAMENTO
         // ============================================
         function selectPaymentMethod(method) {
-            // Apenas se for entrega
             if (state.deliveryType !== 'delivery') return;
             
             state.paymentMethod = method;
             
-            // Atualizar UI dos botões
             document.querySelectorAll('.payment-method').forEach(el => {
                 el.classList.remove('selected');
             });
             
-            const selectedMethod = document.querySelector(`.payment-method:nth-child(${getPaymentMethodIndex(method)})`);
+            const selectedMethod = document.querySelector(`.payment-method:nth-child(${method === 'pix' ? 1 : 2})`);
             if (selectedMethod) {
                 selectedMethod.classList.add('selected');
             }
             
             updatePayButtonText();
             validateForm();
-        }
-
-        function getPaymentMethodIndex(method) {
-            switch(method) {
-                case 'pix': return 1;
-                case 'card_online': return 2;
-                default: return 1;
-            }
         }
 
         function updatePayButtonText() {
@@ -1512,7 +1305,6 @@
                 if (!neighborhood) errors.push('• Digite o bairro');
                 if (!city) errors.push('• Digite a cidade');
                 
-                // Para entrega, precisa de método de pagamento selecionado
                 if (!state.paymentMethod) errors.push('• Selecione um método de pagamento');
             }
             
@@ -1520,7 +1312,6 @@
         }
 
         async function processPayment() {
-            // Para retirada, não processar pagamento
             if (state.deliveryType === 'pickup') {
                 alert('Para retirada, o pagamento será realizado no local.');
                 return;
@@ -1539,7 +1330,6 @@
             const originalText = button.innerHTML;
             const statusDiv = document.getElementById('paymentStatus');
             
-            // Mostrar loading
             button.innerHTML = '<span class="loading-spinner"></span> Processando...';
             button.disabled = true;
             
@@ -1548,77 +1338,17 @@
             statusDiv.innerHTML = '🔄 Processando seu pedido...';
             
             try {
-                await processOnlinePayment();
+                // Se Mercado Pago não estiver configurado, usar PIX manual
+                if (!state.mercadoPago || state.paymentMethod === 'pix') {
+                    showManualPixPayment();
+                } else {
+                    await processOnlinePayment();
+                }
             } catch (error) {
                 console.error('Erro no processamento:', error);
                 statusDiv.className = 'payment-status error';
                 statusDiv.innerHTML = `❌ ${error.message || 'Erro ao processar pedido'}`;
                 resetPayButton(originalText);
-            }
-        }
-
-        async function processOnlinePayment() {
-            try {
-                const orderData = prepareOrderData();
-                state.currentOrderId = 'BEB' + Date.now().toString().slice(-8);
-                
-                // Criar items para Mercado Pago
-                const items = orderData.items.map(item => ({
-                    title: item.name.substring(0, 50),
-                    quantity: item.quantity,
-                    unit_price: Number(item.price.toFixed(2))
-                }));
-                
-                // Adicionar taxa de entrega se houver
-                if (orderData.deliveryFee > 0) {
-                    items.push({
-                        title: 'Taxa de Entrega',
-                        quantity: 1,
-                        unit_price: orderData.deliveryFee
-                    });
-                }
-                
-                // Criar preferência de pagamento
-                const response = await fetch(`${CONFIG.backendUrl}/create-payment`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        orderId: state.currentOrderId,
-                        payer: {
-                            name: document.getElementById('customerName').value,
-                            email: 'cliente@bebcom.com'
-                        },
-                        items: items,
-                        paymentMethod: state.paymentMethod
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Erro ao criar pagamento no servidor');
-                }
-                
-                const data = await response.json();
-                
-                if (data.preferenceId) {
-                    // Abrir checkout do Mercado Pago
-                    state.mercadoPago.checkout({
-                        preference: { id: data.preferenceId },
-                        autoOpen: true
-                    });
-                    
-                    // Iniciar verificação do status
-                    startPaymentStatusCheck(state.currentOrderId);
-                } else {
-                    throw new Error('Resposta inválida do servidor');
-                }
-                
-            } catch (error) {
-                // Fallback: mostrar QR Code PIX manual
-                if (state.paymentMethod === 'pix') {
-                    showManualPixPayment();
-                } else {
-                    throw error;
-                }
             }
         }
 
@@ -1676,7 +1406,6 @@
             
             const itemsTotal = items.reduce((sum, i) => sum + (i.quantity * i.price), 0);
             
-            // Calcular taxa de entrega
             let deliveryFee = 0;
             if (state.deliveryType === 'delivery') {
                 deliveryFee = CONFIG.deliveryRates.baseFee;
@@ -1694,36 +1423,7 @@
             };
         }
 
-        function startPaymentStatusCheck(orderId) {
-            if (state.paymentInterval) clearInterval(state.paymentInterval);
-            
-            state.paymentInterval = setInterval(async () => {
-                try {
-                    const response = await fetch(`${CONFIG.backendUrl}/order-status/${orderId}`);
-                    if (!response.ok) return;
-                    
-                    const data = await response.json();
-                    
-                    if (data.paid) {
-                        clearInterval(state.paymentInterval);
-                        confirmPayment();
-                    }
-                } catch (error) {
-                    console.error('Erro ao verificar status:', error);
-                }
-            }, 5000);
-            
-            // Timeout após 30 minutos
-            setTimeout(() => {
-                if (state.paymentInterval) {
-                    clearInterval(state.paymentInterval);
-                    showPaymentError('Tempo limite excedido. Tente novamente.');
-                }
-            }, 30 * 60 * 1000);
-        }
-
         function confirmPayment() {
-            // Apenas confirma pagamento para entrega
             if (state.deliveryType === 'delivery') {
                 state.paymentConfirmed = true;
             }
@@ -1755,26 +1455,6 @@
                 : 'Pedido confirmado! Agora envie o pedido pelo WhatsApp.');
         }
 
-        function showPaymentError(message) {
-            const statusDiv = document.getElementById('paymentStatus');
-            statusDiv.className = 'payment-status error';
-            statusDiv.innerHTML = `❌ ${message}`;
-            state.paymentProcessing = false;
-            resetPayButton();
-        }
-
-        function resetPayButton(originalText) {
-            const button = document.getElementById('payButton');
-            if (state.deliveryType === 'delivery') {
-                button.innerHTML = originalText || '💰 Realizar Pagamento';
-                button.disabled = false;
-            } else {
-                button.innerHTML = '🏪 Retirada no Local';
-                button.disabled = true;
-            }
-            state.paymentProcessing = false;
-        }
-
         function resetPaymentState() {
             state.paymentConfirmed = false;
             state.paymentProcessing = false;
@@ -1789,7 +1469,6 @@
             document.getElementById('paymentStatus').style.display = 'none';
             document.getElementById('whatsappButton').disabled = true;
             
-            // Resetar método de pagamento baseado no tipo
             if (state.deliveryType === 'delivery') {
                 selectPaymentMethod('pix');
             } else {
@@ -1798,7 +1477,7 @@
         }
 
         // ============================================
-        // FUNÇÕES DO WHATSAPP (COM INFORMAÇÃO DO GELO)
+        // FUNÇÕES DO WHATSAPP
         // ============================================
         function validateForm() {
             const customerName = document.getElementById('customerName').value.trim();
@@ -1818,10 +1497,8 @@
                 isValid = isValid && street.length > 0 && number.length > 0 && 
                          neighborhood.length > 0 && city.length > 0;
                 
-                // Para entrega, precisa de pagamento confirmado
                 isValid = isValid && state.paymentConfirmed;
             }
-            // Para retirada, não precisa de pagamento confirmado
             
             whatsappButton.disabled = !isValid;
             return isValid;
@@ -1838,14 +1515,10 @@
                 const encodedMessage = encodeURIComponent(message);
                 const whatsappUrl = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodedMessage}`;
                 
-                // Abrir WhatsApp em nova aba
                 window.open(whatsappUrl, '_blank');
                 
-                // Feedback
                 alert('✅ Pedido enviado! Aguarde nosso contato no WhatsApp.');
                 
-                // Manter carrinho para possível novo pedido
-                // Apenas resetar estado de pagamento
                 resetPaymentState();
                 
             } catch (error) {
@@ -1874,18 +1547,13 @@
             message += `📦 *Tipo:* ${state.deliveryType === 'delivery' ? 'ENTREGA' : 'RETIRADA'}\n`;
             
             if (state.deliveryType === 'delivery') {
-                // Montar endereço completo para entrega
                 const fullAddress = `${street}, ${number} - ${neighborhood}, ${city}`;
                 message += `📍 *Endereço:* ${fullAddress}\n`;
                 if (complement) {
                     message += `🏠 *Complemento:* ${complement}\n`;
                 }
                 
-                // Para entrega, mostrar forma de pagamento
                 message += `💳 *Pagamento:* ${getPaymentMethodText()}\n`;
-            } else {
-                // Para retirada, NÃO mostrar informação de pagamento
-                // Pagamento será realizado no local
             }
             
             message += `📅 *Data/Hora:* ${new Date().toLocaleString('pt-BR')}\n`;
@@ -1896,7 +1564,6 @@
                 const itemTotal = item.price * item.quantity;
                 message += `\n${index + 1}. ${item.name}\n`;
                 
-                // Adicionar informação do sabor do gelo se existir
                 if (item.iceFlavor) {
                     message += `   🧊 *Sabor do gelo:* ${item.iceFlavor}\n`;
                 }
@@ -1918,7 +1585,6 @@
             message += `\n━━━━━━━━━━━━━━━━━━━━━━\n`;
             message += `✅ *Pedido confirmado!*\n`;
             
-            // Apenas mostrar tempo estimado para entrega
             if (state.deliveryType === 'delivery') {
                 message += `⏱️ *Tempo estimado:* 40-60 minutos\n`;
             }
@@ -1932,14 +1598,12 @@
 
         function getPaymentMethodText() {
             if (state.deliveryType === 'delivery') {
-                // Para entrega
                 switch(state.paymentMethod) {
                     case 'pix': return 'PIX Online' + (state.paymentConfirmed ? ' ✅ PAGO' : '');
                     case 'card_online': return 'Cartão Online' + (state.paymentConfirmed ? ' ✅ PAGO' : '');
                     default: return '';
                 }
             } else {
-                // Para retirada, retornar string vazia (não mostra no WhatsApp)
                 return '';
             }
         }
@@ -1948,7 +1612,6 @@
         // FUNÇÕES UTILITÁRIAS
         // ============================================
         function showNotification(text) {
-            // Criar notificação temporária
             const notification = document.createElement('div');
             notification.style.cssText = `
                 position: fixed;
