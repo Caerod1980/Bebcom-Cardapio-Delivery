@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BebCom Delivery</title>
     
-    <!-- SDK Mercado Pago -->
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <!-- SDK Mercado Pago REMOVIDO por segurança -->
     
     <style>
         /* ====== ESTILOS GERAIS ====== */
@@ -1720,6 +1719,10 @@
                         style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
                     🍹 Gerenciar Sabores
                 </button>
+                <button class="admin-action-btn" onclick="syncAllFromServer()" 
+                        style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); margin-top: 10px;">
+                    🔄 Sincronizar Agora
+                </button>
             </div>
         </div>
     </div>
@@ -1827,16 +1830,20 @@
         }
 
         // ============================================
-        // CONFIGURAÇÕES DO SISTEMA
+        // CONFIGURAÇÕES DO SISTEMA (SEGURO - SEM CHAVES SENSÍVEIS)
         // ============================================
         const CONFIG = {
+            // 🔒 ATENÇÃO: Substitua esta URL pela URL do seu backend no Render
             backendUrl: 'https://seu-backend.onrender.com',
+            
             whatsappNumber: '5514996130369',
+            
             storeLocation: {
                 lat: -22.35892,
                 lng: -49.0987233,
                 address: "R. José Henrique Ferraz, 18-10 - Centro, Bauru - SP"
             },
+            
             deliveryRates: {
                 baseFee: 5.00,
                 perKm: 2.65,
@@ -1844,10 +1851,8 @@
                 minDistance: 0.5,
                 freeDeliveryMin: 100.00
             },
-            mercadoPago: {
-                publicKey: 'APP_USR-b74e6ba3-6c30-4384-87c0-9b1199d2511b',
-                accessToken: 'APP_USR-8326438021246657-020121-ccc94cd396e2d69d1f86657f5292db55-49438812'
-            },
+            
+            // 🔒 SENHA ADMINISTRATIVA - Altere para uma senha forte!
             adminPassword: 'Bebcom25*'
         };
 
@@ -2325,7 +2330,6 @@
             paymentMethod: null,
             paymentConfirmed: false,
             paymentProcessing: false,
-            mercadoPago: null,
             currentOrderId: null,
             currentPreferenceId: null,
             paymentInterval: null,
@@ -2335,17 +2339,14 @@
             currentButton: null,
             adminAuthenticated: false,
             productAvailability: {},
-            flavorAvailability: {} // Novo estado para disponibilidade por sabor
+            flavorAvailability: {}
         };
-
-        // Sabores de gelo disponíveis
-        const ICE_FLAVORS = FLAVOR_CATALOG.gelo_sabores;
 
         // ============================================
         // FUNÇÕES DE INICIALIZAÇÃO
         // ============================================
-        function init() {
-            console.log('🚀 Inicializando BebCom Delivery v2.0');
+        async function init() {
+            console.log('🚀 Inicializando BebCom Delivery v3.0 (Seguro)');
             
             // Inicializar verificação de idade
             initAgeVerification();
@@ -2354,13 +2355,23 @@
             if (!ageVerified) return;
             
             // Carregar dados persistentes
-            loadProductAvailability();
-            loadFlavorAvailability(); // ← NOVA LINHA
             loadCartFromLocalStorage();
+            
+            try {
+                // Carregar disponibilidade do servidor
+                await Promise.all([
+                    loadProductAvailability(),
+                    loadFlavorAvailability()
+                ]);
+                
+                console.log('✅ Dados carregados do servidor');
+            } catch (error) {
+                console.log('⚠️ Usando dados locais:', error.message);
+                // Continuar com dados locais
+            }
             
             // Inicializar componentes
             showCategory('drinks-whisky');
-            initializeMercadoPago();
             setupEventListeners();
             setupAdminListeners();
             
@@ -2373,34 +2384,38 @@
             // Configurar auto-save
             setupAutoSave();
             
-            // Limpar dados antigos
-            cleanupOldData();
+            // Configurar sincronização automática
+            setupAutoSync();
             
             console.log('✅ Sistema BebCom Delivery inicializado com sucesso');
         }
 
-        function initializeMercadoPago() {
-            try {
-                if (!CONFIG.mercadoPago.publicKey) {
-                    console.error('Chave pública do Mercado Pago não configurada');
-                    return;
-                }
-                
-                state.mercadoPago = new MercadoPago(CONFIG.mercadoPago.publicKey, {
-                    locale: 'pt-BR'
-                });
-                console.log('✅ Mercado Pago inicializado');
-            } catch (error) {
-                console.error('❌ Erro ao inicializar Mercado Pago:', error);
-                showNotification('⚠️ Sistema de pagamento offline. Use PIX manual.', 'warning');
-            }
-        }
+        // ============================================
+        // FUNÇÕES PARA DISPONIBILIDADE DE PRODUTOS (COM BACKEND)
+        // ============================================
 
-        function loadProductAvailability() {
+        // Carregar disponibilidade de produtos do backend
+        async function loadProductAvailability() {
             try {
+                const response = await fetch(`${CONFIG.backendUrl}/api/product-availability`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.productAvailability) {
+                        state.productAvailability = data.productAvailability;
+                        localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
+                        console.log('✅ Disponibilidade de produtos carregada do servidor');
+                        return true;
+                    }
+                }
+                throw new Error('Resposta inválida do servidor');
+            } catch (error) {
+                console.log('⚠️ Fallback: Carregando produtos do localStorage');
+                // Fallback para localStorage
                 const saved = localStorage.getItem('bebcom_product_availability');
                 state.productAvailability = saved ? JSON.parse(saved) : {};
                 
+                // Inicializar produtos faltantes como disponíveis
                 Object.keys(products).forEach(category => {
                     products[category].forEach(product => {
                         if (state.productAvailability[product.id] === undefined) {
@@ -2408,56 +2423,43 @@
                         }
                     });
                 });
-                console.log('✅ Disponibilidade de produtos carregada');
-            } catch (error) {
-                state.productAvailability = {};
-                console.error('❌ Erro ao carregar disponibilidade:', error);
-            }
-        }
-
-        function saveProductAvailability() {
-            try {
-                localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
-                updateMenuAvailability();
-                showNotification('💾 Disponibilidade salva!');
-                return true;
-            } catch (error) {
-                showNotification('❌ Erro ao salvar disponibilidade', 'error');
+                
                 return false;
             }
         }
 
+        // Carregar disponibilidade de sabores do backend
+        async function loadFlavorAvailability() {
+            try {
+                const response = await fetch(`${CONFIG.backendUrl}/api/flavor-availability`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.flavorAvailability) {
+                        state.flavorAvailability = data.flavorAvailability;
+                        localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                        console.log('✅ Disponibilidade de sabores carregada do servidor');
+                        return true;
+                    }
+                }
+                throw new Error('Resposta inválida do servidor');
+            } catch (error) {
+                console.log('⚠️ Fallback: Carregando sabores do localStorage');
+                // Fallback para localStorage
+                const saved = localStorage.getItem('bebcom_flavor_availability');
+                state.flavorAvailability = saved ? JSON.parse(saved) : {};
+                return false;
+            }
+        }
+
+        // Verificar se produto está disponível
         function isProductAvailable(productId) {
             return state.productAvailability[productId] !== false;
         }
 
-        // ============================================
-        // FUNÇÕES PARA DISPONIBILIDADE DE SABORES
-        // ============================================
-        function loadFlavorAvailability() {
-            try {
-                const saved = localStorage.getItem('bebcom_flavor_availability');
-                state.flavorAvailability = saved ? JSON.parse(saved) : {};
-                console.log('✅ Disponibilidade de sabores carregada');
-            } catch (error) {
-                state.flavorAvailability = {};
-                console.error('❌ Erro ao carregar disponibilidade de sabores:', error);
-            }
-        }
-
-        function saveFlavorAvailability() {
-            try {
-                localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
-                return true;
-            } catch (error) {
-                console.error('❌ Erro ao salvar disponibilidade de sabores:', error);
-                return false;
-            }
-        }
-
+        // Verificar se sabor está disponível
         function isFlavorAvailable(flavorType, flavorName) {
             const key = `${flavorType}_${flavorName}`;
-            // Por padrão, todos os sabores estão disponíveis se não estiverem explicitamente marcados como indisponíveis
             return state.flavorAvailability[key] !== false;
         }
 
@@ -2476,7 +2478,7 @@
                 return;
             }
             
-            categoryProducts.forEach((product, index) => {
+            categoryProducts.forEach((product) => {
                 const isAvailable = isProductAvailable(product.id);
                 const hasFlavors = product.requiresFlavorSelection || false;
                 
@@ -2506,52 +2508,6 @@
                     </button>
                 `;
                 productsGrid.appendChild(productCard);
-            });
-        }
-
-        function updateMenuAvailability() {
-            Object.keys(products).forEach(category => {
-                products[category].forEach(product => {
-                    const productElements = document.querySelectorAll(`[data-product-id="${product.id}"]`);
-                    const isAvailable = isProductAvailable(product.id);
-                    const hasFlavors = product.requiresFlavorSelection || false;
-                    
-                    productElements.forEach(element => {
-                        if (isAvailable) {
-                            element.classList.remove('unavailable');
-                            const button = element.querySelector('button');
-                            if (button) {
-                                button.disabled = false;
-                                let buttonText = '🛒 Adicionar';
-                                if (hasFlavors) buttonText = '⚡ Escolher Sabores';
-                                button.innerHTML = buttonText;
-                                
-                                if (hasFlavors) {
-                                    button.classList.add('has-flavors');
-                                    element.classList.add('with-flavors');
-                                    if (!element.querySelector('.flavor-badge')) {
-                                        const badge = document.createElement('div');
-                                        badge.className = 'flavor-badge';
-                                        badge.textContent = '⚡';
-                                        element.insertBefore(badge, element.firstChild);
-                                    }
-                                } else {
-                                    button.classList.remove('has-flavors');
-                                    element.classList.remove('with-flavors');
-                                    const badge = element.querySelector('.flavor-badge');
-                                    if (badge) badge.remove();
-                                }
-                            }
-                        } else {
-                            element.classList.add('unavailable');
-                            const button = element.querySelector('button');
-                            if (button) {
-                                button.disabled = true;
-                                button.innerHTML = '❌ Indisponível';
-                            }
-                        }
-                    });
-                });
             });
         }
 
@@ -2590,7 +2546,6 @@
                     
                     openFlavorModal(product, 'primary');
                 } else {
-                    console.error('Tipo de sabor não encontrado:', product.flavorType);
                     addToCartDirect(product, button);
                 }
             } else {
@@ -2607,9 +2562,6 @@
         }
 
         function openFlavorModal(product, step) {
-            // Ajuste para mobile
-            adjustFlavorModalForMobile();
-            
             const modal = document.getElementById('flavorModal');
             const title = document.getElementById('flavorModalTitle');
             const instruction = document.getElementById('flavorModalInstruction');
@@ -2627,7 +2579,7 @@
                 
                 if (step === 'ice' && product.nextStep === 'ice') {
                     flavorType = 'gelo_sabores';
-                    flavors = ICE_FLAVORS;
+                    flavors = FLAVOR_CATALOG.gelo_sabores || [];
                     title.textContent = '🧊 Escolha o sabor do gelo';
                     instruction.textContent = 'Selecione um sabor para o seu drink (sem custo adicional)';
                 } else {
@@ -2651,14 +2603,8 @@
                     option.dataset.flavor = flavor;
                     
                     if (!isAvailable) {
-                        // Adicionar indicador visual de indisponível
-                        option.style.position = 'relative';
                         option.style.opacity = '0.6';
                         option.style.cursor = 'not-allowed';
-                        option.innerHTML = `
-                            ${flavor}
-                            <div style="position: absolute; top: 5px; right: 5px; font-size: 12px; color: #dc2626;">❌</div>
-                        `;
                     } else {
                         hasAvailableFlavor = true;
                         option.onclick = function() {
@@ -2688,15 +2634,6 @@
                 confirmButton.disabled = true;
                 modal.style.display = 'flex';
             }, 100);
-        }
-
-        function adjustFlavorModalForMobile() {
-            if (window.innerWidth <= 768) {
-                const modalContent = document.querySelector('.flavor-modal-content');
-                if (modalContent) {
-                    modalContent.style.maxHeight = '70vh';
-                }
-            }
         }
 
         function getFlavorTypeName(flavorType) {
@@ -2821,7 +2758,7 @@
         }
 
         // ============================================
-        // FUNÇÕES DO CARRINHO (ATUALIZADAS)
+        // FUNÇÕES DO CARRINHO
         // ============================================
         function updateCartDisplay() {
             const cartItems = document.getElementById('cartItems');
@@ -2837,6 +2774,7 @@
                 subtotalElement.textContent = '0.00';
                 totalAmountElement.textContent = '0.00';
                 updatePayButtonText();
+                validateForm();
                 return;
             }
             
@@ -2906,6 +2844,7 @@
                 } else {
                     state.cart[index].quantity = newQuantity;
                     updateCartDisplay();
+                    saveCartToLocalStorage();
                 }
             }
         }
@@ -2916,6 +2855,7 @@
                 if (confirm(`Remover "${itemName}" do carrinho?`)) {
                     state.cart.splice(index, 1);
                     updateCartDisplay();
+                    saveCartToLocalStorage();
                     showNotification('🗑️ Item removido do carrinho');
                 }
             }
@@ -2940,13 +2880,12 @@
                 const cartData = {
                     items: state.cart,
                     timestamp: Date.now(),
-                    version: '2.0'
+                    version: '3.0'
                 };
                 localStorage.setItem('bebcom_cart', JSON.stringify(cartData));
                 return true;
             } catch (e) {
                 console.error('❌ Erro ao salvar carrinho:', e);
-                showNotification('⚠️ Não foi possível salvar o carrinho', 'warning');
                 return false;
             }
         }
@@ -2957,7 +2896,6 @@
                 if (saved) {
                     const cartData = JSON.parse(saved);
                     
-                    // Compatibilidade com versões antigas
                     if (Array.isArray(cartData)) {
                         state.cart = cartData;
                     } else if (cartData.items && Array.isArray(cartData.items)) {
@@ -2965,7 +2903,6 @@
                     }
                     
                     updateCartDisplay();
-                    showNotification('🔄 Carrinho recuperado', 'info');
                 }
             } catch (e) {
                 console.error('❌ Erro ao carregar carrinho:', e);
@@ -3017,7 +2954,7 @@
         }
 
         // ============================================
-        // FUNÇÕES DE PAGAMENTO
+        // FUNÇÕES DE PAGAMENTO (COM BACKEND SEGURO)
         // ============================================
         function selectPaymentMethod(method) {
             if (state.deliveryType !== 'delivery') return;
@@ -3109,6 +3046,7 @@
                 statusDiv.className = 'payment-status error';
                 statusDiv.innerHTML = `❌ ${error.message || 'Erro ao processar pedido'}`;
                 resetPayButton(originalText);
+                state.paymentProcessing = false;
             }
         }
 
@@ -3117,58 +3055,100 @@
                 const orderData = prepareOrderData();
                 state.currentOrderId = 'BEB' + Date.now().toString().slice(-8);
                 
-                const items = orderData.items.map(item => ({
-                    title: item.name.substring(0, 50),
-                    quantity: item.quantity,
-                    unit_price: Number(item.price.toFixed(2))
-                }));
+                const customerName = document.getElementById('customerName').value.trim();
+                const customerPhone = document.getElementById('customerPhone').value.trim();
                 
-                if (orderData.deliveryFee > 0) {
-                    items.push({
-                        title: 'Taxa de Entrega',
-                        quantity: 1,
-                        unit_price: orderData.deliveryFee
-                    });
-                }
-                
-                const response = await fetch(`${CONFIG.backendUrl}/create-payment`, {
+                const response = await fetch(`${CONFIG.backendUrl}/api/create-payment`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         orderId: state.currentOrderId,
-                        payer: {
-                            name: document.getElementById('customerName').value,
+                        customer: {
+                            name: customerName,
+                            phone: customerPhone,
                             email: 'cliente@bebcom.com'
                         },
-                        items: items,
-                        paymentMethod: state.paymentMethod
+                        items: orderData.items,
+                        deliveryType: state.deliveryType,
+                        paymentMethod: state.paymentMethod,
+                        totalAmount: orderData.total,
+                        deliveryFee: orderData.deliveryFee
                     })
                 });
                 
                 if (!response.ok) {
-                    throw new Error('Erro ao criar pagamento no servidor');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Erro ao criar pagamento');
                 }
                 
                 const data = await response.json();
                 
-                if (data.preferenceId) {
-                    state.mercadoPago.checkout({
-                        preference: { id: data.preferenceId },
-                        autoOpen: true
-                    });
-                    
-                    startPaymentStatusCheck(state.currentOrderId);
+                if (data.success) {
+                    if (data.paymentUrl) {
+                        // Redirecionar para URL de pagamento
+                        window.open(data.paymentUrl, '_blank');
+                        startPaymentStatusCheck(state.currentOrderId);
+                    } else if (data.qrCode) {
+                        // Mostrar QR Code PIX
+                        showPixPayment(data.qrCode, data.copyPasteKey);
+                    } else {
+                        // Pagamento direto
+                        confirmPayment();
+                    }
                 } else {
-                    throw new Error('Resposta inválida do servidor');
+                    throw new Error(data.error || 'Erro no processamento');
                 }
                 
             } catch (error) {
-                if (state.paymentMethod === 'pix') {
-                    showManualPixPayment();
-                } else {
-                    throw error;
-                }
+                console.error('Erro:', error);
+                // Fallback para PIX manual
+                showManualPixPayment();
             }
+        }
+
+        function showPixPayment(qrCode, copyPasteKey) {
+            const statusDiv = document.getElementById('paymentStatus');
+            const orderData = prepareOrderData();
+            const total = orderData.total;
+            
+            statusDiv.className = 'payment-status';
+            statusDiv.innerHTML = `
+                <div style="text-align: center;">
+                    <h4 style="margin-bottom: 15px;">🧾 PIX para Pagamento</h4>
+                    <p>Valor: <strong>R$ ${total.toFixed(2)}</strong></p>
+                    <div style="margin: 15px 0;">
+                        <img src="${qrCode}" alt="QR Code PIX" style="width: 200px; height: 200px; border: 2px solid #28a745; border-radius: 8px;">
+                    </div>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left;">
+                        <strong>Chave PIX para copiar:</strong><br>
+                        <span style="font-family: monospace; word-break: break-all; color: #333;">
+                            ${copyPasteKey}
+                        </span>
+                        <button onclick="navigator.clipboard.writeText('${copyPasteKey}'); alert('Chave PIX copiada!');" 
+                                style="margin-top: 10px; background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                            📋 Copiar Chave
+                        </button>
+                    </div>
+                    <p style="font-size: 14px; color: #aaa;">
+                        ⏱️ Após pagar, clique em "Já Paguei" para confirmar
+                    </p>
+                    <button onclick="confirmPayment()" style="
+                        background: #28a745; color: white; border: none; 
+                        padding: 12px 24px; border-radius: 8px; cursor: pointer;
+                        margin: 10px; font-weight: bold;">
+                        ✅ Já Paguei
+                    </button>
+                    <button onclick="cancelPayment()" style="
+                        background: #dc3545; color: white; border: none; 
+                        padding: 12px 24px; border-radius: 8px; cursor: pointer;
+                        margin: 10px; font-weight: bold;">
+                        ❌ Cancelar
+                    </button>
+                </div>
+            `;
+            
+            state.paymentProcessing = false;
+            document.getElementById('payButton').style.display = 'none';
         }
 
         function showManualPixPayment() {
@@ -3182,13 +3162,13 @@
                     <h4 style="margin-bottom: 15px;">🧾 PIX Manual</h4>
                     <p>Valor: <strong>R$ ${total.toFixed(2)}</strong></p>
                     <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
-                        <strong>Chave PIX:</strong><br>
+                        <strong>Chave PIX (CNPJ):</strong><br>
                         <span style="font-family: monospace; word-break: break-all;">
-                            bebcom@lounge.com
+                            12.345.678/0001-90
                         </span>
                     </div>
                     <p style="font-size: 14px; color: #aaa;">
-                        ⏱️ Após pagar, clique em "Já Paguei" para confirmar
+                        ⏱️ Após pagar, envie o comprovante para o WhatsApp (14) 99613-0369
                     </p>
                     <button onclick="confirmPayment()" style="
                         background: #28a745; color: white; border: none; 
@@ -3248,7 +3228,7 @@
             
             state.paymentInterval = setInterval(async () => {
                 try {
-                    const response = await fetch(`${CONFIG.backendUrl}/order-status/${orderId}`);
+                    const response = await fetch(`${CONFIG.backendUrl}/api/order-status/${orderId}`);
                     if (!response.ok) return;
                     
                     const data = await response.json();
@@ -3344,7 +3324,7 @@
         }
 
         // ============================================
-        // FUNÇÕES DO WHATSAPP (ATUALIZADAS)
+        // FUNÇÕES DO WHATSAPP
         // ============================================
         function validateForm() {
             const customerName = document.getElementById('customerName').value.trim();
@@ -3352,25 +3332,21 @@
             const whatsappButton = document.getElementById('whatsappButton');
             
             let isValid = true;
-            let errorMessage = '';
             
             // Validação de nome
             if (customerName.length < 3) {
                 isValid = false;
-                errorMessage += '• Nome deve ter pelo menos 3 caracteres\n';
             }
             
             // Validação de telefone
             const phoneRegex = /^\(\d{2}\) \d{5}-\d{4}$/;
             if (!phoneRegex.test(customerPhone) && customerPhone.replace(/\D/g, '').length < 10) {
                 isValid = false;
-                errorMessage += '• Digite um WhatsApp válido (ex: (14) 99999-9999)\n';
             }
             
             // Validação do carrinho
             if (state.cart.length === 0) {
                 isValid = false;
-                errorMessage += '• Adicione itens ao carrinho\n';
             }
             
             // Validação de endereço para entrega
@@ -3380,13 +3356,13 @@
                 const neighborhood = document.getElementById('neighborhood').value.trim();
                 const city = document.getElementById('city').value.trim();
                 
-                if (!street || street.length < 3) errorMessage += '• Digite uma rua válida\n';
-                if (!number || !/^\d+$/.test(number)) errorMessage += '• Digite um número válido\n';
-                if (!neighborhood || neighborhood.length < 3) errorMessage += '• Digite um bairro válido\n';
-                if (!city || city.length < 3) errorMessage += '• Digite uma cidade válida\n';
+                if (!street || street.length < 3) isValid = false;
+                if (!number || !/^\d+$/.test(number)) isValid = false;
+                if (!neighborhood || neighborhood.length < 3) isValid = false;
+                if (!city || city.length < 3) isValid = false;
                 
-                if (!state.paymentMethod) errorMessage += '• Selecione um método de pagamento\n';
-                if (!state.paymentConfirmed) errorMessage += '• Realize o pagamento primeiro\n';
+                if (!state.paymentMethod) isValid = false;
+                if (!state.paymentConfirmed) isValid = false;
             }
             
             whatsappButton.disabled = !isValid;
@@ -3513,7 +3489,7 @@
         }
 
         // ============================================
-        // SISTEMA ADMINISTRATIVO (ATUALIZADO)
+        // SISTEMA ADMINISTRATIVO (ATUALIZADO COM BACKEND)
         // ============================================
         function setupAdminListeners() {
             document.getElementById('adminButton').addEventListener('click', openAdminPanel);
@@ -3534,21 +3510,8 @@
             });
         }
 
-        function adjustAdminForMobile() {
-            if (window.innerWidth <= 768) {
-                const adminContent = document.querySelector('.admin-content');
-                if (adminContent) {
-                    adminContent.style.maxHeight = '80vh';
-                    adminContent.style.overflowY = 'auto';
-                }
-            }
-        }
-
         function openAdminPanel() {
             document.getElementById('adminModal').style.display = 'block';
-            
-            // Ajuste para mobile
-            adjustAdminForMobile();
             
             if (!state.adminAuthenticated) {
                 document.getElementById('passwordSection').style.display = 'block';
@@ -3637,14 +3600,15 @@
         function adminToggleProductAvailability(productId, isAvailable) {
             state.productAvailability[productId] = isAvailable;
             
-            const productElements = document.querySelectorAll(`[data-product-id="${product.id}"]`);
+            const product = findProductById(productId);
+            const productElements = document.querySelectorAll(`[data-product-id="${productId}"]`);
+            
             productElements.forEach(element => {
                 if (isAvailable) {
                     element.classList.remove('unavailable');
                     const button = element.querySelector('button');
                     if (button) {
                         button.disabled = false;
-                        const product = findProductById(productId);
                         let buttonText = '🛒 Adicionar';
                         if (product && product.requiresFlavorSelection) buttonText = '⚡ Escolher Sabores';
                         button.innerHTML = buttonText;
@@ -3694,20 +3658,132 @@
             showNotification(isAvailable ? '✅ Todos os produtos marcados como disponíveis' : '❌ Todos os produtos marcados como indisponíveis');
         }
 
-        function saveAvailability() {
-            if (saveProductAvailability()) {
-                setTimeout(() => {
-                    closeAdminPanel();
-                }, 1000);
+        // ============================================
+        // SALVAR DISPONIBILIDADE NO BACKEND
+        // ============================================
+        async function saveProductAvailabilityToBackend() {
+            try {
+                const response = await fetch(`${CONFIG.backendUrl}/api/admin/product-availability/bulk`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-key': CONFIG.adminPassword
+                    },
+                    body: JSON.stringify({
+                        productAvailability: state.productAvailability,
+                        adminName: 'Admin BebCom'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
+                        return true;
+                    }
+                }
+                return false;
+            } catch (error) {
+                console.error('❌ Erro ao salvar produtos no backend:', error);
+                return false;
+            }
+        }
+
+        async function saveFlavorAvailabilityToBackend() {
+            try {
+                const response = await fetch(`${CONFIG.backendUrl}/api/admin/flavor-availability/bulk`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-key': CONFIG.adminPassword
+                    },
+                    body: JSON.stringify({
+                        flavorAvailability: state.flavorAvailability,
+                        adminName: 'Admin BebCom'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                        return true;
+                    }
+                }
+                return false;
+            } catch (error) {
+                console.error('❌ Erro ao salvar sabores no backend:', error);
+                return false;
+            }
+        }
+
+        async function saveAvailability() {
+            const saveButton = document.querySelector('.admin-action-btn.save-btn');
+            const originalText = saveButton.innerHTML;
+            
+            saveButton.innerHTML = '<span class="loading-spinner"></span> Salvando...';
+            saveButton.disabled = true;
+            
+            try {
+                // Salvar produtos e sabores no backend
+                const productsSaved = await saveProductAvailabilityToBackend();
+                const flavorsSaved = await saveFlavorAvailabilityToBackend();
+                
+                if (productsSaved && flavorsSaved) {
+                    showNotification('✅ Todas as alterações salvas para todos os usuários!');
+                    
+                    // Atualizar interface
+                    updateMenuAvailability();
+                    
+                    // Fechar modal após 1.5 segundos
+                    setTimeout(() => {
+                        closeAdminPanel();
+                    }, 1500);
+                    
+                    return true;
+                } else {
+                    showNotification('⚠️ Não foi possível salvar no servidor. Alterações salvas apenas localmente.', 'warning');
+                    
+                    // Fallback: salvar localmente
+                    localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
+                    localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                    
+                    return false;
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showNotification('❌ Erro ao salvar alterações', 'error');
+                return false;
+            } finally {
+                saveButton.innerHTML = originalText;
+                saveButton.disabled = false;
             }
         }
 
         function resetAvailability() {
-            if (confirm('Restaurar todos os produtos como disponíveis?')) {
-                localStorage.removeItem('bebcom_product_availability');
-                loadProductAvailability();
+            if (confirm('Restaurar todos os produtos como disponíveis? Isso também apagará as configurações do servidor.')) {
+                // Resetar localmente
+                Object.keys(products).forEach(category => {
+                    products[category].forEach(product => {
+                        state.productAvailability[product.id] = true;
+                    });
+                });
+                
+                // Resetar sabores
+                Object.keys(FLAVOR_CATALOG).forEach(flavorType => {
+                    FLAVOR_CATALOG[flavorType].forEach(flavor => {
+                        const key = `${flavorType}_${flavor}`;
+                        state.flavorAvailability[key] = true;
+                    });
+                });
+                
+                // Salvar no backend
+                saveAvailability();
+                
+                // Atualizar interface
                 loadAdminProducts();
                 updateMenuAvailability();
+                
                 showNotification('🔄 Disponibilidade restaurada para o padrão', 'info');
             }
         }
@@ -3716,17 +3792,11 @@
         // GERENCIAMENTO DE SABORES
         // ============================================
         function openFlavorManagement() {
-            const modal = document.getElementById('adminModal');
             const adminMain = document.getElementById('adminMain');
             const adminActions = document.getElementById('adminActions');
             
-            // Ocultar ações admin padrão e mostrar apenas o gerenciamento de sabores
             adminActions.style.display = 'none';
             
-            // Limpar conteúdo atual
-            adminMain.innerHTML = '';
-            
-            // Criar interface de gerenciamento de sabores
             adminMain.innerHTML = `
                 <div style="margin-bottom: 30px;">
                     <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
@@ -3741,8 +3811,7 @@
                     
                     <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; margin-bottom: 25px;">
                         <p style="color: #94a3b8; margin-bottom: 15px; font-size: 14px;">
-                            <strong>Instruções:</strong> Selecione um tipo de produto para gerenciar a disponibilidade dos sabores. 
-                            Quando um sabor está <span style="color: #ef4444">❌ indisponível</span>, ele aparecerá como "INDISPONÍVEL" no modal de seleção.
+                            <strong>Instruções:</strong> Selecione um tipo de produto para gerenciar a disponibilidade dos sabores.
                         </p>
                     </div>
                     
@@ -3775,14 +3844,6 @@
                                 🔄 Limpar Seleção
                             </button>
                         </div>
-                        
-                        <div style="margin-top: 20px; padding: 15px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 4px solid #3b82f6;">
-                            <p style="color: #94a3b8; font-size: 13px; margin: 0;">
-                                <strong>💡 Como funciona:</strong> Quando um sabor é marcado como "Indisponível", 
-                                ele aparecerá bloqueado no modal de seleção e não poderá ser escolhido pelos clientes. 
-                                O produto principal só será adicionado ao carrinho se houver pelo menos UM sabor disponível.
-                            </p>
-                        </div>
                     </div>
                 </div>
             `;
@@ -3807,7 +3868,6 @@
                     <div style="text-align: center; color: #aaa; padding: 40px; background: rgba(0,0,0,0.3); border-radius: 8px;">
                         <div style="font-size: 48px; margin-bottom: 15px;">😕</div>
                         <p>Não há sabores cadastrados para este tipo de produto.</p>
-                        <small style="color: #666;">Adicione sabores na configuração do sistema.</small>
                     </div>
                 `;
                 section.style.display = 'block';
@@ -3855,7 +3915,6 @@
                                             </small>
                                         </div>
                                     </div>
-                                    <small style="color: #94a3b8; font-size: 11px;">ID: ${flavorType}_${flavor.replace(/\s+/g, '_')}</small>
                                 </div>
                                 <label class="toggle-switch">
                                     <input type="checkbox" class="toggle-checkbox flavor-toggle" 
@@ -3878,7 +3937,6 @@
             const key = `${flavorType}_${flavorName}`;
             state.flavorAvailability[key] = isAvailable;
             
-            // Feedback visual imediato
             showNotification(`${flavorName} ${isAvailable ? '✅ disponível' : '❌ indisponível'}`, 
                             isAvailable ? 'success' : 'error');
         }
@@ -3898,13 +3956,124 @@
                             makeAvailable ? 'success' : 'warning');
         }
 
-        function saveFlavorChanges() {
-            if (saveFlavorAvailability()) {
+        async function saveFlavorChanges() {
+            const saved = await saveFlavorAvailabilityToBackend();
+            
+            if (saved) {
                 showNotification('✅ Disponibilidade de sabores salva com sucesso!');
-                
-                // Atualizar imediatamente a interface do usuário
-                updateMenuAvailability();
+            } else {
+                showNotification('⚠️ Alterações salvas apenas localmente', 'warning');
+                localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
             }
+        }
+
+        // ============================================
+        // SISTEMA DE SINCRONIZAÇÃO
+        // ============================================
+        async function syncAllFromServer() {
+            const syncButton = document.querySelector('.admin-action-btn:nth-child(7)');
+            const originalText = syncButton.innerHTML;
+            
+            syncButton.innerHTML = '<span class="loading-spinner"></span> Sincronizando...';
+            syncButton.disabled = true;
+            
+            try {
+                const response = await fetch(`${CONFIG.backendUrl}/api/sync-all`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Atualizar produtos
+                        if (data.productAvailability) {
+                            state.productAvailability = data.productAvailability;
+                            localStorage.setItem('bebcom_product_availability', JSON.stringify(data.productAvailability));
+                        }
+                        
+                        // Atualizar sabores
+                        if (data.flavorAvailability) {
+                            state.flavorAvailability = data.flavorAvailability;
+                            localStorage.setItem('bebcom_flavor_availability', JSON.stringify(data.flavorAvailability));
+                        }
+                        
+                        // Atualizar interface
+                        updateMenuAvailability();
+                        loadAdminProducts();
+                        
+                        showNotification('🔄 Todos os dados sincronizados do servidor', 'success');
+                    }
+                } else {
+                    throw new Error('Falha na sincronização');
+                }
+            } catch (error) {
+                console.error('❌ Erro na sincronização:', error);
+                showNotification('⚠️ Falha na sincronização. Usando dados locais.', 'warning');
+            } finally {
+                syncButton.innerHTML = originalText;
+                syncButton.disabled = false;
+            }
+        }
+
+        function setupAutoSync() {
+            // Sincronizar imediatamente ao carregar
+            setTimeout(() => {
+                if (ageVerified && !state.adminAuthenticated) {
+                    syncAllFromServer();
+                }
+            }, 3000);
+            
+            // Sincronizar a cada 5 minutos
+            setInterval(() => {
+                if (ageVerified && !state.adminAuthenticated) {
+                    syncAllFromServer();
+                }
+            }, 5 * 60 * 1000);
+        }
+
+        function updateMenuAvailability() {
+            Object.keys(products).forEach(category => {
+                products[category].forEach(product => {
+                    const productElements = document.querySelectorAll(`[data-product-id="${product.id}"]`);
+                    const isAvailable = isProductAvailable(product.id);
+                    const hasFlavors = product.requiresFlavorSelection || false;
+                    
+                    productElements.forEach(element => {
+                        if (isAvailable) {
+                            element.classList.remove('unavailable');
+                            const button = element.querySelector('button');
+                            if (button) {
+                                button.disabled = false;
+                                let buttonText = '🛒 Adicionar';
+                                if (hasFlavors) buttonText = '⚡ Escolher Sabores';
+                                button.innerHTML = buttonText;
+                                
+                                if (hasFlavors) {
+                                    button.classList.add('has-flavors');
+                                    element.classList.add('with-flavors');
+                                    if (!element.querySelector('.flavor-badge')) {
+                                        const badge = document.createElement('div');
+                                        badge.className = 'flavor-badge';
+                                        badge.textContent = '⚡';
+                                        element.insertBefore(badge, element.firstChild);
+                                    }
+                                } else {
+                                    button.classList.remove('has-flavors');
+                                    element.classList.remove('with-flavors');
+                                    const badge = element.querySelector('.flavor-badge');
+                                    if (badge) badge.remove();
+                                }
+                            }
+                        } else {
+                            element.classList.add('unavailable');
+                            const button = element.querySelector('button');
+                            if (button) {
+                                button.disabled = true;
+                                button.innerHTML = '❌ Indisponível';
+                            }
+                        }
+                    });
+                });
+            });
         }
 
         // ============================================
@@ -3964,39 +4133,35 @@
             document.getElementById('number').addEventListener('input', validateForm);
             document.getElementById('neighborhood').addEventListener('input', validateForm);
             document.getElementById('city').addEventListener('input', validateForm);
-            document.getElementById('addressComplement').addEventListener('input', validateForm);
         }
 
-        // ============================================
-        // FUNÇÕES DE UTILIDADE ADICIONAIS
-        // ============================================
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            }).format(value);
-        }
-
-        function getCartTotal() {
-            return state.cart.reduce((total, item) => {
-                return total + (item.price * item.quantity);
-            }, 0);
-        }
-
-        function cleanupOldData() {
-            try {
-                const cartData = localStorage.getItem('bebcom_cart');
-                if (cartData) {
-                    const data = JSON.parse(cartData);
-                    // Se os dados tiverem mais de 7 dias, limpar
-                    if (data.timestamp && (Date.now() - data.timestamp) > 7 * 24 * 60 * 60 * 1000) {
-                        localStorage.removeItem('bebcom_cart');
-                        console.log('🗑️ Dados antigos do carrinho removidos');
-                    }
+        function setupPhoneMask() {
+            const phoneInput = document.getElementById('customerPhone');
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                
+                if (value.length > 11) value = value.substring(0, 11);
+                
+                if (value.length > 0) {
+                    value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
                 }
-            } catch (e) {
-                console.log('Erro na limpeza de dados:', e);
-            }
+                
+                if (value.length > 9) {
+                    value = value.substring(0, 10) + '-' + value.substring(10);
+                }
+                
+                e.target.value = value;
+                validateForm();
+            });
+        }
+
+        function setupAutoSave() {
+            // Salvar ao fechar a página
+            window.addEventListener('beforeunload', function(e) {
+                if (state.cart.length > 0) {
+                    saveCartToLocalStorage();
+                }
+            });
         }
 
         function exportOrder() {
@@ -4024,39 +4189,10 @@
             showNotification('📁 Pedido exportado com sucesso', 'info');
         }
 
-        function setupPhoneMask() {
-            const phoneInput = document.getElementById('customerPhone');
-            phoneInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                
-                if (value.length > 11) value = value.substring(0, 11);
-                
-                if (value.length > 0) {
-                    value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
-                }
-                
-                if (value.length > 9) {
-                    value = value.substring(0, 10) + '-' + value.substring(10);
-                }
-                
-                e.target.value = value;
-                validateForm();
-            });
-        }
-
-        function setupAutoSave() {
-            setInterval(() => {
-                if (state.cart.length > 0) {
-                    saveCartToLocalStorage();
-                }
-            }, 30000); // Salvar a cada 30 segundos
-            
-            // Salvar ao fechar a página
-            window.addEventListener('beforeunload', function(e) {
-                if (state.cart.length > 0) {
-                    saveCartToLocalStorage();
-                }
-            });
+        function getCartTotal() {
+            return state.cart.reduce((total, item) => {
+                return total + (item.price * item.quantity);
+            }, 0);
         }
 
         // ============================================
@@ -4068,4 +4204,3 @@
     </script>
 </body>
 </html>
-
