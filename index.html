@@ -933,6 +933,212 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* ====== MODAL DE VERIFICAÇÃO DE IDADE ====== */
+        .age-verification-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .age-modal-content {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border-radius: 15px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 3px solid #dc2626;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            animation: modalAgeAppear 0.6s ease;
+        }
+
+        @keyframes modalAgeAppear {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .age-modal-header {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            padding: 25px 30px;
+            border-bottom: 2px solid #dc2626;
+            text-align: center;
+        }
+
+        .age-modal-header h2 {
+            color: #fff;
+            font-size: 28px;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .age-modal-body {
+            padding: 30px;
+        }
+
+        .age-warning-icon {
+            font-size: 60px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ffd93d;
+        }
+
+        .age-legal-text {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #3b82f6;
+            margin-bottom: 20px;
+        }
+
+        .age-legal-text p, .age-legal-text li {
+            color: #ddd;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .age-legal-text strong {
+            color: #fff;
+        }
+
+        .age-legal-text ol {
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+
+        .age-legal-text ol li {
+            margin-bottom: 10px;
+        }
+
+        .age-checkbox-container {
+            background: rgba(220, 38, 38, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dc2626;
+            margin-top: 25px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .age-checkbox-container input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            margin-top: 3px;
+            accent-color: #28a745;
+            cursor: pointer;
+        }
+
+        .age-checkbox-container label {
+            color: #fff;
+            line-height: 1.5;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .age-modal-footer {
+            padding: 20px 30px;
+            display: flex;
+            gap: 20px;
+            border-top: 1px solid #333;
+            background: rgba(26, 26, 26, 0.8);
+        }
+
+        .age-btn {
+            flex: 1;
+            padding: 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .age-btn small {
+            font-size: 12px;
+            font-weight: normal;
+            opacity: 0.8;
+        }
+
+        .age-btn-exit {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+        }
+
+        .age-btn-exit:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+        }
+
+        .age-btn-enter {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: white;
+        }
+
+        .age-btn-enter:hover:not(:disabled) {
+            background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .age-btn-enter:disabled {
+            background: #666;
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .age-modal-disclaimer {
+            padding: 15px 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 1px solid #333;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* Responsivo para o modal de idade */
+        @media (max-width: 768px) {
+            .age-modal-content {
+                max-width: 95%;
+            }
+            
+            .age-modal-header h2 {
+                font-size: 22px;
+            }
+            
+            .age-modal-footer {
+                flex-direction: column;
+            }
+            
+            .age-legal-text {
+                padding: 15px;
+            }
+            
+            .age-btn {
+                padding: 15px;
+                font-size: 16px;
+            }
+        }
+
         /* Responsivo */
         @media (max-width: 1024px) {
             .main-container {
@@ -1009,6 +1215,22 @@
             .modal-buttons {
                 flex-direction: column;
             }
+            
+            .age-modal-header {
+                padding: 20px 15px;
+            }
+            
+            .age-modal-body {
+                padding: 20px 15px;
+            }
+            
+            .age-legal-text {
+                font-size: 14px;
+            }
+            
+            .age-modal-footer {
+                padding: 15px;
+            }
         }
     </style>
 </head>
@@ -1017,6 +1239,58 @@
     <button class="admin-button" id="adminButton" title="Painel Administrativo">
         🔧
     </button>
+
+    <!-- MODAL DE VERIFICAÇÃO DE IDADE -->
+    <div class="age-verification-modal" id="ageVerificationModal">
+        <div class="age-modal-content">
+            <div class="age-modal-header">
+                <h2>🍹 Verificação de Idade BebCom Delivery</h2>
+            </div>
+            
+            <div class="age-modal-body">
+                <div class="age-warning-icon">⚠️</div>
+                
+                <div class="age-legal-text">
+                    <p><strong>DECLARAÇÃO LEGAL E TERMOS DE ACESSO</strong></p>
+                    
+                    <p>Conforme disposto no <strong>artigo 243, §1º do Estatuto da Criança e do Adolescente (Lei 8.069/90)</strong> e no <strong>artigo 81 do Código de Defesa do Consumidor (Lei 8.078/90)</strong>, a venda e o fornecimento de bebidas alcoólicas a menores de 18 (dezoito) anos constituem infrações sujeitas às penalidades legais, incluindo multas e responsabilização civil e penal.</p>
+                    
+                    <p>O <strong>BebCom Delivery</strong>, em estrita observância à legislação brasileira, adota os seguintes protocolos:</p>
+                    
+                    <ol>
+                        <li><strong>Verificação de Idade Obrigatória:</strong> Este site é destinado exclusivamente a maiores de 18 anos;</li>
+                        <li><strong>Responsabilidade do Consumidor:</strong> Ao prosseguir, você declara, sob as penas da lei, que possui idade igual ou superior a 18 anos;</li>
+                        <li><strong>Verificação na Entrega:</strong> Reservamo-nos o direito de solicitar documento de identificação com foto no momento da entrega/retirada, recusando o serviço em caso de não comprovação da maioridade;</li>
+                        <li><strong>Consumo Responsável:</strong> Recomendamos o consumo moderado de bebidas alcoólicas. O abuso pode causar dependência química e prejudicar sua saúde.</li>
+                    </ol>
+                    
+                    <p><strong>Art. 243, §1º do ECA:</strong> "Vender, fornecer ainda que gratuitamente ou entregar, de qualquer forma, a criança ou adolescente, sem justa causa, produtos cujos componentes possam causar dependência física ou psíquica, ainda que por utilização indevida: Pena - detenção de 2 (dois) a 4 (quatro) anos, e multa."</p>
+                    
+                    <div class="age-checkbox-container">
+                        <input type="checkbox" id="ageConfirmationCheckbox">
+                        <label for="ageConfirmationCheckbox">
+                            <strong>DECLARO SOB AS PENAS DA LEI</strong> que tenho 18 anos ou mais, estou ciente das disposições legais acima e assumo total responsabilidade pela veracidade desta declaração.
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="age-modal-footer">
+                <button class="age-btn age-btn-exit" onclick="exitSite()">
+                    ❌ Sair do Site
+                    <small>Menor de 18 anos</small>
+                </button>
+                <button class="age-btn age-btn-enter" id="enterSiteButton" onclick="enterSite()" disabled>
+                    ✅ Entrar no Site
+                    <small>Sou maior de 18 anos</small>
+                </button>
+            </div>
+            
+            <div class="age-modal-disclaimer">
+                <small>BebCom Delivery - CNPJ: XX.XXX.XXX/XXXX-XX | Responsável: [Nome do Responsável Legal] | Este site utiliza cookies para melhorar sua experiência.</small>
+            </div>
+        </div>
+    </div>
 
     <div class="header">
         🍹 BEBCOM DELIVERY 🍹
@@ -1279,6 +1553,107 @@
     </div>
 
     <script>
+        // ============================================
+        // FUNÇÕES DE VERIFICAÇÃO DE IDADE
+        // ============================================
+
+        // Variável para controle do modal de idade
+        let ageVerified = false;
+
+        // Função para inicializar o modal de idade
+        function initAgeVerification() {
+            // Verificar se já foi confirmado anteriormente (usando localStorage)
+            const hasConfirmedAge = localStorage.getItem('bebcom_age_verified');
+            
+            if (hasConfirmedAge === 'true') {
+                ageVerified = true;
+                document.getElementById('ageVerificationModal').style.display = 'none';
+                return;
+            }
+            
+            // Mostrar modal
+            document.getElementById('ageVerificationModal').style.display = 'flex';
+            
+            // Configurar evento para o checkbox
+            const checkbox = document.getElementById('ageConfirmationCheckbox');
+            const enterButton = document.getElementById('enterSiteButton');
+            
+            checkbox.addEventListener('change', function() {
+                enterButton.disabled = !this.checked;
+            });
+            
+            // Impedir fechamento do modal com ESC ou clicando fora
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !ageVerified) {
+                    e.preventDefault();
+                    exitSite();
+                }
+            });
+            
+            // Impedir rolagem enquanto o modal estiver aberto
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Função para entrar no site
+        function enterSite() {
+            ageVerified = true;
+            localStorage.setItem('bebcom_age_verified', 'true');
+            document.getElementById('ageVerificationModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            showNotification('✅ Acesso permitido. Aproveite nosso cardápio com responsabilidade!');
+        }
+
+        // Função para sair do site (menor de idade)
+        function exitSite() {
+            // Redirecionar para uma página apropriada ou mostrar mensagem
+            document.body.innerHTML = `
+                <div style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    text-align: center;
+                    padding: 20px;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                ">
+                    <div style="font-size: 80px; margin-bottom: 20px;">🚫</div>
+                    <h1 style="font-size: 32px; margin-bottom: 20px; color: #dc2626;">Acesso Restrito</h1>
+                    <p style="font-size: 18px; max-width: 600px; line-height: 1.6; margin-bottom: 30px;">
+                        Conforme a legislação brasileira (Estatuto da Criança e do Adolescente - Lei 8.069/90), 
+                        o acesso a sites de venda de bebidas alcoólicas é restrito a maiores de 18 anos.
+                    </p>
+                    <p style="font-size: 16px; color: #aaa; max-width: 600px; line-height: 1.5;">
+                        O BebCom Delivery segue rigorosamente as normas legais para proteger menores de idade 
+                        e promover o consumo responsável de bebidas alcoólicas.
+                    </p>
+                    <div style="margin-top: 40px;">
+                        <button onclick="window.location.href='https://www.google.com'" style="
+                            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            cursor: pointer;
+                            font-weight: bold;
+                        ">
+                            Voltar para a navegação segura
+                        </button>
+                    </div>
+                    <div style="margin-top: 50px; font-size: 12px; color: #666;">
+                        BebCom Delivery © ${new Date().getFullYear()} - Todos os direitos reservados
+                    </div>
+                </div>
+            `;
+        }
+
         // ============================================
         // CONFIGURAÇÕES DO SISTEMA
         // ============================================
@@ -1779,6 +2154,12 @@
         // ============================================
         function init() {
             console.log('🚀 Inicializando BebCom Delivery v2.0');
+            
+            // Inicializar verificação de idade
+            initAgeVerification();
+            
+            // Só inicializar o resto do sistema se a idade for verificada
+            if (!ageVerified) return;
             
             // Carregar dados persistentes
             loadProductAvailability();
@@ -2993,7 +3374,7 @@
         function adminToggleProductAvailability(productId, isAvailable) {
             state.productAvailability[productId] = isAvailable;
             
-            const productElements = document.querySelectorAll(`[data-product-id="${productId}"]`);
+            const productElements = document.querySelectorAll(`[data-product-id="${product.id}"]`);
             productElements.forEach(element => {
                 if (isAvailable) {
                     element.classList.remove('unavailable');
