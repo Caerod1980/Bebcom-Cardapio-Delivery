@@ -607,6 +607,29 @@
             font-weight: bold;
         }
 
+        /* Estilo para opções de sabor indisponíveis */
+        .flavor-option.unavailable {
+            opacity: 0.5;
+            pointer-events: none;
+            position: relative;
+            cursor: not-allowed;
+        }
+
+        .flavor-option.unavailable::after {
+            content: "INDISPONÍVEL";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 2;
+        }
+
         .modal-instruction {
             text-align: center;
             color: #aaa;
@@ -1548,6 +1571,10 @@
                 <button class="admin-action-btn export-btn" onclick="exportOrder()">
                     📁 Exportar Pedidos
                 </button>
+                <button class="admin-action-btn" onclick="openFlavorManagement()" 
+                        style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    🍹 Gerenciar Sabores
+                </button>
             </div>
         </div>
     </div>
@@ -1800,7 +1827,7 @@
                 { id: 'corona-long', name: 'Corona Long', description: 'Cerveja mexicana em long neck', price: 8.50 },
                 { id: 'stella-long', name: 'Stella Long', description: 'Cerveja belga em long neck', price: 7.50 },
                 { id: 'brahma-zero', name: 'Brahma Zero', description: 'Cerveja sem álcool', price: 5.00 },
-                { id: 'imperio', name: 'Império', description: 'Cerveja brasileira tradicional', price: 3.75 },
+                { id: 'imperio', name: 'Imperio', description: 'Cerveja brasileira tradicional', price: 3.75 },
                 { id: 'duplo-malte', name: 'Duplo Malte', description: 'Cerveja com duplo malte', price: 5.00 },
                 { id: 'spaten', name: 'Spaten', description: 'Cerveja alemã premium', price: 5.50 },
                 { id: 'budweiser', name: 'Budweiser', description: 'Cerveja americana', price: 5.50 },
@@ -2124,6 +2151,25 @@
             ]
         };
 
+        // Constante para tipos de sabor
+        const FLAVOR_TYPES = {
+            'whisky_oldstar': 'Old Star',
+            'whisky_jack': 'Jack Daniels',
+            'gin_sabores': 'Gin',
+            'corote_sabores': 'Corote',
+            'vodka_sabores': 'Vodka',
+            'ice_askov': 'Askov Ice',
+            'ice_leev': 'Ice Leev',
+            'beats': 'Beats',
+            'h2o_sabores': 'H2O',
+            'suco_delvalle': 'Suco Del Valle',
+            'suco_kapo': 'Suco Kapo',
+            'suco_life': 'Suco Life',
+            'energetico_monster': 'Monster',
+            'energetico_bally': 'Bally',
+            'gelo_sabores': 'Gelo'
+        };
+
         // ============================================
         // ESTADO GLOBAL ATUALIZADO
         // ============================================
@@ -2143,7 +2189,8 @@
             currentFlavorStep: null,
             currentButton: null,
             adminAuthenticated: false,
-            productAvailability: {}
+            productAvailability: {},
+            flavorAvailability: {} // Novo estado para disponibilidade por sabor
         };
 
         // Sabores de gelo disponíveis
@@ -2163,6 +2210,7 @@
             
             // Carregar dados persistentes
             loadProductAvailability();
+            loadFlavorAvailability(); // ← NOVA LINHA
             loadCartFromLocalStorage();
             
             // Inicializar componentes
@@ -2236,6 +2284,36 @@
 
         function isProductAvailable(productId) {
             return state.productAvailability[productId] !== false;
+        }
+
+        // ============================================
+        // FUNÇÕES PARA DISPONIBILIDADE DE SABORES
+        // ============================================
+        function loadFlavorAvailability() {
+            try {
+                const saved = localStorage.getItem('bebcom_flavor_availability');
+                state.flavorAvailability = saved ? JSON.parse(saved) : {};
+                console.log('✅ Disponibilidade de sabores carregada');
+            } catch (error) {
+                state.flavorAvailability = {};
+                console.error('❌ Erro ao carregar disponibilidade de sabores:', error);
+            }
+        }
+
+        function saveFlavorAvailability() {
+            try {
+                localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                return true;
+            } catch (error) {
+                console.error('❌ Erro ao salvar disponibilidade de sabores:', error);
+                return false;
+            }
+        }
+
+        function isFlavorAvailable(flavorType, flavorName) {
+            const key = `${flavorType}_${flavorName}`;
+            // Por padrão, todos os sabores estão disponíveis se não estiverem explicitamente marcados como indisponíveis
+            return state.flavorAvailability[key] !== false;
         }
 
         // ============================================
@@ -2354,6 +2432,17 @@
                 state.currentButton = button;
                 
                 if (product.flavorType && FLAVOR_CATALOG[product.flavorType]) {
+                    // Verificar se há algum sabor disponível
+                    const flavors = FLAVOR_CATALOG[product.flavorType];
+                    const hasAvailableFlavor = flavors.some(flavor => 
+                        isFlavorAvailable(product.flavorType, flavor)
+                    );
+                    
+                    if (!hasAvailableFlavor) {
+                        showNotification('❌ Todos os sabores deste produto estão indisponíveis', 'error');
+                        return;
+                    }
+                    
                     openFlavorModal(product, 'primary');
                 } else {
                     console.error('Tipo de sabor não encontrado:', product.flavorType);
@@ -2404,27 +2493,49 @@
                     return;
                 }
                 
+                let hasAvailableFlavor = false;
+                
                 flavors.forEach(flavor => {
+                    const isAvailable = isFlavorAvailable(flavorType, flavor);
                     const option = document.createElement('div');
-                    option.className = 'flavor-option';
+                    option.className = `flavor-option ${!isAvailable ? 'unavailable' : ''}`;
                     option.textContent = flavor;
                     option.dataset.flavor = flavor;
-                    option.onclick = function() {
-                        document.querySelectorAll('.flavor-option').forEach(el => {
-                            el.classList.remove('selected');
-                        });
-                        this.classList.add('selected');
-                        
-                        if (step === 'primary') {
-                            state.pendingFlavors.primary = flavor;
-                        } else if (step === 'ice') {
-                            state.pendingFlavors.ice = flavor;
-                        }
-                        
-                        confirmButton.disabled = false;
-                    };
+                    
+                    if (!isAvailable) {
+                        // Adicionar indicador visual de indisponível
+                        option.style.position = 'relative';
+                        option.style.opacity = '0.6';
+                        option.style.cursor = 'not-allowed';
+                        option.innerHTML = `
+                            ${flavor}
+                            <div style="position: absolute; top: 5px; right: 5px; font-size: 12px; color: #dc2626;">❌</div>
+                        `;
+                    } else {
+                        hasAvailableFlavor = true;
+                        option.onclick = function() {
+                            document.querySelectorAll('.flavor-option').forEach(el => {
+                                el.classList.remove('selected');
+                            });
+                            this.classList.add('selected');
+                            
+                            if (step === 'primary') {
+                                state.pendingFlavors.primary = flavor;
+                            } else if (step === 'ice') {
+                                state.pendingFlavors.ice = flavor;
+                            }
+                            
+                            confirmButton.disabled = false;
+                        };
+                    }
+                    
                     grid.appendChild(option);
                 });
+                
+                if (!hasAvailableFlavor) {
+                    instruction.textContent = '⚠️ Todos os sabores estão temporariamente indisponíveis';
+                    instruction.style.color = '#dc2626';
+                }
                 
                 confirmButton.disabled = true;
             }, 100);
@@ -2433,24 +2544,7 @@
         }
 
         function getFlavorTypeName(flavorType) {
-            const names = {
-                'whisky_oldstar': 'Old Star',
-                'whisky_jack': 'Jack Daniels',
-                'gin_sabores': 'Gin',
-                'corote_sabores': 'Corote',
-                'vodka_sabores': 'Vodka',
-                'ice_askov': 'Askov Ice',
-                'ice_leev': 'Ice Leev',
-                'beats': 'Beats',
-                'h2o_sabores': 'H2O',
-                'suco_delvalle': 'Suco Del Valle',
-                'suco_kapo': 'Suco Kapo',
-                'suco_life': 'Suco Life',
-                'energetico_monster': 'Monster',
-                'energetico_bally': 'Bally',
-                'gelo_sabores': 'Gelo'
-            };
-            return names[flavorType] || 'produto';
+            return FLAVOR_TYPES[flavorType] || 'produto';
         }
 
         function confirmFlavorSelection() {
@@ -3450,6 +3544,201 @@
         }
 
         // ============================================
+        // GERENCIAMENTO DE SABORES
+        // ============================================
+        function openFlavorManagement() {
+            const modal = document.getElementById('adminModal');
+            const adminMain = document.getElementById('adminMain');
+            const adminActions = document.getElementById('adminActions');
+            
+            // Ocultar ações admin padrão e mostrar apenas o gerenciamento de sabores
+            adminActions.style.display = 'none';
+            
+            // Limpar conteúdo atual
+            adminMain.innerHTML = '';
+            
+            // Criar interface de gerenciamento de sabores
+            adminMain.innerHTML = `
+                <div style="margin-bottom: 30px;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                        <button onclick="loadAdminProducts(); document.getElementById('adminActions').style.display='block';" 
+                                style="background: #3b82f6; color: white; border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer;">
+                            ↩️ Voltar
+                        </button>
+                        <h3 style="color: #60a5fa; margin: 0; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; flex: 1;">
+                            🍹 Gerenciamento de Sabores por Tipo
+                        </h3>
+                    </div>
+                    
+                    <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                        <p style="color: #94a3b8; margin-bottom: 15px; font-size: 14px;">
+                            <strong>Instruções:</strong> Selecione um tipo de produto para gerenciar a disponibilidade dos sabores. 
+                            Quando um sabor está <span style="color: #ef4444">❌ indisponível</span>, ele aparecerá como "INDISPONÍVEL" no modal de seleção.
+                        </p>
+                    </div>
+                    
+                    <div style="margin-bottom: 25px;">
+                        <label style="color: #ddd; display: block; margin-bottom: 8px; font-weight: bold;">
+                            Selecione o tipo de produto:
+                        </label>
+                        <select id="flavorTypeSelect" class="form-input" style="width: 100%; padding: 12px; margin-bottom: 20px;"
+                                onchange="loadFlavorsForType(this.value)">
+                            <option value="">-- Selecione um tipo de produto --</option>
+                            ${Object.entries(FLAVOR_TYPES).map(([key, name]) => 
+                                `<option value="${key}">${name}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    
+                    <div id="flavorManagementSection" style="display: none;">
+                        <h4 style="color: #94a3b8; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444;" 
+                            id="flavorTypeTitle"></h4>
+                        
+                        <div id="flavorsList" style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            <!-- Lista de sabores será gerada aqui -->
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <button class="modal-button confirm" onclick="saveFlavorChanges()" style="flex: 1;">
+                                💾 Salvar Alterações
+                            </button>
+                            <button class="modal-button cancel" onclick="loadFlavorsForType('')" style="flex: 1;">
+                                🔄 Limpar Seleção
+                            </button>
+                        </div>
+                        
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 4px solid #3b82f6;">
+                            <p style="color: #94a3b8; font-size: 13px; margin: 0;">
+                                <strong>💡 Como funciona:</strong> Quando um sabor é marcado como "Indisponível", 
+                                ele aparecerá bloqueado no modal de seleção e não poderá ser escolhido pelos clientes. 
+                                O produto principal só será adicionado ao carrinho se houver pelo menos UM sabor disponível.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadFlavorsForType(flavorType) {
+            const section = document.getElementById('flavorManagementSection');
+            const title = document.getElementById('flavorTypeTitle');
+            const list = document.getElementById('flavorsList');
+            
+            if (!flavorType) {
+                section.style.display = 'none';
+                return;
+            }
+            
+            const flavors = FLAVOR_CATALOG[flavorType] || [];
+            const flavorTypeName = FLAVOR_TYPES[flavorType] || flavorType;
+            
+            if (flavors.length === 0) {
+                title.textContent = `Nenhum sabor cadastrado para ${flavorTypeName}`;
+                list.innerHTML = `
+                    <div style="text-align: center; color: #aaa; padding: 40px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">😕</div>
+                        <p>Não há sabores cadastrados para este tipo de produto.</p>
+                        <small style="color: #666;">Adicione sabores na configuração do sistema.</small>
+                    </div>
+                `;
+                section.style.display = 'block';
+                return;
+            }
+            
+            title.textContent = `Gerenciando sabores de ${flavorTypeName} (${flavors.length} sabores)`;
+            
+            // Contar sabores disponíveis
+            const availableCount = flavors.filter(flavor => 
+                isFlavorAvailable(flavorType, flavor)
+            ).length;
+            
+            list.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+                    <span style="color: #f5f5f5;">
+                        <strong>Status:</strong> ${availableCount} de ${flavors.length} sabores disponíveis
+                    </span>
+                    <div>
+                        <button onclick="setAllFlavorsAvailable('${flavorType}', true)" 
+                                style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 6px 12px; margin-right: 5px; cursor: pointer; font-size: 12px;">
+                            ✅ Todos
+                        </button>
+                        <button onclick="setAllFlavorsAvailable('${flavorType}', false)" 
+                                style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 12px;">
+                            ❌ Nenhum
+                        </button>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px;">
+                    ${flavors.map((flavor, index) => {
+                        const isAvailable = isFlavorAvailable(flavorType, flavor);
+                        return `
+                            <div style="display: flex; justify-content: space-between; align-items: center; 
+                                        padding: 15px; background: ${isAvailable ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; 
+                                        border-radius: 8px; border: 1px solid ${isAvailable ? '#10b981' : '#ef4444'};">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                        <span style="font-size: 20px;">${isAvailable ? '✅' : '❌'}</span>
+                                        <div>
+                                            <span style="color: #f5f5f5; font-weight: 500; font-size: 16px;">${flavor}</span>
+                                            <br>
+                                            <small style="color: ${isAvailable ? '#10b981' : '#ef4444'}; font-size: 12px;">
+                                                ${isAvailable ? 'Disponível' : 'Indisponível'}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <small style="color: #94a3b8; font-size: 11px;">ID: ${flavorType}_${flavor.replace(/\s+/g, '_')}</small>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="toggle-checkbox flavor-toggle" 
+                                           data-flavor-type="${flavorType}"
+                                           data-flavor-name="${flavor}"
+                                           ${isAvailable ? 'checked' : ''}
+                                           onchange="toggleFlavorAvailability('${flavorType}', '${flavor}', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            section.style.display = 'block';
+        }
+
+        function toggleFlavorAvailability(flavorType, flavorName, isAvailable) {
+            const key = `${flavorType}_${flavorName}`;
+            state.flavorAvailability[key] = isAvailable;
+            
+            // Feedback visual imediato
+            showNotification(`${flavorName} ${isAvailable ? '✅ disponível' : '❌ indisponível'}`, 
+                            isAvailable ? 'success' : 'error');
+        }
+
+        function setAllFlavorsAvailable(flavorType, makeAvailable) {
+            const flavors = FLAVOR_CATALOG[flavorType] || [];
+            
+            flavors.forEach(flavor => {
+                const key = `${flavorType}_${flavor}`;
+                state.flavorAvailability[key] = makeAvailable;
+            });
+            
+            // Recarregar a lista
+            loadFlavorsForType(flavorType);
+            
+            showNotification(`${makeAvailable ? '✅ Todos os sabores disponíveis' : '❌ Todos os sabores indisponíveis'}`, 
+                            makeAvailable ? 'success' : 'warning');
+        }
+
+        function saveFlavorChanges() {
+            if (saveFlavorAvailability()) {
+                showNotification('✅ Disponibilidade de sabores salva com sucesso!');
+                
+                // Atualizar imediatamente a interface do usuário
+                updateMenuAvailability();
+            }
+        }
+
+        // ============================================
         // FUNÇÕES UTILITÁRIAS
         // ============================================
         function showNotification(text, type = 'success') {
@@ -3610,4 +3899,3 @@
     </script>
 </body>
 </html>
-
