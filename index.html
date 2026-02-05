@@ -577,12 +577,6 @@
             margin: 20px 0;
         }
 
-        @media (max-width: 480px) {
-            .flavors-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
         .flavor-option {
             padding: 18px 12px;
             background: rgba(45, 45, 45, 0.6);
@@ -1138,6 +1132,157 @@
             line-height: 1.4;
         }
 
+        /* ====== CORREÇÕES PARA ADMIN NO MOBILE ====== */
+        @media (max-width: 768px) {
+            /* Ajustes para modal administrativo no mobile */
+            .admin-modal {
+                padding: 10px !important;
+            }
+            
+            .admin-content {
+                margin: 10px auto !important;
+                max-height: 90vh !important;
+                overflow-y: auto !important;
+            }
+            
+            .admin-header {
+                padding: 15px 20px !important;
+                flex-direction: column !important;
+                gap: 15px !important;
+            }
+            
+            .admin-main {
+                padding: 15px 20px !important;
+                max-height: 50vh !important;
+            }
+            
+            .admin-category-section {
+                padding: 15px !important;
+            }
+            
+            .admin-product-item {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 15px !important;
+            }
+            
+            .toggle-switch {
+                align-self: flex-end !important;
+            }
+            
+            /* Correção específica para gerenciador de sabores no mobile */
+            #flavorsList > div {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .flavor-option {
+                padding: 20px 15px !important;
+                font-size: 16px !important;
+            }
+            
+            /* Garantir que o modal de sabores seja legível no mobile */
+            .flavor-modal-overlay {
+                align-items: flex-start !important;
+                padding-top: 20px !important;
+                padding-bottom: 20px !important;
+            }
+            
+            .flavor-modal-content {
+                width: 95% !important;
+                max-height: 85vh !important;
+                padding: 20px !important;
+                margin-top: 20px !important;
+                margin-bottom: 20px !important;
+            }
+            
+            .flavors-grid {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Indicador de indisponibilidade no mobile */
+            .flavor-option.unavailable {
+                opacity: 0.7 !important;
+            }
+            
+            .flavor-option.unavailable::after {
+                font-size: 12px !important;
+                padding: 6px 12px !important;
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                transform: none !important;
+                display: block !important;
+                margin-top: 10px !important;
+                width: 100% !important;
+            }
+            
+            /* Botões modais no mobile */
+            .modal-buttons {
+                flex-direction: column !important;
+            }
+            
+            .modal-button {
+                width: 100% !important;
+            }
+        }
+
+        /* Correção adicional para telas muito pequenas */
+        @media (max-width: 480px) {
+            .admin-button {
+                width: 45px !important;
+                height: 45px !important;
+                font-size: 20px !important;
+                top: 10px !important;
+                right: 10px !important;
+            }
+            
+            .admin-content {
+                border-radius: 10px !important;
+            }
+            
+            .admin-category-title {
+                font-size: 16px !important;
+            }
+            
+            .admin-product-name {
+                font-size: 14px !important;
+            }
+            
+            /* Modal de sabores - melhor visualização */
+            .flavor-modal-title {
+                font-size: 18px !important;
+            }
+            
+            .modal-instruction {
+                font-size: 13px !important;
+                padding: 8px !important;
+            }
+        }
+
+        /* Garantir que o estado de indisponibilidade seja visível em todos os dispositivos */
+        .product-card.unavailable::after {
+            font-size: 14px !important;
+            padding: 10px 20px !important;
+            text-align: center;
+            white-space: normal !important;
+            max-width: 90% !important;
+        }
+
+        .flavor-option.unavailable::after {
+            font-size: 12px !important;
+            padding: 8px 16px !important;
+            text-align: center;
+            white-space: normal !important;
+            max-width: 90% !important;
+        }
+
+        /* Scroll suave para modais no mobile */
+        .admin-main,
+        .flavor-modal-content,
+        .age-modal-content {
+            -webkit-overflow-scrolling: touch !important;
+        }
+
         /* Responsivo para o modal de idade */
         @media (max-width: 768px) {
             .age-modal-content {
@@ -1162,7 +1307,7 @@
             }
         }
 
-        /* Responsivo */
+        /* Responsivo geral */
         @media (max-width: 1024px) {
             .main-container {
                 flex-direction: column;
@@ -2462,6 +2607,9 @@
         }
 
         function openFlavorModal(product, step) {
+            // Ajuste para mobile
+            adjustFlavorModalForMobile();
+            
             const modal = document.getElementById('flavorModal');
             const title = document.getElementById('flavorModalTitle');
             const instruction = document.getElementById('flavorModalInstruction');
@@ -2538,9 +2686,17 @@
                 }
                 
                 confirmButton.disabled = true;
+                modal.style.display = 'flex';
             }, 100);
-            
-            modal.style.display = 'flex';
+        }
+
+        function adjustFlavorModalForMobile() {
+            if (window.innerWidth <= 768) {
+                const modalContent = document.querySelector('.flavor-modal-content');
+                if (modalContent) {
+                    modalContent.style.maxHeight = '70vh';
+                }
+            }
         }
 
         function getFlavorTypeName(flavorType) {
@@ -3378,8 +3534,21 @@
             });
         }
 
+        function adjustAdminForMobile() {
+            if (window.innerWidth <= 768) {
+                const adminContent = document.querySelector('.admin-content');
+                if (adminContent) {
+                    adminContent.style.maxHeight = '80vh';
+                    adminContent.style.overflowY = 'auto';
+                }
+            }
+        }
+
         function openAdminPanel() {
             document.getElementById('adminModal').style.display = 'block';
+            
+            // Ajuste para mobile
+            adjustAdminForMobile();
             
             if (!state.adminAuthenticated) {
                 document.getElementById('passwordSection').style.display = 'block';
@@ -3899,3 +4068,4 @@
     </script>
 </body>
 </html>
+
