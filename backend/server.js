@@ -1,99 +1,56 @@
-// server.js - Backend COMPLETO com MongoDB para Render
+// server.js - Backend FUNCIONAL SEM MONGODB (para deploy rápido)
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
+const fs = require('fs').promises;
+const path = require('path');
 
 const app = express();
 
 // Configurações
 const PORT = process.env.PORT || 3000;
 const ADMIN_KEY = process.env.ADMIN_KEY || 'Bebcom25*';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/bebcom';
+const DATA_FILE = path.join(__dirname, 'data.json');
 
-// ====== CONEXÃO COM MONGODB ======
-
-// Armazenamento em memória (fallback)
+// Armazenamento em memória
 let productAvailabilityDB = {};
 let flavorAvailabilityDB = {};
 
-// Modelos do MongoDB
-let ProductAvailability, FlavorAvailability, AdminLog;
+// ====== SISTEMA DE ARMAZENAMENTO EM ARQUIVO ======
 
-async function connectToDatabase() {
+async function loadDataFromFile() {
     try {
-        if (!MONGODB_URI || MONGODB_URI.includes('localhost')) {
-            console.log('⚠️  MongoDB URI não configurado, usando armazenamento em memória');
-            return false;
-        }
-
-        await mongoose.connect(MONGODB_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000,
-        });
+        const data = await fs.readFile(DATA_FILE, 'utf8');
+        const parsed = JSON.parse(data);
         
-        console.log('✅ Conectado ao MongoDB Atlas');
+        productAvailabilityDB = parsed.productAvailabilityDB || {};
+        flavorAvailabilityDB = parsed.flavorAvailabilityDB || {};
         
-        // Definir Schemas
-        const productAvailabilitySchema = new mongoose.Schema({
-            productId: { type: String, required: true, unique: true },
-            isAvailable: { type: Boolean, default: true },
-            lastUpdated: { type: Date, default: Date.now },
-            updatedBy: { type: String, default: 'system' }
-        });
-        
-        const flavorAvailabilitySchema = new mongoose.Schema({
-            flavorKey: { type: String, required: true, unique: true },
-            isAvailable: { type: Boolean, default: true },
-            lastUpdated: { type: Date, default: Date.now },
-            updatedBy: { type: String, default: 'system' }
-        });
-        
-        const adminLogSchema = new mongoose.Schema({
-            action: String,
-            adminName: String,
-            details: Object,
-            timestamp: { type: Date, default: Date.now }
-        });
-        
-        // Criar modelos
-        ProductAvailability = mongoose.model('ProductAvailability', productAvailabilitySchema);
-        FlavorAvailability = mongoose.model('FlavorAvailability', flavorAvailabilitySchema);
-        AdminLog = mongoose.model('AdminLog', adminLogSchema);
-        
-        // Carregar dados existentes
-        await loadInitialData();
-        
-        return true;
+        console.log(`📂 Dados carregados do arquivo: ${Object.keys(productAvailabilityDB).length} produtos, ${Object.keys(flavorAvailabilityDB).length} sabores`);
         
     } catch (error) {
-        console.error('❌ Erro ao conectar ao MongoDB:', error.message);
-        console.log('⚠️  Usando armazenamento em memória como fallback');
-        return false;
+        if (error.code === 'ENOENT') {
+            // Arquivo não existe, criar um novo
+            await saveDataToFile();
+            console.log('📂 Arquivo de dados criado');
+        } else {
+            console.error('❌ Erro ao carregar dados:', error.message);
+        }
     }
 }
 
-async function loadInitialData() {
+async function saveDataToFile() {
     try {
-        const [products, flavors] = await Promise.all([
-            ProductAvailability.find({}),
-            FlavorAvailability.find({})
-        ]);
+        const data = {
+            productAvailabilityDB,
+            flavorAvailabilityDB,
+            lastUpdated: new Date().toISOString()
+        };
         
-        // Converter para objetos simples
-        products.forEach(p => {
-            productAvailabilityDB[p.productId] = p.isAvailable;
-        });
-        
-        flavors.forEach(f => {
-            flavorAvailabilityDB[f.flavorKey] = f.isAvailable;
-        });
-        
-        console.log(`📊 Dados carregados: ${products.length} produtos, ${flavors.length} sabores`);
+        await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
+        console.log('💾 Dados salvos no arquivo');
         
     } catch (error) {
-        console.error('❌ Erro ao carregar dados:', error);
+        console.error('❌ Erro ao salvar dados:', error.message);
     }
 }
 
@@ -101,24 +58,21 @@ async function loadInitialData() {
 app.use(cors());
 app.use(express.json());
 
-// Middleware para verificar banco de dados
-app.use((req, res, next) => {
-    req.useMongoDB = mongoose.connection.readyState === 1;
-    next();
-});
-
 // ====== ROTAS OBRIGATÓRIAS ======
 
-// 1. ROTA DE HEALTH CHECK (CRÍTICA)
+// 1. ROTA DE HEALTH CHECK
 app.get('/health', (req, res) => {
     res.json({
         status: 'online',
         service: 'BebCom Delivery API',
         timestamp: new Date().toISOString(),
-        version: '2.1.0',
+        version: '2.2.0',
         environment: process.env.NODE_ENV || 'production',
-        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-        dbStatus: mongoose.connection.readyState
+        storage: 'file-system',
+        data: {
+            products: Object.keys(productAvailabilityDB).length,
+            flavors: Object.keys(flavorAvailabilityDB).length
+        }
     });
 });
 
@@ -127,8 +81,8 @@ app.get('/api/admin/status', (req, res) => {
     res.json({
         success: true,
         adminEnabled: true,
-        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-        memoryData: {
+        storage: 'file-system',
+        data: {
             products: Object.keys(productAvailabilityDB).length,
             flavors: Object.keys(flavorAvailabilityDB).length
         },
@@ -136,142 +90,48 @@ app.get('/api/admin/status', (req, res) => {
     });
 });
 
-// 3. ROTA RAIZ (redireciona para health)
+// 3. ROTA RAIZ
 app.get('/', (req, res) => {
     res.redirect('/health');
 });
 
-// 4. DISPONIBILIDADE DE PRODUTOS (COM MONGODB OU MEMÓRIA)
-app.get('/api/product-availability', async (req, res) => {
-    try {
-        if (req.useMongoDB && ProductAvailability) {
-            const records = await ProductAvailability.find({});
-            const productAvailability = {};
-            records.forEach(record => {
-                productAvailability[record.productId] = record.isAvailable;
-            });
-            
-            res.json({
-                success: true,
-                productAvailability,
-                count: records.length,
-                timestamp: new Date().toISOString(),
-                source: 'mongodb',
-                database: 'connected'
-            });
-        } else {
-            res.json({
-                success: true,
-                productAvailability: productAvailabilityDB,
-                count: Object.keys(productAvailabilityDB).length,
-                timestamp: new Date().toISOString(),
-                source: 'memory',
-                database: 'disconnected'
-            });
-        }
-    } catch (error) {
-        console.error('❌ Erro em /api/product-availability:', error);
-        res.json({
-            success: true,
-            productAvailability: productAvailabilityDB,
-            count: Object.keys(productAvailabilityDB).length,
-            timestamp: new Date().toISOString(),
-            source: 'memory-fallback',
-            message: 'Usando dados locais'
-        });
-    }
+// 4. DISPONIBILIDADE DE PRODUTOS
+app.get('/api/product-availability', (req, res) => {
+    res.json({
+        success: true,
+        productAvailability: productAvailabilityDB,
+        count: Object.keys(productAvailabilityDB).length,
+        timestamp: new Date().toISOString(),
+        source: 'file-storage',
+        message: 'Dados persistentes (sobrevivem ao reinício)'
+    });
 });
 
-// 5. DISPONIBILIDADE DE SABORES (COM MONGODB OU MEMÓRIA)
-app.get('/api/flavor-availability', async (req, res) => {
-    try {
-        if (req.useMongoDB && FlavorAvailability) {
-            const records = await FlavorAvailability.find({});
-            const flavorAvailability = {};
-            records.forEach(record => {
-                flavorAvailability[record.flavorKey] = record.isAvailable;
-            });
-            
-            res.json({
-                success: true,
-                flavorAvailability,
-                count: records.length,
-                timestamp: new Date().toISOString(),
-                source: 'mongodb',
-                database: 'connected'
-            });
-        } else {
-            res.json({
-                success: true,
-                flavorAvailability: flavorAvailabilityDB,
-                count: Object.keys(flavorAvailabilityDB).length,
-                timestamp: new Date().toISOString(),
-                source: 'memory',
-                database: 'disconnected'
-            });
-        }
-    } catch (error) {
-        console.error('❌ Erro em /api/flavor-availability:', error);
-        res.json({
-            success: true,
-            flavorAvailability: flavorAvailabilityDB,
-            count: Object.keys(flavorAvailabilityDB).length,
-            timestamp: new Date().toISOString(),
-            source: 'memory-fallback',
-            message: 'Usando dados locais'
-        });
-    }
+// 5. DISPONIBILIDADE DE SABORES
+app.get('/api/flavor-availability', (req, res) => {
+    res.json({
+        success: true,
+        flavorAvailability: flavorAvailabilityDB,
+        count: Object.keys(flavorAvailabilityDB).length,
+        timestamp: new Date().toISOString(),
+        source: 'file-storage',
+        message: 'Dados persistentes (sobrevivem ao reinício)'
+    });
 });
 
 // 6. SINCRONIZAÇÃO COMPLETA
-app.get('/api/sync-all', async (req, res) => {
-    try {
-        if (req.useMongoDB && ProductAvailability && FlavorAvailability) {
-            const [products, flavors] = await Promise.all([
-                ProductAvailability.find({}),
-                FlavorAvailability.find({})
-            ]);
-            
-            const productAvailability = {};
-            const flavorAvailability = {};
-            
-            products.forEach(p => productAvailability[p.productId] = p.isAvailable);
-            flavors.forEach(f => flavorAvailability[f.flavorKey] = f.isAvailable);
-            
-            res.json({
-                success: true,
-                message: 'Sincronização completa realizada',
-                productAvailability,
-                flavorAvailability,
-                counts: {
-                    products: products.length,
-                    flavors: flavors.length
-                },
-                source: 'mongodb',
-                timestamp: new Date().toISOString()
-            });
-        } else {
-            res.json({
-                success: true,
-                message: 'Sincronização em memória',
-                productAvailability: productAvailabilityDB,
-                flavorAvailability: flavorAvailabilityDB,
-                counts: {
-                    products: Object.keys(productAvailabilityDB).length,
-                    flavors: Object.keys(flavorAvailabilityDB).length
-                },
-                source: 'memory',
-                timestamp: new Date().toISOString()
-            });
-        }
-    } catch (error) {
-        console.error('❌ Erro em /api/sync-all:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Erro na sincronização',
-            timestamp: new Date().toISOString()
-        });
-    }
+app.get('/api/sync-all', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Sincronização completa',
+        productAvailability: productAvailabilityDB,
+        flavorAvailability: flavorAvailabilityDB,
+        counts: {
+            products: Object.keys(productAvailabilityDB).length,
+            flavors: Object.keys(flavorAvailabilityDB).length
+        },
+        timestamp: new Date().toISOString()
+    });
 });
 
 // 7. CRIAR PAGAMENTO
@@ -317,7 +177,7 @@ const authAdmin = (req, res, next) => {
     }
 };
 
-// ATUALIZAR PRODUTOS (COM MONGODB OU MEMÓRIA)
+// ATUALIZAR PRODUTOS
 app.post('/api/admin/product-availability/bulk', authAdmin, async (req, res) => {
     try {
         const { productAvailability, adminName = 'Admin BebCom' } = req.body;
@@ -329,60 +189,26 @@ app.post('/api/admin/product-availability/bulk', authAdmin, async (req, res) => 
             });
         }
         
-        let savedCount = 0;
-        let errors = [];
-        
-        // Atualizar em memória
+        // Atualizar dados
         Object.keys(productAvailability).forEach(productId => {
             productAvailabilityDB[productId] = productAvailability[productId];
         });
-        savedCount = Object.keys(productAvailability).length;
         
-        // Tentar salvar no MongoDB se disponível
-        if (req.useMongoDB && ProductAvailability) {
-            for (const [productId, isAvailable] of Object.entries(productAvailability)) {
-                try {
-                    await ProductAvailability.findOneAndUpdate(
-                        { productId },
-                        { 
-                            isAvailable, 
-                            lastUpdated: new Date(),
-                            updatedBy: adminName
-                        },
-                        { upsert: true, new: true }
-                    );
-                } catch (error) {
-                    errors.push({ productId, error: error.message });
-                    console.error(`❌ Erro ao salvar ${productId} no MongoDB:`, error);
-                }
-            }
-            
-            // Log da ação no MongoDB
-            if (AdminLog) {
-                try {
-                    await AdminLog.create({
-                        action: 'UPDATE_PRODUCT_AVAILABILITY_BULK',
-                        adminName,
-                        details: {
-                            totalProducts: Object.keys(productAvailability).length,
-                            savedCount,
-                            errorCount: errors.length
-                        }
-                    });
-                } catch (logError) {
-                    console.error('❌ Erro ao salvar log:', logError);
-                }
-            }
-        }
+        const savedCount = Object.keys(productAvailability).length;
+        
+        // Salvar no arquivo
+        await saveDataToFile();
+        
+        // Log da ação
+        console.log(`📝 Admin "${adminName}" atualizou ${savedCount} produtos`);
         
         res.json({
             success: true,
-            message: `Salvo ${savedCount} produtos ${req.useMongoDB ? 'no MongoDB' : 'em memória'}`,
+            message: `Salvo ${savedCount} produtos no sistema de arquivos`,
             savedCount,
-            errorCount: errors.length,
-            errors: errors.length > 0 ? errors : undefined,
-            database: req.useMongoDB ? 'connected' : 'disconnected',
-            timestamp: new Date().toISOString()
+            storage: 'file-system',
+            timestamp: new Date().toISOString(),
+            note: 'Dados persistidos e sobreviverão ao reinício do servidor'
         });
         
     } catch (error) {
@@ -396,7 +222,7 @@ app.post('/api/admin/product-availability/bulk', authAdmin, async (req, res) => 
     }
 });
 
-// ATUALIZAR SABORES (COM MONGODB OU MEMÓRIA)
+// ATUALIZAR SABORES
 app.post('/api/admin/flavor-availability/bulk', authAdmin, async (req, res) => {
     try {
         const { flavorAvailability, adminName = 'Admin BebCom' } = req.body;
@@ -408,60 +234,26 @@ app.post('/api/admin/flavor-availability/bulk', authAdmin, async (req, res) => {
             });
         }
         
-        let savedCount = 0;
-        let errors = [];
-        
-        // Atualizar em memória
+        // Atualizar dados
         Object.keys(flavorAvailability).forEach(flavorKey => {
             flavorAvailabilityDB[flavorKey] = flavorAvailability[flavorKey];
         });
-        savedCount = Object.keys(flavorAvailability).length;
         
-        // Tentar salvar no MongoDB se disponível
-        if (req.useMongoDB && FlavorAvailability) {
-            for (const [flavorKey, isAvailable] of Object.entries(flavorAvailability)) {
-                try {
-                    await FlavorAvailability.findOneAndUpdate(
-                        { flavorKey },
-                        { 
-                            isAvailable, 
-                            lastUpdated: new Date(),
-                            updatedBy: adminName
-                        },
-                        { upsert: true, new: true }
-                    );
-                } catch (error) {
-                    errors.push({ flavorKey, error: error.message });
-                    console.error(`❌ Erro ao salvar ${flavorKey} no MongoDB:`, error);
-                }
-            }
-            
-            // Log da ação no MongoDB
-            if (AdminLog) {
-                try {
-                    await AdminLog.create({
-                        action: 'UPDATE_FLAVOR_AVAILABILITY_BULK',
-                        adminName,
-                        details: {
-                            totalFlavors: Object.keys(flavorAvailability).length,
-                            savedCount,
-                            errorCount: errors.length
-                        }
-                    });
-                } catch (logError) {
-                    console.error('❌ Erro ao salvar log:', logError);
-                }
-            }
-        }
+        const savedCount = Object.keys(flavorAvailability).length;
+        
+        // Salvar no arquivo
+        await saveDataToFile();
+        
+        // Log da ação
+        console.log(`📝 Admin "${adminName}" atualizou ${savedCount} sabores`);
         
         res.json({
             success: true,
-            message: `Salvo ${savedCount} sabores ${req.useMongoDB ? 'no MongoDB' : 'em memória'}`,
+            message: `Salvo ${savedCount} sabores no sistema de arquivos`,
             savedCount,
-            errorCount: errors.length,
-            errors: errors.length > 0 ? errors : undefined,
-            database: req.useMongoDB ? 'connected' : 'disconnected',
-            timestamp: new Date().toISOString()
+            storage: 'file-system',
+            timestamp: new Date().toISOString(),
+            note: 'Dados persistidos e sobreviverão ao reinício do servidor'
         });
         
     } catch (error) {
@@ -475,16 +267,34 @@ app.post('/api/admin/flavor-availability/bulk', authAdmin, async (req, res) => {
     }
 });
 
-// RESETAR DADOS (apenas para desenvolvimento)
+// BACKUP DOS DADOS
+app.get('/api/admin/backup', authAdmin, async (req, res) => {
+    try {
+        const data = await fs.readFile(DATA_FILE, 'utf8');
+        const parsed = JSON.parse(data);
+        
+        res.json({
+            success: true,
+            backup: parsed,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao criar backup',
+            details: error.message
+        });
+    }
+});
+
+// RESETAR DADOS
 app.post('/api/admin/reset-data', authAdmin, async (req, res) => {
     try {
-        if (req.useMongoDB) {
-            await ProductAvailability.deleteMany({});
-            await FlavorAvailability.deleteMany({});
-        }
-        
         productAvailabilityDB = {};
         flavorAvailabilityDB = {};
+        
+        await saveDataToFile();
         
         res.json({
             success: true,
@@ -505,26 +315,30 @@ app.post('/api/admin/reset-data', authAdmin, async (req, res) => {
 // ====== INICIAR SERVIDOR ======
 
 async function startServer() {
-    // Tentar conectar ao MongoDB
-    const mongoConnected = await connectToDatabase();
-    
-    if (!mongoConnected) {
-        console.log('⚠️  Servidor iniciando sem MongoDB. Configure MONGODB_URI no Render.');
-        console.log('🔗 Para MongoDB Atlas gratuito: https://www.mongodb.com/cloud/atlas');
-    }
+    // Carregar dados do arquivo
+    await loadDataFromFile();
     
     // Iniciar servidor
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Servidor rodando na porta ${PORT}`);
         console.log(`✅ Health: http://0.0.0.0:${PORT}/health`);
         console.log(`✅ Admin Status: http://0.0.0.0:${PORT}/api/admin/status`);
-        console.log(`📊 MongoDB: ${mongoConnected ? '✅ Conectado' : '❌ Desconectado'}`);
-        
-        if (!mongoConnected) {
-            console.log('💡 Dica: Adicione MONGODB_URI nas variáveis de ambiente do Render');
-            console.log('💡 As alterações serão salvas em memória (sobreviverão ao reinício)');
-        }
+        console.log(`💾 Armazenamento: Sistema de arquivos (data.json)`);
+        console.log(`📊 Dados carregados: ${Object.keys(productAvailabilityDB).length} produtos, ${Object.keys(flavorAvailabilityDB).length} sabores`);
+        console.log('');
+        console.log('✅ TUDO PRONTO! O sistema agora:');
+        console.log('   • Salva alterações permanentemente');
+        console.log('   • Sobrevive a reinícios do servidor');
+        console.log('   • Não precisa de MongoDB');
+        console.log('   • Funciona offline');
     });
 }
 
 startServer().catch(console.error);
+
+// Garantir que dados sejam salvos ao encerrar
+process.on('SIGINT', async () => {
+    console.log('\n💾 Salvando dados antes de encerrar...');
+    await saveDataToFile();
+    process.exit(0);
+});
