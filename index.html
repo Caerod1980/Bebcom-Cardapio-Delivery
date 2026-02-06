@@ -1855,6 +1855,32 @@
         }
 
         // ============================================
+        // TESTE DE CONEXÃO COM BACKEND (EXECUTAR AGORA!)
+        // ============================================
+        async function testConnectionNow() {
+            console.log('🔍 Testando conexão com backend...');
+            
+            try {
+                const response = await fetch(`${CONFIG.backendUrl}/health`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Backend ONLINE:', data);
+                    showNotification('✅ Conectado ao servidor!', 'success');
+                    return true;
+                } else {
+                    console.log('⚠️ Backend com erro:', response.status);
+                    showNotification('⚠️ Servidor com problemas', 'warning');
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Backend OFFLINE:', error);
+                showNotification('❌ Servidor offline. Trabalhando localmente.', 'error');
+                return false;
+            }
+        }
+
+        // ============================================
         // CONFIGURAÇÕES DO SISTEMA (SEGURO)
         // ============================================
         const CONFIG = {
@@ -1875,10 +1901,10 @@
                 maxDistance: 15,
                 minDistance: 0.5,
                 freeDeliveryMin: 100.00
-            },
-
-            // 🔒 SENHA ADMINISTRATIVA - Será validada no backend
-            adminPassword: 'Bebcom25*' // Esta senha será validada no backend
+            }
+            
+            // ❌❌❌ SENHA REMOVIDA DO FRONTEND ❌❌❌
+            // A senha agora só existe e é validada no backend
         };
 
         // ============================================
@@ -2428,6 +2454,9 @@
         // ============================================
         async function init() {
             console.log('🚀 Inicializando BebCom Delivery v3.0 (Corrigido)');
+
+            // Executar teste de conexão imediatamente
+            testConnectionNow();
 
             // Inicializar verificação de idade
             initAgeVerification();
@@ -3678,18 +3707,22 @@
         function checkAdminPassword() {
             const password = document.getElementById('adminPassword').value;
 
-            if (password === CONFIG.adminPassword) {
-                state.adminAuthenticated = true;
-                document.getElementById('passwordSection').style.display = 'none';
-                document.getElementById('adminMain').style.display = 'block';
-                document.getElementById('adminActions').style.display = 'block';
-                loadAdminProducts();
-                showNotification('✅ Acesso administrativo concedido');
-            } else {
-                alert('❌ Senha incorreta!');
-                document.getElementById('adminPassword').value = '';
-                document.getElementById('adminPassword').focus();
+            // ❌ NÃO COMPARAR COM SENHA NO FRONTEND!
+            // EM VEZ DISSO, VERIFICAR NO BACKEND:
+            
+            // Primeiro, verificar localmente (apenas para UX rápida)
+            if (!password) {
+                alert('Digite a senha administrativa');
+                return;
             }
+            
+            // Marcar como autenticado (temporário, será validado no backend quando salvar)
+            state.adminAuthenticated = true;
+            document.getElementById('passwordSection').style.display = 'none';
+            document.getElementById('adminMain').style.display = 'block';
+            document.getElementById('adminActions').style.display = 'block';
+            loadAdminProducts();
+            showNotification('✅ Modo administrativo ativado. Senha será validada ao salvar.');
         }
 
         function loadAdminProducts() {
@@ -3830,52 +3863,64 @@
                 if (isBackendOnline) {
                     console.log('🌐 Backend online, tentando salvar...');
                     
-                    // Preparar dados
+                    // Pegar senha do input
+                    const password = document.getElementById('adminPassword').value;
+                    
+                    if (!password) {
+                        throw new Error('Digite a senha novamente para salvar no servidor');
+                    }
+                    
+                    // Preparar dados COM SENHA NO BODY
                     const productData = {
                         productAvailability: state.productAvailability,
-                        adminName: 'Admin BebCom'
+                        password: password // ✅ Senha enviada no body
                     };
                     
                     const flavorData = {
                         flavorAvailability: state.flavorAvailability,
-                        adminName: 'Admin BebCom'
+                        password: password // ✅ Senha enviada no body
                     };
                     
                     // Salvar produtos
                     const productResponse = await fetch(`${CONFIG.backendUrl}/api/admin/product-availability/bulk`, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'x-admin-key': CONFIG.adminPassword
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(productData)
                     });
+                    
+                    const productResult = await productResponse.json();
+                    
+                    if (!productResponse.ok) {
+                        throw new Error(productResult.error || 'Erro ao salvar produtos');
+                    }
                     
                     // Salvar sabores
                     const flavorResponse = await fetch(`${CONFIG.backendUrl}/api/admin/flavor-availability/bulk`, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'x-admin-key': CONFIG.adminPassword
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(flavorData)
                     });
                     
-                    if (productResponse.ok && flavorResponse.ok) {
-                        console.log('✅ Dados salvos no backend');
-                        showNotification('✅ Alterações salvas para todos os usuários!', 'success');
-                        
-                        // Atualizar interface
-                        updateMenuAvailability();
-                        
-                        // Fechar modal após sucesso
-                        setTimeout(() => {
-                            closeAdminPanel();
-                        }, 1500);
-                        
-                    } else {
-                        throw new Error('Erro ao salvar no servidor');
+                    const flavorResult = await flavorResponse.json();
+                    
+                    if (!flavorResponse.ok) {
+                        throw new Error(flavorResult.error || 'Erro ao salvar sabores');
                     }
+                    
+                    console.log('✅ Dados salvos no backend');
+                    showNotification('✅ Alterações salvas para todos os usuários!', 'success');
+                    
+                    // Atualizar interface
+                    updateMenuAvailability();
+                    
+                    // Fechar modal após sucesso
+                    setTimeout(() => {
+                        closeAdminPanel();
+                    }, 1500);
                     
                 } else {
                     // Backend offline
@@ -3888,7 +3933,18 @@
                 
             } catch (error) {
                 console.error('❌ Erro ao salvar:', error);
-                showNotification('❌ Erro ao salvar alterações: ' + error.message, 'error');
+                
+                // Mostrar erro específico
+                if (error.message.includes('senha') || error.message.includes('Senha')) {
+                    showNotification('❌ Senha incorreta ou não fornecida', 'error');
+                    // Reabrir painel de senha
+                    document.getElementById('passwordSection').style.display = 'block';
+                    document.getElementById('adminMain').style.display = 'none';
+                    document.getElementById('adminActions').style.display = 'none';
+                    state.adminAuthenticated = false;
+                } else {
+                    showNotification('❌ Erro ao salvar: ' + error.message, 'error');
+                }
                 
             } finally {
                 // Finalizar loading
@@ -3913,14 +3969,14 @@
                     });
                 });
 
-                // Salvar no backend
-                saveAvailability();
-
-                // Atualizar interface
+                // Atualizar interface localmente
                 loadAdminProducts();
                 updateMenuAvailability();
 
-                showNotification('🔄 Disponibilidade restaurada para o padrão', 'info');
+                showNotification('🔄 Disponibilidade restaurada localmente', 'info');
+                
+                // Agora salvar no backend (vai pedir senha)
+                saveAvailability();
             }
         }
 
@@ -4094,18 +4150,24 @@
 
         async function saveFlavorChanges() {
             try {
+                // Pegar senha do input
+                const password = document.getElementById('adminPassword').value;
+                
+                if (!password) {
+                    throw new Error('Digite a senha para salvar');
+                }
+                
                 const response = await fetch(`${CONFIG.backendUrl}/api/admin/flavor-availability/bulk`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'x-admin-key': CONFIG.adminPassword
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         flavorAvailability: state.flavorAvailability,
-                        adminName: 'Admin BebCom'
+                        password: password // ✅ Senha enviada no body
                     })
                 });
-
+                
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success) {
@@ -4113,12 +4175,25 @@
                         showNotification('✅ Disponibilidade de sabores salva com sucesso!');
                         return true;
                     }
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Erro ao salvar');
                 }
-                throw new Error('Erro ao salvar');
+                
             } catch (error) {
                 console.error('❌ Erro ao salvar sabores:', error);
-                showNotification('⚠️ Alterações salvas apenas localmente', 'warning');
-                localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                
+                if (error.message.includes('senha') || error.message.includes('Senha')) {
+                    showNotification('❌ Senha incorreta. Faça login novamente.', 'error');
+                    // Reabrir painel de senha
+                    document.getElementById('passwordSection').style.display = 'block';
+                    document.getElementById('adminMain').style.display = 'none';
+                    document.getElementById('adminActions').style.display = 'none';
+                    state.adminAuthenticated = false;
+                } else {
+                    showNotification('⚠️ Alterações salvas apenas localmente: ' + error.message, 'warning');
+                    localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                }
                 return false;
             }
         }
@@ -4222,7 +4297,7 @@
                 if (ageVerified && !state.adminAuthenticated) {
                     syncAllFromServer();
                 }
-            }, 3000);
+            }, 2000);
 
             // Sincronizar a cada 5 minutos
             setInterval(() => {
