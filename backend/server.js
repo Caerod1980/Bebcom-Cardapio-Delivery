@@ -5,7 +5,7 @@ const cors = require('cors');
 const app = express();
 
 // Configurações
-const PORT = process.env.PORT || 10000; // Render usa portas dinâmicas
+const PORT = process.env.PORT || 3000;  // ← Usa variável do Render
 const ADMIN_KEY = process.env.ADMIN_KEY || 'Bebcom25*';
 
 // Middleware básico
