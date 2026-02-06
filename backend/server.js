@@ -1,327 +1,452 @@
-// server.js - Backend FUNCIONAL e CORRIGIDO (SENHA SIMPLES)
+// backend/server.js
 const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const fs = require('fs').promises;
 const path = require('path');
 
 const app = express();
-
-// Configurações
 const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Bebcom25*'; // ✅ SENHA SÓ NO BACKEND
-const DATA_FILE = path.join(__dirname, 'data.json');
 
-// Armazenamento em memória
-let productAvailabilityDB = {};
-let flavorAvailabilityDB = {};
-
-// ====== CONFIGURAÇÃO CORS ======
+// Configuração do CORS - CORRIGIDO!
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    credentials: false,
-    preflightContinue: false,
-    optionsSuccessStatus: 204
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type', Authorization, X-Requested-With');
+app.use(bodyParser.json());
+
+// Diretório para armazenar dados
+const DATA_DIR = path.join(__dirname, 'data');
+const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
+const FLAVORS_FILE = path.join(DATA_DIR, 'flavors.json');
+const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
+
+// Senha administrativa (mude esta senha para produção)
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Bebcom25*';
+
+// Inicializar arquivos de dados
+async function initializeData() {
+    try {
+        await fs.mkdir(DATA_DIR, { recursive: true });
+        
+        // Inicializar produtos se não existir
+        try {
+            await fs.access(PRODUCTS_FILE);
+        } catch {
+            const initialProducts = {
+                success: true,
+                productAvailability: {},
+                lastUpdated: new Date().toISOString()
+            };
+            await fs.writeFile(PRODUCTS_FILE, JSON.stringify(initialProducts, null, 2));
+        }
+        
+        // Inicializar sabores se não existir
+        try {
+            await fs.access(FLAVORS_FILE);
+        } catch {
+            const initialFlavors = {
+                success: true,
+                flavorAvailability: {},
+                lastUpdated: new Date().toISOString()
+            };
+            await fs.writeFile(FLAVORS_FILE, JSON.stringify(initialFlavors, null, 2));
+        }
+        
+        // Inicializar pedidos se não existir
+        try {
+            await fs.access(ORDERS_FILE);
+        } catch {
+            const initialOrders = {
+                success: true,
+                orders: [],
+                lastUpdated: new Date().toISOString()
+            };
+            await fs.writeFile(ORDERS_FILE, JSON.stringify(initialOrders, null, 2));
+        }
+        
+        console.log('✅ Dados inicializados com sucesso');
+    } catch (error) {
+        console.error('❌ Erro ao inicializar dados:', error);
+    }
+}
+
+// Middleware para verificar senha administrativa
+function checkAdminPassword(req, res, next) {
+    const password = req.body.password;
     
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+    if (!password) {
+        return res.status(401).json({
+            success: false,
+            error: 'Senha não fornecida'
+        });
+    }
+    
+    if (password !== ADMIN_PASSWORD) {
+        return res.status(401).json({
+            success: false,
+            error: 'Senha administrativa incorreta'
+        });
     }
     
     next();
-});
-
-app.use(express.json());
-
-// ====== SISTEMA DE ARMAZENAMENTO ======
-
-async function loadDataFromFile() {
-    try {
-        await fs.access(DATA_FILE);
-        const data = await fs.readFile(DATA_FILE, 'utf8');
-        const parsed = JSON.parse(data);
-        
-        productAvailabilityDB = parsed.productAvailabilityDB || {};
-        flavorAvailabilityDB = parsed.flavorAvailabilityDB || {};
-        
-        console.log(`📂 Dados carregados: ${Object.keys(productAvailabilityDB).length} produtos, ${Object.keys(flavorAvailabilityDB).length} sabores`);
-        
-    } catch (error) {
-        if (error.code === 'ENOENT') {
-            console.log('📂 Arquivo data.json não encontrado. Criando novo...');
-            const initialData = {
-                productAvailabilityDB: {},
-                flavorAvailabilityDB: {},
-                lastUpdated: new Date().toISOString()
-            };
-            
-            await fs.writeFile(DATA_FILE, JSON.stringify(initialData, null, 2));
-            console.log('✅ Arquivo data.json criado com sucesso');
-        } else {
-            console.error('❌ Erro ao carregar dados:', error.message);
-        }
-    }
 }
 
-async function saveDataToFile() {
-    try {
-        const data = {
-            productAvailabilityDB,
-            flavorAvailabilityDB,
-            lastUpdated: new Date().toISOString()
-        };
-        
-        await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
-        console.log('💾 Dados salvos em data.json');
-        
-    } catch (error) {
-        console.error('❌ Erro ao salvar dados:', error.message);
-    }
-}
-
-// ====== MIDDLEWARE DE AUTENTICAÇÃO SIMPLES ======
-
-function authAdmin(req, res, next) {
-    const password = req.body.password || req.headers['x-admin-password'];
-    
-    if (password === ADMIN_PASSWORD) {
-        next();
-    } else {
-        res.status(401).json({
-            success: false,
-            error: 'Acesso não autorizado. Senha incorreta.'
-        });
-    }
-}
-
-// ====== ROTAS PÚBLICAS ======
-
+// Rota de saúde
 app.get('/health', (req, res) => {
     res.json({
-        status: 'online',
-        service: 'BebCom Delivery API',
+        status: 'ok',
         timestamp: new Date().toISOString(),
-        version: '3.0.0',
-        environment: process.env.NODE_ENV || 'production',
-        data: {
-            products: Object.keys(productAvailabilityDB).length,
-            flavors: Object.keys(flavorAvailabilityDB).length
-        }
+        service: 'BebCom Delivery API',
+        version: '3.0'
     });
 });
 
-app.get('/', (req, res) => {
-    res.redirect('/health');
-});
-
-// DISPONIBILIDADE DE PRODUTOS
-app.get('/api/product-availability', (req, res) => {
-    res.json({
-        success: true,
-        productAvailability: productAvailabilityDB,
-        count: Object.keys(productAvailabilityDB).length,
-        timestamp: new Date().toISOString()
-    });
-});
-
-// DISPONIBILIDADE DE SABORES
-app.get('/api/flavor-availability', (req, res) => {
-    res.json({
-        success: true,
-        flavorAvailability: flavorAvailabilityDB,
-        count: Object.keys(flavorAvailabilityDB).length,
-        timestamp: new Date().toISOString()
-    });
-});
-
-// SINCRONIZAÇÃO COMPLETA
-app.get('/api/sync-all', (req, res) => {
-    res.json({
-        success: true,
-        message: 'Sincronização completa realizada',
-        productAvailability: productAvailabilityDB,
-        flavorAvailability: flavorAvailabilityDB,
-        counts: {
-            products: Object.keys(productAvailabilityDB).length,
-            flavors: Object.keys(flavorAvailabilityDB).length
-        },
-        timestamp: new Date().toISOString()
-    });
-});
-
-// CRIAR PAGAMENTO (SIMULADO)
-app.post('/api/create-payment', (req, res) => {
+// Obter disponibilidade de produtos
+app.get('/api/product-availability', async (req, res) => {
     try {
-        const { orderId, totalAmount } = req.body;
-        
-        const generatedOrderId = orderId || 'BEB' + Date.now().toString().slice(-8);
+        const data = await fs.readFile(PRODUCTS_FILE, 'utf8');
+        const products = JSON.parse(data);
         
         res.json({
             success: true,
-            paymentType: 'pix',
-            orderId: generatedOrderId,
-            qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=BEBCOM-${generatedOrderId}`,
-            copyPasteKey: '00020126360014BR.GOV.BCB.PIX0114+55149999999990225BebCom Delivery - Pedido ' + generatedOrderId,
-            amount: totalAmount || 0,
-            timestamp: new Date().toISOString()
+            productAvailability: products.productAvailability || {},
+            lastUpdated: products.lastUpdated || new Date().toISOString()
         });
-        
     } catch (error) {
+        console.error('❌ Erro ao ler produtos:', error);
         res.status(500).json({
             success: false,
-            error: 'Erro ao criar pagamento'
+            error: 'Erro ao carregar disponibilidade de produtos'
         });
     }
 });
 
-// STATUS DO PEDIDO
-app.get('/api/order-status/:orderId', (req, res) => {
-    res.json({
-        success: true,
-        orderId: req.params.orderId,
-        status: 'paid',
-        paid: true,
-        timestamp: new Date().toISOString()
-    });
-});
-
-// ====== ROTAS ADMINISTRATIVAS ======
-
-// VERIFICAR SENHA
-app.post('/api/admin/verify-password', (req, res) => {
-    const { password } = req.body;
-    
-    if (password === ADMIN_PASSWORD) {
+// Obter disponibilidade de sabores
+app.get('/api/flavor-availability', async (req, res) => {
+    try {
+        const data = await fs.readFile(FLAVORS_FILE, 'utf8');
+        const flavors = JSON.parse(data);
+        
         res.json({
             success: true,
-            message: 'Senha correta',
-            timestamp: new Date().toISOString()
+            flavorAvailability: flavors.flavorAvailability || {},
+            lastUpdated: flavors.lastUpdated || new Date().toISOString()
         });
-    } else {
-        res.status(401).json({
+    } catch (error) {
+        console.error('❌ Erro ao ler sabores:', error);
+        res.status(500).json({
             success: false,
-            error: 'Senha incorreta'
+            error: 'Erro ao carregar disponibilidade de sabores'
         });
     }
 });
 
-// ATUALIZAR PRODUTOS EM MASSA
-app.post('/api/admin/product-availability/bulk', authAdmin, async (req, res) => {
+// Atualizar disponibilidade de produtos (admin)
+app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req, res) => {
     try {
-        const { productAvailability } = req.body;
+        const { productAvailability, adminName } = req.body;
         
         if (!productAvailability || typeof productAvailability !== 'object') {
             return res.status(400).json({
                 success: false,
-                error: 'Dados inválidos'
+                error: 'Dados de produtos inválidos'
             });
         }
         
-        // Atualizar dados
-        Object.keys(productAvailability).forEach(productId => {
-            productAvailabilityDB[productId] = productAvailability[productId];
-        });
+        const data = {
+            success: true,
+            productAvailability,
+            lastUpdated: new Date().toISOString(),
+            updatedBy: adminName || 'Admin BebCom'
+        };
         
-        const savedCount = Object.keys(productAvailability).length;
-        
-        // Salvar no arquivo
-        await saveDataToFile();
-        
-        console.log(`✅ Admin atualizou ${savedCount} produtos`);
+        await fs.writeFile(PRODUCTS_FILE, JSON.stringify(data, null, 2));
         
         res.json({
             success: true,
-            message: `Salvo ${savedCount} produtos`,
-            savedCount,
+            message: 'Disponibilidade de produtos atualizada com sucesso',
             timestamp: new Date().toISOString()
         });
-        
     } catch (error) {
         console.error('❌ Erro ao salvar produtos:', error);
         res.status(500).json({
             success: false,
-            error: 'Erro interno ao salvar produtos'
+            error: 'Erro ao salvar disponibilidade de produtos'
         });
     }
 });
 
-// ATUALIZAR SABORES EM MASSA
-app.post('/api/admin/flavor-availability/bulk', authAdmin, async (req, res) => {
+// Atualizar disponibilidade de sabores (admin)
+app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, res) => {
     try {
-        const { flavorAvailability } = req.body;
+        const { flavorAvailability, adminName } = req.body;
         
         if (!flavorAvailability || typeof flavorAvailability !== 'object') {
             return res.status(400).json({
                 success: false,
-                error: 'Dados inválidos'
+                error: 'Dados de sabores inválidos'
             });
         }
         
-        // Atualizar dados
-        Object.keys(flavorAvailability).forEach(flavorKey => {
-            flavorAvailabilityDB[flavorKey] = flavorAvailability[flavorKey];
-        });
+        const data = {
+            success: true,
+            flavorAvailability,
+            lastUpdated: new Date().toISOString(),
+            updatedBy: adminName || 'Admin BebCom'
+        };
         
-        const savedCount = Object.keys(flavorAvailability).length;
-        
-        // Salvar no arquivo
-        await saveDataToFile();
-        
-        console.log(`✅ Admin atualizou ${savedCount} sabores`);
+        await fs.writeFile(FLAVORS_FILE, JSON.stringify(data, null, 2));
         
         res.json({
             success: true,
-            message: `Salvo ${savedCount} sabores`,
-            savedCount,
+            message: 'Disponibilidade de sabores atualizada com sucesso',
             timestamp: new Date().toISOString()
         });
-        
     } catch (error) {
         console.error('❌ Erro ao salvar sabores:', error);
         res.status(500).json({
             success: false,
-            error: 'Erro interno ao salvar sabores'
+            error: 'Erro ao salvar disponibilidade de sabores'
         });
     }
 });
 
-// ====== ROTA DE FALLBACK ======
-app.use('*', (req, res) => {
-    res.status(404).json({
-        success: false,
-        error: 'Rota não encontrada',
-        timestamp: new Date().toISOString()
+// Criar pagamento (simulação)
+app.post('/api/create-payment', async (req, res) => {
+    try {
+        const { orderId, customer, items, deliveryType, paymentMethod, totalAmount, deliveryFee } = req.body;
+        
+        // Validar dados básicos
+        if (!orderId || !customer || !items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Dados do pedido inválidos'
+            });
+        }
+        
+        // Simular criação de pedido
+        const order = {
+            id: orderId,
+            customer,
+            items,
+            deliveryType,
+            paymentMethod,
+            totalAmount,
+            deliveryFee,
+            status: 'pending',
+            createdAt: new Date().toISOString(),
+            paid: false
+        };
+        
+        // Salvar pedido
+        try {
+            const ordersData = await fs.readFile(ORDERS_FILE, 'utf8');
+            const orders = JSON.parse(ordersData);
+            orders.orders.push(order);
+            await fs.writeFile(ORDERS_FILE, JSON.stringify(orders, null, 2));
+        } catch (error) {
+            console.error('❌ Erro ao salvar pedido:', error);
+        }
+        
+        // Simular resposta de pagamento
+        if (paymentMethod === 'pix') {
+            // Gerar QR Code PIX simulado
+            const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`PIX:${orderId}:${totalAmount}`)}`;
+            
+            res.json({
+                success: true,
+                orderId,
+                qrCode,
+                copyPasteKey: '00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-4266141740005204000053039865406' + 
+                              Math.floor(totalAmount * 100).toString().padStart(10, '0') + 
+                              '5802BR5925BEBCOM DELIVERY LTDA6008BAURU-SP62070503***6304' + 
+                              Math.random().toString(36).substring(2, 6).toUpperCase(),
+                message: 'QR Code PIX gerado com sucesso'
+            });
+        } else if (paymentMethod === 'card_online') {
+            // Simular URL de pagamento com cartão
+            res.json({
+                success: true,
+                orderId,
+                paymentUrl: `https://sandbox.mercadopago.com.br/checkout/v1/redirect?pref_id=simulated_${orderId}`,
+                message: 'Redirecionando para pagamento com cartão'
+            });
+        } else {
+            res.json({
+                success: true,
+                orderId,
+                message: 'Pedido criado com sucesso'
+            });
+        }
+    } catch (error) {
+        console.error('❌ Erro ao criar pagamento:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao processar pagamento'
+        });
+    }
+});
+
+// Verificar status do pedido
+app.get('/api/order-status/:orderId', async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        
+        // Simular verificação de status
+        // Em produção, aqui você integraria com a API do seu gateway de pagamento
+        
+        const status = Math.random() > 0.3 ? 'paid' : 'pending'; // 70% de chance de estar pago (para teste)
+        
+        res.json({
+            success: true,
+            orderId,
+            paid: status === 'paid',
+            status: status
+        });
+    } catch (error) {
+        console.error('❌ Erro ao verificar status:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao verificar status do pedido'
+        });
+    }
+});
+
+// Sincronizar todos os dados
+app.get('/api/sync-all', async (req, res) => {
+    try {
+        const [productsData, flavorsData] = await Promise.all([
+            fs.readFile(PRODUCTS_FILE, 'utf8'),
+            fs.readFile(FLAVORS_FILE, 'utf8')
+        ]);
+        
+        const products = JSON.parse(productsData);
+        const flavors = JSON.parse(flavorsData);
+        
+        res.json({
+            success: true,
+            productAvailability: products.productAvailability || {},
+            flavorAvailability: flavors.flavorAvailability || {},
+            lastSync: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('❌ Erro na sincronização:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao sincronizar dados'
+        });
+    }
+});
+
+// Listar pedidos (admin)
+app.get('/api/admin/orders', checkAdminPassword, async (req, res) => {
+    try {
+        const data = await fs.readFile(ORDERS_FILE, 'utf8');
+        const orders = JSON.parse(data);
+        
+        res.json({
+            success: true,
+            orders: orders.orders || [],
+            count: (orders.orders || []).length,
+            lastUpdated: orders.lastUpdated
+        });
+    } catch (error) {
+        console.error('❌ Erro ao listar pedidos:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao carregar pedidos'
+        });
+    }
+});
+
+// Exportar pedidos (admin)
+app.get('/api/admin/orders/export', checkAdminPassword, async (req, res) => {
+    try {
+        const data = await fs.readFile(ORDERS_FILE, 'utf8');
+        const orders = JSON.parse(data);
+        
+        res.setHeader('Content-Disposition', 'attachment; filename=pedidos_bebcom.json');
+        res.setHeader('Content-Type', 'application/json');
+        
+        res.json({
+            success: true,
+            orders: orders.orders || [],
+            exportDate: new Date().toISOString(),
+            totalOrders: (orders.orders || []).length
+        });
+    } catch (error) {
+        console.error('❌ Erro ao exportar pedidos:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao exportar pedidos'
+        });
+    }
+});
+
+// Rota padrão
+app.get('/', (req, res) => {
+    res.json({
+        service: 'BebCom Delivery API',
+        version: '3.0',
+        status: 'operational',
+        endpoints: {
+            health: '/health',
+            productAvailability: '/api/product-availability',
+            flavorAvailability: '/api/flavor-availability',
+            createPayment: '/api/create-payment',
+            orderStatus: '/api/order-status/:orderId',
+            sync: '/api/sync-all'
+        },
+        documentation: 'Consulte a documentação para mais informações'
     });
 });
 
-// ====== INICIAR SERVIDOR ======
+// Rota 404
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        error: 'Endpoint não encontrado'
+    });
+});
 
+// Tratamento de erros global
+app.use((err, req, res, next) => {
+    console.error('❌ Erro global:', err);
+    res.status(500).json({
+        success: false,
+        error: 'Erro interno do servidor'
+    });
+});
+
+// Inicializar servidor
 async function startServer() {
-    await loadDataFromFile();
+    await initializeData();
     
-    app.listen(PORT, '0.0.0.0', () => {
-        console.log('='.repeat(50));
-        console.log(`🚀 BebCom Delivery API v3.0`);
-        console.log('='.repeat(50));
-        console.log(`📍 Porta: ${PORT}`);
-        console.log(`🔗 Health: http://localhost:${PORT}/health`);
-        console.log(`🔗 Senha admin: ${ADMIN_PASSWORD ? 'CONFIGURADA' : 'PADRÃO'}`);
-        console.log(`💾 Dados: ${Object.keys(productAvailabilityDB).length} produtos`);
-        console.log('='.repeat(50));
+    app.listen(PORT, () => {
+        console.log(`🚀 Servidor BebCom Delivery rodando na porta ${PORT}`);
+        console.log(`📁 Dados armazenados em: ${DATA_DIR}`);
+        console.log(`🔐 Senha admin: ${ADMIN_PASSWORD}`);
+        console.log(`🌐 URL: http://localhost:${PORT}`);
+        console.log(`✅ Health check: http://localhost:${PORT}/health`);
     });
 }
 
-startServer().catch(console.error);
-
-// Garantir salvamento ao encerrar
-process.on('SIGINT', async () => {
-    console.log('\n💾 Salvando dados antes de encerrar...');
-    await saveDataToFile();
+// Tratar encerramento gracioso
+process.on('SIGTERM', () => {
+    console.log('👋 Encerrando servidor graciosamente...');
     process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    console.log('👋 Servidor interrompido pelo usuário');
+    process.exit(0);
+});
+
+// Iniciar servidor
+startServer().catch(error => {
+    console.error('❌ Falha ao iniciar servidor:', error);
+    process.exit(1);
 });
