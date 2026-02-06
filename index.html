@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -1423,8 +1423,8 @@
     </style>
 </head>
 <body>
-    <!-- Botão Admin -->
-    <button class="admin-button" id="adminButton" title="Painel Administrativo">
+    <!-- Botão Admin - COM ONCLICK ADICIONADO -->
+    <button class="admin-button" id="adminButton" title="Painel Administrativo" onclick="openAdminPanel()">
         🔧
     </button>
 
@@ -2375,7 +2375,16 @@
             // Só inicializar o resto do sistema se a idade for verificada
             if (!ageVerified) return;
 
-            // Carregar dados persistentes
+            // 1. PRIMEIRO: Configurar listeners críticos
+            setupEventListeners();
+            setupAdminListeners(); // ← AGORA ESTÁ NO LUGAR CERTO!
+            
+            // 2. Configurações básicas
+            setupPhoneMask();
+            setupAutoSave();
+            setupAutoSync();
+
+            // 3. Carregar dados
             loadCartFromLocalStorage();
 
             try {
@@ -2384,29 +2393,15 @@
                     loadProductAvailability(),
                     loadFlavorAvailability()
                 ]);
-
                 console.log('✅ Dados carregados do servidor');
             } catch (error) {
                 console.log('⚠️ Usando dados locais:', error.message);
-                // Continuar com dados locais
             }
 
-            // Inicializar componentes
+            // 4. Inicializar componentes visuais
             showCategory('drinks-whisky');
-            setupEventListeners();
-            setupAdminListeners();
-
-            // Configurar delivery padrão
             selectDeliveryType('pickup');
-
-            // Configurar máscara de telefone
-            setupPhoneMask();
-
-            // Configurar auto-save
-            setupAutoSave();
-
-            // Configurar sincronização automática
-            setupAutoSync();
+            updateCartDisplay();
 
             console.log('✅ Sistema BebCom Delivery inicializado com sucesso');
         }
@@ -3532,45 +3527,94 @@
         }
 
         // ============================================
-        // SISTEMA ADMINISTRATIVO (ATUALIZADO COM BACKEND)
+        // SISTEMA ADMINISTRATIVO - CORRIGIDO!
         // ============================================
         function setupAdminListeners() {
-            document.getElementById('adminButton').addEventListener('click', openAdminPanel);
-            document.getElementById('adminClose').addEventListener('click', closeAdminPanel);
-            document.getElementById('adminModal').addEventListener('click', function (e) {
-                if (e.target === this) closeAdminPanel();
-            });
-
-            document.addEventListener('keydown', function (e) {
+            console.log('🔧 Configurando listeners administrativos...');
+            
+            const adminBtn = document.getElementById('adminButton');
+            const adminClose = document.getElementById('adminClose');
+            const adminModal = document.getElementById('adminModal');
+            
+            // DEBUG
+            console.log('Botão admin encontrado?', adminBtn ? '✅' : '❌');
+            console.log('Modal encontrado?', adminModal ? '✅' : '❌');
+            
+            if (!adminBtn) {
+                console.error('❌ CRÍTICO: Botão administrativo não encontrado!');
+                return;
+            }
+            
+            // Adicionar listener ao botão
+            if (adminBtn) {
+                adminBtn.addEventListener('click', function(e) {
+                    console.log('🎯 Botão administrativo clicado!', e);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openAdminPanel();
+                });
+                
+                console.log('✅ Listener do botão admin configurado');
+            }
+            
+            // Configurar fechamento
+            if (adminClose) {
+                adminClose.addEventListener('click', closeAdminPanel);
+            }
+            
+            if (adminModal) {
+                adminModal.addEventListener('click', function(e) {
+                    if (e.target === this) closeAdminPanel();
+                });
+            }
+            
+            // Teclas de atalho
+            document.addEventListener('keydown', function(e) {
                 if (e.ctrlKey && e.altKey && e.key === 'a') {
                     e.preventDefault();
+                    console.log('⌨️ Atalho Ctrl+Alt+A pressionado');
                     openAdminPanel();
                 }
-
+                
                 if (e.key === 'Escape') {
                     closeAdminPanel();
                 }
             });
+            
+            console.log('✅ Sistema administrativo configurado');
         }
 
         function openAdminPanel() {
-            document.getElementById('adminModal').style.display = 'block';
-
-            if (!state.adminAuthenticated) {
-                document.getElementById('passwordSection').style.display = 'block';
-                document.getElementById('adminMain').style.display = 'none';
-                document.getElementById('adminActions').style.display = 'none';
-                document.getElementById('adminPassword').value = '';
-                document.getElementById('adminPassword').focus();
+            console.log('🔧 Abrindo painel administrativo...');
+            
+            // Forçar exibição do modal
+            const modal = document.getElementById('adminModal');
+            if (modal) {
+                modal.style.display = 'block';
+                console.log('✅ Modal administrativo aberto');
             } else {
-                document.getElementById('passwordSection').style.display = 'none';
-                document.getElementById('adminMain').style.display = 'block';
-                document.getElementById('adminActions').style.display = 'block';
-                loadAdminProducts();
+                console.error('❌ Modal não encontrado!');
+                return;
+            }
+
+            // Sempre mostrar seção de senha primeiro
+            document.getElementById('passwordSection').style.display = 'block';
+            document.getElementById('adminMain').style.display = 'none';
+            document.getElementById('adminActions').style.display = 'none';
+            
+            // Resetar estado
+            state.adminAuthenticated = false;
+            
+            // Focar no campo de senha
+            const passwordInput = document.getElementById('adminPassword');
+            if (passwordInput) {
+                passwordInput.value = '';
+                passwordInput.focus();
             }
         }
 
         function closeAdminPanel() {
+            console.log('🔒 Fechando painel administrativo...');
             document.getElementById('adminModal').style.display = 'none';
             state.adminAuthenticated = false;
         }
