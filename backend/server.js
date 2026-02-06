@@ -1,14 +1,15 @@
-// server.js - Backend FUNCIONAL e CORRIGIDO
+// server.js - Backend FUNCIONAL e CORRIGIDO COM AUTENTICAÇÃO SEGURA
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs').promises;
 const path = require('path');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 
 // Configurações
 const PORT = process.env.PORT || 3000;
-const ADMIN_KEY = process.env.ADMIN_KEY || 'Bebcom25*';
+const JWT_SECRET = process.env.JWT_SECRET || 'bebcom-delivery-secret-key-2024';
 const DATA_FILE = path.join(__dirname, 'data.json');
 
 // Armazenamento em memória (fallback se arquivo não existir)
@@ -17,9 +18,9 @@ let flavorAvailabilityDB = {};
 
 // ====== CONFIGURAÇÃO CORS (CRÍTICA!) ======
 app.use(cors({
-    origin: '*', // Permite todas as origens
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     credentials: false,
     preflightContinue: false,
     optionsSuccessStatus: 204
@@ -29,7 +30,7 @@ app.use(cors({
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-key, X-Requested-With');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -44,9 +45,7 @@ app.use(express.json());
 
 async function loadDataFromFile() {
     try {
-        // Verificar se arquivo existe
         await fs.access(DATA_FILE);
-        
         const data = await fs.readFile(DATA_FILE, 'utf8');
         const parsed = JSON.parse(data);
         
@@ -57,7 +56,6 @@ async function loadDataFromFile() {
         
     } catch (error) {
         if (error.code === 'ENOENT') {
-            // Arquivo não existe, criar um novo com estrutura básica
             console.log('📂 Arquivo data.json não encontrado. Criando novo...');
             const initialData = {
                 productAvailabilityDB: {},
@@ -67,7 +65,6 @@ async function loadDataFromFile() {
             
             await fs.writeFile(DATA_FILE, JSON.stringify(initialData, null, 2));
             console.log('✅ Arquivo data.json criado com sucesso');
-            
         } else {
             console.error('❌ Erro ao carregar dados:', error.message);
         }
@@ -87,13 +84,37 @@ async function saveDataToFile() {
         
     } catch (error) {
         console.error('❌ Erro ao salvar dados:', error.message);
-        // Continuar mesmo sem salvar no arquivo
     }
 }
 
-// ====== ROTAS OBRIGATÓRIAS ======
+// ====== MIDDLEWARE DE AUTENTICAÇÃO ======
 
-// 1. ROTA DE HEALTH CHECK (MUITO IMPORTANTE)
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            error: 'Token de acesso não fornecido'
+        });
+    }
+    
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({
+                success: false,
+                error: 'Token inválido ou expirado'
+            });
+        }
+        
+        req.user = user;
+        next();
+    });
+}
+
+// ====== ROTAS PÚBLICAS ======
+
 app.get('/health', (req, res) => {
     res.json({
         status: 'online',
@@ -105,61 +126,72 @@ app.get('/health', (req, res) => {
         data: {
             products: Object.keys(productAvailabilityDB).length,
             flavors: Object.keys(flavorAvailabilityDB).length
-        },
-        endpoints: [
-            '/api/product-availability',
-            '/api/flavor-availability', 
-            '/api/sync-all',
-            '/api/admin/status'
-        ]
+        }
     });
 });
 
-// 2. STATUS DO ADMIN
-app.get('/api/admin/status', (req, res) => {
-    res.json({
-        success: true,
-        adminEnabled: true,
-        storage: 'file-system',
-        data: {
-            products: Object.keys(productAvailabilityDB).length,
-            flavors: Object.keys(flavorAvailabilityDB).length
-        },
-        timestamp: new Date().toISOString(),
-        message: 'API administrativa funcionando'
-    });
+// LOGIN ADMINISTRATIVO (PÚBLICO)
+app.post('/api/admin/login', (req, res) => {
+    try {
+        const { password } = req.body;
+        
+        // SENHA CORRETA (agora só no backend!)
+        const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Bebcom25*';
+        
+        if (password === ADMIN_PASSWORD) {
+            // Gerar token JWT
+            const token = jwt.sign(
+                { role: 'admin', access: 'full' }, 
+                JWT_SECRET, 
+                { expiresIn: '2h' }
+            );
+            
+            res.json({
+                success: true,
+                token,
+                message: 'Login realizado com sucesso',
+                expiresIn: '2 hours'
+            });
+        } else {
+            res.status(401).json({
+                success: false,
+                error: 'Senha incorreta'
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Erro interno no servidor'
+        });
+    }
 });
 
-// 3. ROTA RAIZ (redireciona para health)
+// ROTA RAIZ
 app.get('/', (req, res) => {
     res.redirect('/health');
 });
 
-// 4. DISPONIBILIDADE DE PRODUTOS
+// DISPONIBILIDADE DE PRODUTOS
 app.get('/api/product-availability', (req, res) => {
     res.json({
         success: true,
         productAvailability: productAvailabilityDB,
         count: Object.keys(productAvailabilityDB).length,
-        timestamp: new Date().toISOString(),
-        source: 'file-storage',
-        message: 'Dados persistentes (sobrevivem ao reinício)'
+        timestamp: new Date().toISOString()
     });
 });
 
-// 5. DISPONIBILIDADE DE SABORES
+// DISPONIBILIDADE DE SABORES
 app.get('/api/flavor-availability', (req, res) => {
     res.json({
         success: true,
         flavorAvailability: flavorAvailabilityDB,
         count: Object.keys(flavorAvailabilityDB).length,
-        timestamp: new Date().toISOString(),
-        source: 'file-storage',
-        message: 'Dados persistentes (sobrevivem ao reinício)'
+        timestamp: new Date().toISOString()
     });
 });
 
-// 6. SINCRONIZAÇÃO COMPLETA (CRÍTICA PARA O FRONTEND)
+// SINCRONIZAÇÃO COMPLETA
 app.get('/api/sync-all', (req, res) => {
     res.json({
         success: true,
@@ -170,15 +202,14 @@ app.get('/api/sync-all', (req, res) => {
             products: Object.keys(productAvailabilityDB).length,
             flavors: Object.keys(flavorAvailabilityDB).length
         },
-        timestamp: new Date().toISOString(),
-        source: 'backend'
+        timestamp: new Date().toISOString()
     });
 });
 
-// 7. CRIAR PAGAMENTO (SIMULADO)
+// CRIAR PAGAMENTO (SIMULADO)
 app.post('/api/create-payment', (req, res) => {
     try {
-        const { orderId, customer, items, totalAmount } = req.body;
+        const { orderId, totalAmount } = req.body;
         
         const generatedOrderId = orderId || 'BEB' + Date.now().toString().slice(-8);
         
@@ -187,8 +218,7 @@ app.post('/api/create-payment', (req, res) => {
             paymentType: 'pix',
             orderId: generatedOrderId,
             qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=BEBCOM-${generatedOrderId}`,
-            copyPasteKey: '00020126360014BR.GOV.BCB.PIX0114+55149999999990225BebCom Delivery - Pedido ' + generatedOrderId + '5204000053039865802BR5913BebCom Delivery6008SAO PAULO62070503***6304',
-            instructions: 'Pague via PIX usando o QR Code acima',
+            copyPasteKey: '00020126360014BR.GOV.BCB.PIX0114+55149999999990225BebCom Delivery - Pedido ' + generatedOrderId,
             amount: totalAmount || 0,
             timestamp: new Date().toISOString()
         });
@@ -196,52 +226,43 @@ app.post('/api/create-payment', (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            error: 'Erro ao criar pagamento',
-            details: error.message
+            error: 'Erro ao criar pagamento'
         });
     }
 });
 
-// 8. STATUS DO PEDIDO
+// STATUS DO PEDIDO
 app.get('/api/order-status/:orderId', (req, res) => {
     res.json({
         success: true,
         orderId: req.params.orderId,
         status: 'paid',
         paid: true,
-        timestamp: new Date().toISOString(),
-        message: 'Pedido confirmado e pago'
+        timestamp: new Date().toISOString()
     });
 });
 
-// ====== ROTAS ADMIN ======
+// ====== ROTAS ADMINISTRATIVAS (PROTEGIDAS) ======
 
-// Middleware de autenticação
-const authAdmin = (req, res, next) => {
-    const key = req.headers['x-admin-key'] || req.body.adminKey;
-    
-    if (key === ADMIN_KEY) {
-        next();
-    } else {
-        res.status(401).json({
-            success: false,
-            error: 'Acesso não autorizado. Use o header x-admin-key',
-            hint: 'Chave esperada: ' + ADMIN_KEY
-        });
-    }
-};
+// VERIFICAR TOKEN
+app.get('/api/admin/verify', authenticateToken, (req, res) => {
+    res.json({
+        success: true,
+        user: req.user,
+        message: 'Token válido',
+        timestamp: new Date().toISOString()
+    });
+});
 
-// ATUALIZAR PRODUTOS (ROTA QUE O FRONTEND USA!)
-app.post('/api/admin/product-availability/bulk', authAdmin, async (req, res) => {
+// ATUALIZAR PRODUTOS EM MASSA
+app.post('/api/admin/product-availability/bulk', authenticateToken, async (req, res) => {
     try {
-        const { productAvailability, adminName = 'Admin BebCom' } = req.body;
-        
-        console.log('📝 Recebendo atualização de produtos:', Object.keys(productAvailability || {}).length);
+        const { productAvailability } = req.body;
         
         if (!productAvailability || typeof productAvailability !== 'object') {
             return res.status(400).json({
                 success: false,
-                error: 'Dados inválidos. Envie {productAvailability: {...}}'
+                error: 'Dados inválidos'
             });
         }
         
@@ -255,39 +276,33 @@ app.post('/api/admin/product-availability/bulk', authAdmin, async (req, res) => 
         // Salvar no arquivo
         await saveDataToFile();
         
-        console.log(`✅ Admin "${adminName}" atualizou ${savedCount} produtos`);
+        console.log(`✅ Admin atualizou ${savedCount} produtos`);
         
         res.json({
             success: true,
-            message: `Salvo ${savedCount} produtos no sistema`,
+            message: `Salvo ${savedCount} produtos`,
             savedCount,
-            storage: 'file-system',
-            timestamp: new Date().toISOString(),
-            note: 'Dados salvos permanentemente'
+            timestamp: new Date().toISOString()
         });
         
     } catch (error) {
         console.error('❌ Erro ao salvar produtos:', error);
         res.status(500).json({
             success: false,
-            error: 'Erro interno ao salvar produtos',
-            details: error.message,
-            timestamp: new Date().toISOString()
+            error: 'Erro interno ao salvar produtos'
         });
     }
 });
 
-// ATUALIZAR SABORES (ROTA QUE O FRONTEND USA!)
-app.post('/api/admin/flavor-availability/bulk', authAdmin, async (req, res) => {
+// ATUALIZAR SABORES EM MASSA
+app.post('/api/admin/flavor-availability/bulk', authenticateToken, async (req, res) => {
     try {
-        const { flavorAvailability, adminName = 'Admin BebCom' } = req.body;
-        
-        console.log('📝 Recebendo atualização de sabores:', Object.keys(flavorAvailability || {}).length);
+        const { flavorAvailability } = req.body;
         
         if (!flavorAvailability || typeof flavorAvailability !== 'object') {
             return res.status(400).json({
                 success: false,
-                error: 'Dados inválidos. Envie {flavorAvailability: {...}}'
+                error: 'Dados inválidos'
             });
         }
         
@@ -301,46 +316,26 @@ app.post('/api/admin/flavor-availability/bulk', authAdmin, async (req, res) => {
         // Salvar no arquivo
         await saveDataToFile();
         
-        console.log(`✅ Admin "${adminName}" atualizou ${savedCount} sabores`);
+        console.log(`✅ Admin atualizou ${savedCount} sabores`);
         
         res.json({
             success: true,
-            message: `Salvo ${savedCount} sabores no sistema`,
+            message: `Salvo ${savedCount} sabores`,
             savedCount,
-            storage: 'file-system',
-            timestamp: new Date().toISOString(),
-            note: 'Dados salvos permanentemente'
+            timestamp: new Date().toISOString()
         });
         
     } catch (error) {
         console.error('❌ Erro ao salvar sabores:', error);
         res.status(500).json({
             success: false,
-            error: 'Erro interno ao salvar sabores',
-            details: error.message,
-            timestamp: new Date().toISOString()
+            error: 'Erro interno ao salvar sabores'
         });
     }
 });
 
-// ROTA DE TESTE (sem autenticação, para debug)
-app.get('/api/test', (req, res) => {
-    res.json({
-        success: true,
-        message: 'API está funcionando!',
-        timestamp: new Date().toISOString(),
-        endpoints: {
-            health: '/health',
-            products: '/api/product-availability',
-            flavors: '/api/flavor-availability',
-            sync: '/api/sync-all',
-            adminStatus: '/api/admin/status'
-        }
-    });
-});
-
 // BACKUP DOS DADOS
-app.get('/api/admin/backup', authAdmin, async (req, res) => {
+app.get('/api/admin/backup', authenticateToken, async (req, res) => {
     try {
         const data = await fs.readFile(DATA_FILE, 'utf8');
         const parsed = JSON.parse(data);
@@ -354,14 +349,13 @@ app.get('/api/admin/backup', authAdmin, async (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            error: 'Erro ao criar backup',
-            details: error.message
+            error: 'Erro ao criar backup'
         });
     }
 });
 
 // RESETAR DADOS
-app.post('/api/admin/reset-data', authAdmin, async (req, res) => {
+app.post('/api/admin/reset', authenticateToken, async (req, res) => {
     try {
         productAvailabilityDB = {};
         flavorAvailabilityDB = {};
@@ -378,29 +372,16 @@ app.post('/api/admin/reset-data', authAdmin, async (req, res) => {
         console.error('❌ Erro ao resetar dados:', error);
         res.status(500).json({
             success: false,
-            error: 'Erro ao resetar dados',
-            timestamp: new Date().toISOString()
+            error: 'Erro ao resetar dados'
         });
     }
 });
 
-// ====== ROTA DE FALLBACK PARA ERROS 404 ======
+// ====== ROTA DE FALLBACK ======
 app.use('*', (req, res) => {
     res.status(404).json({
         success: false,
         error: 'Rota não encontrada',
-        requestedUrl: req.originalUrl,
-        availableEndpoints: [
-            'GET  /health',
-            'GET  /api/product-availability',
-            'GET  /api/flavor-availability',
-            'GET  /api/sync-all',
-            'GET  /api/admin/status',
-            'POST /api/admin/product-availability/bulk',
-            'POST /api/admin/flavor-availability/bulk',
-            'POST /api/create-payment',
-            'GET  /api/order-status/:orderId'
-        ],
         timestamp: new Date().toISOString()
     });
 });
@@ -408,44 +389,26 @@ app.use('*', (req, res) => {
 // ====== INICIAR SERVIDOR ======
 
 async function startServer() {
-    // Carregar dados do arquivo (ou criar se não existir)
     await loadDataFromFile();
     
-    // Iniciar servidor
     app.listen(PORT, '0.0.0.0', () => {
         console.log('='.repeat(50));
-        console.log(`🚀 BebCom Delivery API v3.0`);
+        console.log(`🚀 BebCom Delivery API v3.0 (AUTH FIXED)`);
         console.log('='.repeat(50));
         console.log(`📍 Porta: ${PORT}`);
-        console.log(`🔗 Health: http://0.0.0.0:${PORT}/health`);
-        console.log(`🔗 API Test: http://0.0.0.0:${PORT}/api/test`);
-        console.log(`💾 Armazenamento: ${DATA_FILE}`);
-        console.log(`📊 Dados: ${Object.keys(productAvailabilityDB).length} produtos, ${Object.keys(flavorAvailabilityDB).length} sabores`);
-        console.log('✅ CORS configurado para todas as origens');
-        console.log('='.repeat(50));
-        console.log('📋 Endpoints disponíveis:');
-        console.log('  GET  /health');
-        console.log('  GET  /api/product-availability');
-        console.log('  GET  /api/flavor-availability');
-        console.log('  GET  /api/sync-all');
-        console.log('  GET  /api/admin/status');
-        console.log('  POST /api/admin/product-availability/bulk');
-        console.log('  POST /api/admin/flavor-availability/bulk');
+        console.log(`🔗 Health: http://localhost:${PORT}/health`);
+        console.log(`🔗 Login: POST http://localhost:${PORT}/api/admin/login`);
+        console.log(`💾 Dados: ${Object.keys(productAvailabilityDB).length} produtos`);
+        console.log(`🔐 Autenticação: JWT Token`);
         console.log('='.repeat(50));
     });
 }
 
 startServer().catch(console.error);
 
-// Garantir que dados sejam salvos ao encerrar
+// Garantir salvamento ao encerrar
 process.on('SIGINT', async () => {
     console.log('\n💾 Salvando dados antes de encerrar...');
-    await saveDataToFile();
-    process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-    console.log('\n💾 Salvando dados antes de encerrar (SIGTERM)...');
     await saveDataToFile();
     process.exit(0);
 });
