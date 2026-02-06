@@ -8,7 +8,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração do CORS - CORRIGIDO!
+// Configuração do CORS
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -23,53 +23,68 @@ const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
 const FLAVORS_FILE = path.join(DATA_DIR, 'flavors.json');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 
-// Senha administrativa (mude esta senha para produção)
+// Senha administrativa
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Bebcom25*';
 
 // Inicializar arquivos de dados
 async function initializeData() {
     try {
-        await fs.mkdir(DATA_DIR, { recursive: true });
+        console.log('📂 Inicializando dados...');
         
-        // Inicializar produtos se não existir
+        // Criar diretório data se não existir
+        await fs.mkdir(DATA_DIR, { recursive: true });
+        console.log('✅ Diretório data criado');
+        
+        // Inicializar produtos.json se não existir
         try {
             await fs.access(PRODUCTS_FILE);
+            console.log('✅ products.json já existe');
         } catch {
             const initialProducts = {
                 success: true,
                 productAvailability: {},
-                lastUpdated: new Date().toISOString()
+                lastUpdated: new Date().toISOString(),
+                message: 'Arquivo criado automaticamente'
             };
             await fs.writeFile(PRODUCTS_FILE, JSON.stringify(initialProducts, null, 2));
+            console.log('✅ products.json criado');
         }
         
-        // Inicializar sabores se não existir
+        // Inicializar flavors.json se não existir
         try {
             await fs.access(FLAVORS_FILE);
+            console.log('✅ flavors.json já existe');
         } catch {
             const initialFlavors = {
                 success: true,
                 flavorAvailability: {},
-                lastUpdated: new Date().toISOString()
+                lastUpdated: new Date().toISOString(),
+                message: 'Arquivo criado automaticamente'
             };
             await fs.writeFile(FLAVORS_FILE, JSON.stringify(initialFlavors, null, 2));
+            console.log('✅ flavors.json criado');
         }
         
-        // Inicializar pedidos se não existir
+        // Inicializar orders.json se não existir
         try {
             await fs.access(ORDERS_FILE);
+            console.log('✅ orders.json já existe');
         } catch {
             const initialOrders = {
                 success: true,
                 orders: [],
-                lastUpdated: new Date().toISOString()
+                lastUpdated: new Date().toISOString(),
+                message: 'Arquivo criado automaticamente'
             };
             await fs.writeFile(ORDERS_FILE, JSON.stringify(initialOrders, null, 2));
+            console.log('✅ orders.json criado');
         }
         
-        console.log('✅ Dados inicializados com sucesso');
+        console.log('🎉 Todos os arquivos de dados foram inicializados');
+        return true;
     } catch (error) {
         console.error('❌ Erro ao inicializar dados:', error);
+        return false;
     }
 }
 
@@ -100,7 +115,8 @@ app.get('/health', (req, res) => {
         status: 'ok',
         timestamp: new Date().toISOString(),
         service: 'BebCom Delivery API',
-        version: '3.0'
+        version: '3.0',
+        dataDirectory: DATA_DIR
     });
 });
 
@@ -165,10 +181,13 @@ app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req,
         
         await fs.writeFile(PRODUCTS_FILE, JSON.stringify(data, null, 2));
         
+        console.log(`📦 Produtos atualizados por: ${adminName || 'Admin BebCom'}`);
+        
         res.json({
             success: true,
             message: 'Disponibilidade de produtos atualizada com sucesso',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            totalProducts: Object.keys(productAvailability).length
         });
     } catch (error) {
         console.error('❌ Erro ao salvar produtos:', error);
@@ -200,10 +219,13 @@ app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, 
         
         await fs.writeFile(FLAVORS_FILE, JSON.stringify(data, null, 2));
         
+        console.log(`🍹 Sabores atualizados por: ${adminName || 'Admin BebCom'}`);
+        
         res.json({
             success: true,
             message: 'Disponibilidade de sabores atualizada com sucesso',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            totalFlavors: Object.keys(flavorAvailability).length
         });
     } catch (error) {
         console.error('❌ Erro ao salvar sabores:', error);
@@ -247,6 +269,7 @@ app.post('/api/create-payment', async (req, res) => {
             const orders = JSON.parse(ordersData);
             orders.orders.push(order);
             await fs.writeFile(ORDERS_FILE, JSON.stringify(orders, null, 2));
+            console.log(`📝 Pedido salvo: ${orderId}`);
         } catch (error) {
             console.error('❌ Erro ao salvar pedido:', error);
         }
@@ -326,11 +349,14 @@ app.get('/api/sync-all', async (req, res) => {
         const products = JSON.parse(productsData);
         const flavors = JSON.parse(flavorsData);
         
+        console.log('🔄 Sincronização solicitada');
+        
         res.json({
             success: true,
             productAvailability: products.productAvailability || {},
             flavorAvailability: flavors.flavorAvailability || {},
-            lastSync: new Date().toISOString()
+            lastSync: new Date().toISOString(),
+            message: 'Dados sincronizados com sucesso'
         });
     } catch (error) {
         console.error('❌ Erro na sincronização:', error);
@@ -362,28 +388,23 @@ app.get('/api/admin/orders', checkAdminPassword, async (req, res) => {
     }
 });
 
-// Exportar pedidos (admin)
-app.get('/api/admin/orders/export', checkAdminPassword, async (req, res) => {
-    try {
-        const data = await fs.readFile(ORDERS_FILE, 'utf8');
-        const orders = JSON.parse(data);
-        
-        res.setHeader('Content-Disposition', 'attachment; filename=pedidos_bebcom.json');
-        res.setHeader('Content-Type', 'application/json');
-        
-        res.json({
-            success: true,
-            orders: orders.orders || [],
-            exportDate: new Date().toISOString(),
-            totalOrders: (orders.orders || []).length
-        });
-    } catch (error) {
-        console.error('❌ Erro ao exportar pedidos:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Erro ao exportar pedidos'
-        });
-    }
+// Rota para obter configurações do sistema
+app.get('/api/config', (req, res) => {
+    res.json({
+        success: true,
+        backendUrl: 'https://bebcom-cardapio-delivery.onrender.com',
+        whatsappNumber: '5514996130369',
+        deliveryRates: {
+            baseFee: 5.00,
+            freeDeliveryMin: 100.00,
+            maxDistance: 15
+        },
+        storeLocation: {
+            address: "R. José Henrique Ferraz, 18-10 - Centro, Bauru - SP",
+            city: "Bauru",
+            state: "SP"
+        }
+    });
 });
 
 // Rota padrão
@@ -398,9 +419,10 @@ app.get('/', (req, res) => {
             flavorAvailability: '/api/flavor-availability',
             createPayment: '/api/create-payment',
             orderStatus: '/api/order-status/:orderId',
-            sync: '/api/sync-all'
+            sync: '/api/sync-all',
+            config: '/api/config'
         },
-        documentation: 'Consulte a documentação para mais informações'
+        documentation: 'API para o sistema BebCom Delivery'
     });
 });
 
@@ -408,7 +430,10 @@ app.get('/', (req, res) => {
 app.use((req, res) => {
     res.status(404).json({
         success: false,
-        error: 'Endpoint não encontrado'
+        error: 'Endpoint não encontrado',
+        requestedUrl: req.url,
+        method: req.method,
+        availableEndpoints: ['/health', '/api/product-availability', '/api/flavor-availability', '/api/create-payment']
     });
 });
 
@@ -417,20 +442,33 @@ app.use((err, req, res, next) => {
     console.error('❌ Erro global:', err);
     res.status(500).json({
         success: false,
-        error: 'Erro interno do servidor'
+        error: 'Erro interno do servidor',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Entre em contato com o suporte'
     });
 });
 
 // Inicializar servidor
 async function startServer() {
-    await initializeData();
+    console.log('🚀 Iniciando servidor BebCom Delivery...');
     
+    // Inicializar dados
+    const dataInitialized = await initializeData();
+    if (!dataInitialized) {
+        console.error('❌ Falha ao inicializar dados. Encerrando...');
+        process.exit(1);
+    }
+    
+    // Iniciar servidor
     app.listen(PORT, () => {
-        console.log(`🚀 Servidor BebCom Delivery rodando na porta ${PORT}`);
+        console.log(`🎉 Servidor BebCom Delivery rodando na porta ${PORT}`);
         console.log(`📁 Dados armazenados em: ${DATA_DIR}`);
         console.log(`🔐 Senha admin: ${ADMIN_PASSWORD}`);
-        console.log(`🌐 URL: http://localhost:${PORT}`);
+        console.log(`🌐 URL local: http://localhost:${PORT}`);
         console.log(`✅ Health check: http://localhost:${PORT}/health`);
+        console.log(`📦 Produtos: http://localhost:${PORT}/api/product-availability`);
+        console.log(`🍹 Sabores: http://localhost:${PORT}/api/flavor-availability`);
+        console.log('='.repeat(50));
+        console.log('✅ Sistema pronto para uso!');
     });
 }
 
@@ -447,6 +485,6 @@ process.on('SIGINT', () => {
 
 // Iniciar servidor
 startServer().catch(error => {
-    console.error('❌ Falha ao iniciar servidor:', error);
+    console.error('❌ Falha crítica ao iniciar servidor:', error);
     process.exit(1);
 });
