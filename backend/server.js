@@ -1,22 +1,21 @@
-// server.js - Backend FUNCIONAL e CORRIGIDO COM AUTENTICAÇÃO SEGURA
+// server.js - Backend FUNCIONAL e CORRIGIDO (SENHA SIMPLES)
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs').promises;
 const path = require('path');
-const jwt = require('jsonwebtoken');
 
 const app = express();
 
 // Configurações
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'bebcom-delivery-secret-key-2024';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Bebcom25*'; // ✅ SENHA SÓ NO BACKEND
 const DATA_FILE = path.join(__dirname, 'data.json');
 
-// Armazenamento em memória (fallback se arquivo não existir)
+// Armazenamento em memória
 let productAvailabilityDB = {};
 let flavorAvailabilityDB = {};
 
-// ====== CONFIGURAÇÃO CORS (CRÍTICA!) ======
+// ====== CONFIGURAÇÃO CORS ======
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -26,11 +25,10 @@ app.use(cors({
     optionsSuccessStatus: 204
 }));
 
-// Middleware para headers CORS
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.header('Access-Control-Allow-Headers', 'Content-Type', Authorization, X-Requested-With');
     
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -41,7 +39,7 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-// ====== SISTEMA DE ARMAZENAMENTO EM ARQUIVO ======
+// ====== SISTEMA DE ARMAZENAMENTO ======
 
 async function loadDataFromFile() {
     try {
@@ -87,30 +85,19 @@ async function saveDataToFile() {
     }
 }
 
-// ====== MIDDLEWARE DE AUTENTICAÇÃO ======
+// ====== MIDDLEWARE DE AUTENTICAÇÃO SIMPLES ======
 
-function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+function authAdmin(req, res, next) {
+    const password = req.body.password || req.headers['x-admin-password'];
     
-    if (!token) {
-        return res.status(401).json({
+    if (password === ADMIN_PASSWORD) {
+        next();
+    } else {
+        res.status(401).json({
             success: false,
-            error: 'Token de acesso não fornecido'
+            error: 'Acesso não autorizado. Senha incorreta.'
         });
     }
-    
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.status(403).json({
-                success: false,
-                error: 'Token inválido ou expirado'
-            });
-        }
-        
-        req.user = user;
-        next();
-    });
 }
 
 // ====== ROTAS PÚBLICAS ======
@@ -122,7 +109,6 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
         version: '3.0.0',
         environment: process.env.NODE_ENV || 'production',
-        storage: 'file-system',
         data: {
             products: Object.keys(productAvailabilityDB).length,
             flavors: Object.keys(flavorAvailabilityDB).length
@@ -130,43 +116,6 @@ app.get('/health', (req, res) => {
     });
 });
 
-// LOGIN ADMINISTRATIVO (PÚBLICO)
-app.post('/api/admin/login', (req, res) => {
-    try {
-        const { password } = req.body;
-        
-        // SENHA CORRETA (agora só no backend!)
-        const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Bebcom25*';
-        
-        if (password === ADMIN_PASSWORD) {
-            // Gerar token JWT
-            const token = jwt.sign(
-                { role: 'admin', access: 'full' }, 
-                JWT_SECRET, 
-                { expiresIn: '2h' }
-            );
-            
-            res.json({
-                success: true,
-                token,
-                message: 'Login realizado com sucesso',
-                expiresIn: '2 hours'
-            });
-        } else {
-            res.status(401).json({
-                success: false,
-                error: 'Senha incorreta'
-            });
-        }
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: 'Erro interno no servidor'
-        });
-    }
-});
-
-// ROTA RAIZ
 app.get('/', (req, res) => {
     res.redirect('/health');
 });
@@ -242,20 +191,28 @@ app.get('/api/order-status/:orderId', (req, res) => {
     });
 });
 
-// ====== ROTAS ADMINISTRATIVAS (PROTEGIDAS) ======
+// ====== ROTAS ADMINISTRATIVAS ======
 
-// VERIFICAR TOKEN
-app.get('/api/admin/verify', authenticateToken, (req, res) => {
-    res.json({
-        success: true,
-        user: req.user,
-        message: 'Token válido',
-        timestamp: new Date().toISOString()
-    });
+// VERIFICAR SENHA
+app.post('/api/admin/verify-password', (req, res) => {
+    const { password } = req.body;
+    
+    if (password === ADMIN_PASSWORD) {
+        res.json({
+            success: true,
+            message: 'Senha correta',
+            timestamp: new Date().toISOString()
+        });
+    } else {
+        res.status(401).json({
+            success: false,
+            error: 'Senha incorreta'
+        });
+    }
 });
 
 // ATUALIZAR PRODUTOS EM MASSA
-app.post('/api/admin/product-availability/bulk', authenticateToken, async (req, res) => {
+app.post('/api/admin/product-availability/bulk', authAdmin, async (req, res) => {
     try {
         const { productAvailability } = req.body;
         
@@ -295,7 +252,7 @@ app.post('/api/admin/product-availability/bulk', authenticateToken, async (req, 
 });
 
 // ATUALIZAR SABORES EM MASSA
-app.post('/api/admin/flavor-availability/bulk', authenticateToken, async (req, res) => {
+app.post('/api/admin/flavor-availability/bulk', authAdmin, async (req, res) => {
     try {
         const { flavorAvailability } = req.body;
         
@@ -334,49 +291,6 @@ app.post('/api/admin/flavor-availability/bulk', authenticateToken, async (req, r
     }
 });
 
-// BACKUP DOS DADOS
-app.get('/api/admin/backup', authenticateToken, async (req, res) => {
-    try {
-        const data = await fs.readFile(DATA_FILE, 'utf8');
-        const parsed = JSON.parse(data);
-        
-        res.json({
-            success: true,
-            backup: parsed,
-            timestamp: new Date().toISOString()
-        });
-        
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: 'Erro ao criar backup'
-        });
-    }
-});
-
-// RESETAR DADOS
-app.post('/api/admin/reset', authenticateToken, async (req, res) => {
-    try {
-        productAvailabilityDB = {};
-        flavorAvailabilityDB = {};
-        
-        await saveDataToFile();
-        
-        res.json({
-            success: true,
-            message: 'Dados resetados com sucesso',
-            timestamp: new Date().toISOString()
-        });
-        
-    } catch (error) {
-        console.error('❌ Erro ao resetar dados:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Erro ao resetar dados'
-        });
-    }
-});
-
 // ====== ROTA DE FALLBACK ======
 app.use('*', (req, res) => {
     res.status(404).json({
@@ -393,13 +307,12 @@ async function startServer() {
     
     app.listen(PORT, '0.0.0.0', () => {
         console.log('='.repeat(50));
-        console.log(`🚀 BebCom Delivery API v3.0 (AUTH FIXED)`);
+        console.log(`🚀 BebCom Delivery API v3.0`);
         console.log('='.repeat(50));
         console.log(`📍 Porta: ${PORT}`);
         console.log(`🔗 Health: http://localhost:${PORT}/health`);
-        console.log(`🔗 Login: POST http://localhost:${PORT}/api/admin/login`);
+        console.log(`🔗 Senha admin: ${ADMIN_PASSWORD ? 'CONFIGURADA' : 'PADRÃO'}`);
         console.log(`💾 Dados: ${Object.keys(productAvailabilityDB).length} produtos`);
-        console.log(`🔐 Autenticação: JWT Token`);
         console.log('='.repeat(50));
     });
 }
