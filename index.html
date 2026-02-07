@@ -1902,9 +1902,6 @@
                 minDistance: 0.5,
                 freeDeliveryMin: 100.00
             }
-            
-            // ❌❌❌ SENHA REMOVIDA DO FRONTEND ❌❌❌
-            // A senha agora só existe e é validada no backend
         };
 
         // ============================================
@@ -2453,7 +2450,7 @@
         // FUNÇÕES DE INICIALIZAÇÃO
         // ============================================
         async function init() {
-            console.log('🚀 Inicializando BebCom Delivery v3.0 (Corrigido)');
+            console.log('🚀 Inicializando BebCom Delivery v3.0 (100% MongoDB)');
 
             // Executar teste de conexão imediatamente
             testConnectionNow();
@@ -2482,7 +2479,7 @@
                     loadProductAvailability(),
                     loadFlavorAvailability()
                 ]);
-                console.log('✅ Dados carregados do servidor');
+                console.log('✅ Dados carregados do MongoDB Atlas');
             } catch (error) {
                 console.log('⚠️ Usando dados locais:', error.message);
             }
@@ -2509,7 +2506,7 @@
                     if (data.success && data.productAvailability) {
                         state.productAvailability = data.productAvailability;
                         localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
-                        console.log('✅ Disponibilidade de produtos carregada do servidor');
+                        console.log('✅ Disponibilidade de produtos carregada do MongoDB');
                         return true;
                     }
                 }
@@ -2543,7 +2540,7 @@
                     if (data.success && data.flavorAvailability) {
                         state.flavorAvailability = data.flavorAvailability;
                         localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
-                        console.log('✅ Disponibilidade de sabores carregada do servidor');
+                        console.log('✅ Disponibilidade de sabores carregada do MongoDB');
                         return true;
                     }
                 }
@@ -3838,7 +3835,7 @@
         // SALVAR DISPONIBILIDADE NO BACKEND (VERSÃO CORRIGIDA)
         // ============================================
         async function saveAvailability() {
-            console.log('💾 Salvando alterações...');
+            console.log('💾 Salvando alterações no MongoDB...');
             
             // Encontrar botão corretamente
             const saveButton = document.querySelector('.save-btn');
@@ -3849,19 +3846,19 @@
             }
             
             // Iniciar loading
-            updateButtonLoading(saveButton, true, 'Salvando...');
+            updateButtonLoading(saveButton, true, 'Salvando no MongoDB...');
             
             try {
                 // 1. Salvar localmente primeiro (garantido)
                 localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
                 localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
-                console.log('✅ Dados salvos localmente');
+                console.log('✅ Dados salvos localmente (backup)');
                 
                 // 2. Tentar salvar no backend
                 const isBackendOnline = await testBackendConnection();
                 
                 if (isBackendOnline) {
-                    console.log('🌐 Backend online, tentando salvar...');
+                    console.log('🌐 MongoDB online, tentando salvar...');
                     
                     // Pegar senha do input
                     const password = document.getElementById('adminPassword').value;
@@ -3881,7 +3878,7 @@
                         password: password // ✅ Senha enviada no body
                     };
                     
-                    // Salvar produtos
+                    // Salvar produtos no MongoDB
                     const productResponse = await fetch(`${CONFIG.backendUrl}/api/admin/product-availability/bulk`, {
                         method: 'POST',
                         headers: {
@@ -3893,10 +3890,10 @@
                     const productResult = await productResponse.json();
                     
                     if (!productResponse.ok) {
-                        throw new Error(productResult.error || 'Erro ao salvar produtos');
+                        throw new Error(productResult.error || 'Erro ao salvar produtos no MongoDB');
                     }
                     
-                    // Salvar sabores
+                    // Salvar sabores no MongoDB
                     const flavorResponse = await fetch(`${CONFIG.backendUrl}/api/admin/flavor-availability/bulk`, {
                         method: 'POST',
                         headers: {
@@ -3908,11 +3905,11 @@
                     const flavorResult = await flavorResponse.json();
                     
                     if (!flavorResponse.ok) {
-                        throw new Error(flavorResult.error || 'Erro ao salvar sabores');
+                        throw new Error(flavorResult.error || 'Erro ao salvar sabores no MongoDB');
                     }
                     
-                    console.log('✅ Dados salvos no backend');
-                    showNotification('✅ Alterações salvas para todos os usuários!', 'success');
+                    console.log('✅ Dados salvos no MongoDB Atlas');
+                    showNotification('✅ Alterações salvas no servidor para todos os usuários!', 'success');
                     
                     // Atualizar interface
                     updateMenuAvailability();
@@ -3923,9 +3920,9 @@
                     }, 1500);
                     
                 } else {
-                    // Backend offline
-                    console.log('⚠️ Backend offline, salvando apenas localmente');
-                    showNotification('⚠️ Alterações salvas apenas localmente (servidor offline)', 'warning');
+                    // MongoDB offline
+                    console.log('⚠️ MongoDB offline, salvando apenas localmente');
+                    showNotification('⚠️ Alterações salvas apenas localmente (MongoDB offline)', 'warning');
                     
                     // Atualizar interface
                     updateMenuAvailability();
@@ -3935,7 +3932,7 @@
                 console.error('❌ Erro ao salvar:', error);
                 
                 // Mostrar erro específico
-                if (error.message.includes('senha') || error.message.includes('Senha')) {
+                if (error.message.includes('senha') || error.message.includes('Senha') || error.message.includes('password')) {
                     showNotification('❌ Senha incorreta ou não fornecida', 'error');
                     // Reabrir painel de senha
                     document.getElementById('passwordSection').style.display = 'block';
@@ -3943,7 +3940,7 @@
                     document.getElementById('adminActions').style.display = 'none';
                     state.adminAuthenticated = false;
                 } else {
-                    showNotification('❌ Erro ao salvar: ' + error.message, 'error');
+                    showNotification('❌ Erro ao salvar no MongoDB: ' + error.message, 'error');
                 }
                 
             } finally {
@@ -3953,7 +3950,7 @@
         }
 
         function resetAvailability() {
-            if (confirm('Restaurar todos os produtos como disponíveis? Isso também apagará as configurações do servidor.')) {
+            if (confirm('Restaurar todos os produtos como disponíveis? Isso também apagará as configurações do MongoDB.')) {
                 // Resetar localmente
                 Object.keys(products).forEach(category => {
                     products[category].forEach(product => {
@@ -3975,7 +3972,7 @@
 
                 showNotification('🔄 Disponibilidade restaurada localmente', 'info');
                 
-                // Agora salvar no backend (vai pedir senha)
+                // Agora salvar no MongoDB (vai pedir senha)
                 saveAvailability();
             }
         }
@@ -4030,7 +4027,7 @@
 
                             <div style="display: flex; gap: 10px;">
                                 <button class="modal-button confirm" onclick="saveFlavorChanges()" style="flex: 1;">
-                                    💾 Salvar Alterações
+                                    💾 Salvar no MongoDB
                                 </button>
                                 <button class="modal-button cancel" onclick="loadFlavorsForType('')" style="flex: 1;">
                                     🔄 Limpar Seleção
@@ -4172,7 +4169,7 @@
                     const data = await response.json();
                     if (data.success) {
                         localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
-                        showNotification('✅ Disponibilidade de sabores salva com sucesso!');
+                        showNotification('✅ Disponibilidade de sabores salva no MongoDB!');
                         return true;
                     }
                 } else {
@@ -4199,10 +4196,10 @@
         }
 
         // ============================================
-        // SINCRONIZAR DO SERVIDOR (VERSÃO CORRIGIDA)
+        // SINCRONIZAR DO MONGODB (VERSÃO CORRIGIDA)
         // ============================================
         async function syncAllFromServer() {
-            console.log('🔄 Sincronizando com servidor...');
+            console.log('🔄 Sincronizando com MongoDB...');
             
             // Encontrar botão de sincronização
             const syncButtons = document.querySelectorAll('.admin-action-btn');
@@ -4221,17 +4218,17 @@
             }
             
             // Iniciar loading
-            updateButtonLoading(syncButton, true, 'Sincronizando...');
+            updateButtonLoading(syncButton, true, 'Sincronizando com MongoDB...');
             
             try {
                 // Testar conexão
                 const isBackendOnline = await testBackendConnection();
                 
                 if (!isBackendOnline) {
-                    throw new Error('Servidor offline');
+                    throw new Error('MongoDB offline');
                 }
                 
-                // Buscar dados
+                // Buscar dados do MongoDB
                 const response = await fetch(`${CONFIG.backendUrl}/api/sync-all`, {
                     headers: {
                         'Cache-Control': 'no-cache'
@@ -4243,7 +4240,7 @@
                 }
                 
                 const data = await response.json();
-                console.log('📥 Dados recebidos do servidor:', data);
+                console.log('📥 Dados recebidos do MongoDB:', data);
                 
                 if (data.success) {
                     // Atualizar estado
@@ -4265,7 +4262,7 @@
                         loadAdminProducts();
                     }
                     
-                    showNotification('🔄 Dados sincronizados do servidor!', 'success');
+                    showNotification('🔄 Dados sincronizados do MongoDB Atlas!', 'success');
                     
                 } else {
                     throw new Error(data.error || 'Resposta inválida');
