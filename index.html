@@ -3832,120 +3832,220 @@
         }
 
         // ============================================
-        // SALVAR DISPONIBILIDADE NO BACKEND (VERSÃO CORRIGIDA)
+        // SALVAR DISPONIBILIDADE NO BACKEND (VERSÃO CORRIGIDA E TESTADA)
         // ============================================
         async function saveAvailability() {
-            console.log('💾 Salvando alterações no MongoDB...');
+            console.log('💾 INICIANDO SALVAMENTO NO MONGODB...');
             
-            // Encontrar botão corretamente
             const saveButton = document.querySelector('.save-btn');
             if (!saveButton) {
-                console.error('❌ Botão salvar não encontrado');
+                console.error('❌ Botão não encontrado');
                 showNotification('❌ Erro interno: botão não encontrado', 'error');
                 return;
             }
             
-            // Iniciar loading
-            updateButtonLoading(saveButton, true, 'Salvando no MongoDB...');
+            // INICIAR LOADING
+            updateButtonLoading(saveButton, true, 'Salvando no servidor...');
             
             try {
-                // 1. Salvar localmente primeiro (garantido)
-                localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
-                localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
-                console.log('✅ Dados salvos localmente (backup)');
+                // 1. PEGAR SENHA (CRÍTICO)
+                const password = document.getElementById('adminPassword').value;
+                console.log('🔑 Senha fornecida:', password ? 'Sim' : 'Não');
                 
-                // 2. Tentar salvar no backend
-                const isBackendOnline = await testBackendConnection();
-                
-                if (isBackendOnline) {
-                    console.log('🌐 MongoDB online, tentando salvar...');
-                    
-                    // Pegar senha do input
-                    const password = document.getElementById('adminPassword').value;
-                    
-                    if (!password) {
-                        throw new Error('Digite a senha novamente para salvar no servidor');
-                    }
-                    
-                    // Preparar dados COM SENHA NO BODY
-                    const productData = {
-                        productAvailability: state.productAvailability,
-                        password: password // ✅ Senha enviada no body
-                    };
-                    
-                    const flavorData = {
-                        flavorAvailability: state.flavorAvailability,
-                        password: password // ✅ Senha enviada no body
-                    };
-                    
-                    // Salvar produtos no MongoDB
-                    const productResponse = await fetch(`${CONFIG.backendUrl}/api/admin/product-availability/bulk`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(productData)
-                    });
-                    
-                    const productResult = await productResponse.json();
-                    
-                    if (!productResponse.ok) {
-                        throw new Error(productResult.error || 'Erro ao salvar produtos no MongoDB');
-                    }
-                    
-                    // Salvar sabores no MongoDB
-                    const flavorResponse = await fetch(`${CONFIG.backendUrl}/api/admin/flavor-availability/bulk`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(flavorData)
-                    });
-                    
-                    const flavorResult = await flavorResponse.json();
-                    
-                    if (!flavorResponse.ok) {
-                        throw new Error(flavorResult.error || 'Erro ao salvar sabores no MongoDB');
-                    }
-                    
-                    console.log('✅ Dados salvos no MongoDB Atlas');
-                    showNotification('✅ Alterações salvas no servidor para todos os usuários!', 'success');
-                    
-                    // Atualizar interface
-                    updateMenuAvailability();
-                    
-                    // Fechar modal após sucesso
-                    setTimeout(() => {
-                        closeAdminPanel();
-                    }, 1500);
-                    
-                } else {
-                    // MongoDB offline
-                    console.log('⚠️ MongoDB offline, salvando apenas localmente');
-                    showNotification('⚠️ Alterações salvas apenas localmente (MongoDB offline)', 'warning');
-                    
-                    // Atualizar interface
-                    updateMenuAvailability();
+                if (!password || password.trim() === '') {
+                    throw new Error('Digite a senha administrativa');
                 }
                 
+                // 2. VERIFICAR CONEXÃO COM BACKEND
+                console.log('🌐 Testando conexão com:', CONFIG.backendUrl);
+                try {
+                    const healthResponse = await fetch(`${CONFIG.backendUrl}/health`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    console.log('🔍 Health check status:', healthResponse.status);
+                    
+                    if (!healthResponse.ok) {
+                        const errorText = await healthResponse.text();
+                        console.error('❌ Health check falhou:', errorText);
+                        throw new Error(`Servidor respondeu com erro ${healthResponse.status}`);
+                    }
+                    
+                    const healthData = await healthResponse.json();
+                    console.log('✅ Backend online:', healthData.status);
+                    
+                } catch (healthError) {
+                    console.error('❌ Backend offline:', healthError.message);
+                    throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão.');
+                }
+                
+                // 3. SALVAR PRODUTOS NO MONGODB (COM LOGS DETALHADOS)
+                console.log('📦 Preparando dados dos produtos...');
+                console.log('   Quantidade de produtos:', Object.keys(state.productAvailability).length);
+                
+                // Mostrar amostra dos dados
+                const sampleProducts = Object.entries(state.productAvailability).slice(0, 3);
+                console.log('   Amostra de produtos a salvar:');
+                sampleProducts.forEach(([id, status]) => {
+                    console.log(`     ${id}: ${status ? '✅' : '❌'}`);
+                });
+                
+                const productData = {
+                    productAvailability: state.productAvailability,
+                    password: password
+                };
+                
+                console.log('📤 Enviando produtos para MongoDB...');
+                const productResponse = await fetch(`${CONFIG.backendUrl}/api/admin/product-availability/bulk`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(productData)
+                });
+                
+                console.log('📥 Resposta recebida - Status:', productResponse.status);
+                
+                // Ler resposta mesmo se for erro
+                let productResult;
+                try {
+                    const responseText = await productResponse.text();
+                    console.log('📄 Resposta bruta:', responseText.substring(0, 200) + '...');
+                    productResult = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('❌ Erro ao parsear resposta:', parseError);
+                    throw new Error('Resposta inválida do servidor');
+                }
+                
+                if (!productResponse.ok) {
+                    console.error('❌ Erro na resposta do servidor:', productResult);
+                    throw new Error(productResult.error || `Erro HTTP ${productResponse.status}`);
+                }
+                
+                console.log('✅ Produtos salvos com sucesso:', productResult);
+                
+                // 4. SALVAR SABORES NO MONGODB
+                console.log('🍹 Preparando dados dos sabores...');
+                console.log('   Quantidade de sabores:', Object.keys(state.flavorAvailability).length);
+                
+                const flavorData = {
+                    flavorAvailability: state.flavorAvailability,
+                    password: password
+                };
+                
+                console.log('📤 Enviando sabores para MongoDB...');
+                const flavorResponse = await fetch(`${CONFIG.backendUrl}/api/admin/flavor-availability/bulk`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(flavorData)
+                });
+                
+                console.log('📥 Resposta sabores - Status:', flavorResponse.status);
+                
+                let flavorResult;
+                try {
+                    const responseText = await flavorResponse.text();
+                    flavorResult = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('❌ Erro ao parsear resposta sabores:', parseError);
+                    throw new Error('Resposta inválida do servidor para sabores');
+                }
+                
+                if (!flavorResponse.ok) {
+                    console.error('❌ Erro na resposta sabores:', flavorResult);
+                    throw new Error(flavorResult.error || `Erro HTTP ${flavorResponse.status}`);
+                }
+                
+                console.log('✅ Sabores salvos com sucesso:', flavorResult);
+                
+                // 5. SUCESSO COMPLETO!
+                console.log('🎉 TUDO SALVO NO MONGODB COM SUCESSO!');
+                
+                // 6. SALVAR LOCALMENTE TAMBÉM (BACKUP)
+                localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
+                localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                console.log('💾 Backup local criado');
+                
+                // 7. MOSTRAR NOTIFICAÇÃO DE SUCESSO
+                showNotification('✅ Dados salvos no servidor com sucesso!', 'success');
+                
+                // 8. ATUALIZAR INTERFACE
+                updateMenuAvailability();
+                
+                // 9. SINCRONIZAR PARA CONFIRMAR
+                console.log('🔄 Sincronizando para confirmar...');
+                setTimeout(async () => {
+                    try {
+                        await syncAllFromServer();
+                    } catch (syncError) {
+                        console.log('⚠️ Sincronização pós-salvamento falhou:', syncError.message);
+                    }
+                }, 1000);
+                
+                // 10. FECHAR MODAL APÓS SUCESSO
+                setTimeout(() => {
+                    closeAdminPanel();
+                    showNotification('✅ Alterações aplicadas para todos os usuários!', 'success');
+                }, 2000);
+                
             } catch (error) {
-                console.error('❌ Erro ao salvar:', error);
+                console.error('❌ ERRO CRÍTICO AO SALVAR:', error);
+                console.error('Stack:', error.stack);
                 
                 // Mostrar erro específico
-                if (error.message.includes('senha') || error.message.includes('Senha') || error.message.includes('password')) {
-                    showNotification('❌ Senha incorreta ou não fornecida', 'error');
-                    // Reabrir painel de senha
+                let errorMessage = error.message;
+                
+                if (errorMessage.includes('senha') || errorMessage.includes('Senha') || errorMessage.includes('password')) {
+                    errorMessage = '❌ Senha incorreta ou não fornecida';
+                    showNotification(errorMessage, 'error');
+                    
+                    // Voltar para tela de senha
                     document.getElementById('passwordSection').style.display = 'block';
                     document.getElementById('adminMain').style.display = 'none';
                     document.getElementById('adminActions').style.display = 'none';
                     state.adminAuthenticated = false;
+                    
+                    // Focar no campo de senha
+                    const passwordInput = document.getElementById('adminPassword');
+                    if (passwordInput) {
+                        passwordInput.value = '';
+                        passwordInput.focus();
+                        passwordInput.select();
+                    }
+                    
+                } else if (errorMessage.includes('conectar') || errorMessage.includes('offline')) {
+                    errorMessage = '❌ Não foi possível conectar ao servidor. Verifique sua conexão com a internet.';
+                    showNotification(errorMessage, 'error');
+                    
+                    // Salvar localmente como fallback
+                    localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
+                    localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                    showNotification('⚠️ Alterações salvas apenas localmente (servidor offline)', 'warning');
+                    
+                } else if (errorMessage.includes('HTTP')) {
+                    showNotification(`❌ Erro do servidor: ${errorMessage}`, 'error');
+                    
                 } else {
-                    showNotification('❌ Erro ao salvar no MongoDB: ' + error.message, 'error');
+                    showNotification(`❌ Erro: ${errorMessage}`, 'error');
                 }
                 
+                // Log adicional para debug
+                console.log('🔍 Estado atual:');
+                console.log('   - Produtos:', Object.keys(state.productAvailability).length);
+                console.log('   - Sabores:', Object.keys(state.flavorAvailability).length);
+                console.log('   - Admin autenticado:', state.adminAuthenticated);
+                
             } finally {
-                // Finalizar loading
+                // FINALIZAR LOADING
                 updateButtonLoading(saveButton, false);
+                console.log('🔚 Processo de salvamento finalizado');
             }
         }
 
