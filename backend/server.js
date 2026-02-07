@@ -1,4 +1,4 @@
-// backend/server.js - VERSÃO SEM DOTENV
+// backend/server.js - VERSÃO COM HEALTH CHECK PARA RENDER
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion } = require('mongodb');
@@ -14,10 +14,31 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Configurações - O Render já injeta as variáveis de ambiente
+// Configurações
 const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = 'bebcom_delivery';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Bebcom25*';
+
+// ========== ROTA RAIZ (CRÍTICA PARA RENDER) ==========
+// Deve responder IMEDIATAMENTE para passar no health check
+app.get('/', (req, res) => {
+    res.json({
+        status: 'online',
+        service: 'BebCom Delivery API',
+        version: '3.0',
+        timestamp: new Date().toISOString(),
+        message: 'API rodando normalmente'
+    });
+});
+
+// ========== HEALTH CHECK OTIMIZADO ==========
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        service: 'BebCom Delivery API'
+    });
+});
 
 console.log('='.repeat(60));
 console.log('🚀 INICIANDO BEBCOM DELIVERY API');
@@ -32,20 +53,16 @@ console.log('─'.repeat(60));
 let db;
 let client;
 let isConnected = false;
-let connectionAttempts = 0;
-const MAX_CONNECTION_ATTEMPTS = 5;
 
 async function connectDB() {
     try {
         if (!MONGODB_URI) {
             console.error('❌ CRÍTICO: MONGODB_URI não configurada no Render!');
-            console.log('   ⚠️  Configure a variável MONGODB_URI nas Environment Variables do Render');
-            console.log('   ⚠️  Servidor rodará em modo offline (apenas leitura)');
+            console.log('⚠️  Servidor rodará em modo offline (apenas leitura)');
             return false;
         }
 
-        connectionAttempts++;
-        console.log(`🔌 Tentativa ${connectionAttempts}/${MAX_CONNECTION_ATTEMPTS} de conexão ao MongoDB Atlas...`);
+        console.log('🔌 Conectando ao MongoDB Atlas...');
         
         // Configuração para MongoDB Atlas
         client = new MongoClient(MONGODB_URI, {
@@ -53,60 +70,47 @@ async function connectDB() {
                 version: ServerApiVersion.v1,
                 strict: true,
                 deprecationErrors: true,
-            },
-            connectTimeoutMS: 15000, // 15 segundos
-            socketTimeoutMS: 45000,  // 45 segundos
+            }
         });
 
-        // Tentar conectar com timeout
-        await Promise.race([
-            client.connect(),
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout ao conectar ao MongoDB')), 15000)
-            )
-        ]);
+        // Conectar (sem bloquear startup)
+        setTimeout(async () => {
+            try {
+                await client.connect();
+                await client.db('admin').command({ ping: 1 });
+                db = client.db(DB_NAME);
+                isConnected = true;
+                console.log('✅ CONEXÃO MONGODB ESTABELECIDA!');
+                console.log(`📊 Banco: ${DB_NAME}`);
+                
+                // Inicializar collections em background
+                initializeCollections();
+            } catch (error) {
+                console.error('❌ MongoDB offline:', error.message);
+            }
+        }, 1000); // Esperar 1 segundo antes de conectar
         
-        // Testar conexão
-        await client.db('admin').command({ ping: 1 });
-        
-        db = client.db(DB_NAME);
-        isConnected = true;
-        
-        console.log('✅ CONEXÃO MONGODB ESTABELECIDA COM SUCESSO!');
-        console.log(`📊 Banco: ${DB_NAME}`);
-        
-        // Inicializar collections
-        await initializeCollections();
         return true;
         
     } catch (error) {
-        console.error('❌ ERRO AO CONECTAR AO MONGODB:');
-        console.error(`   Mensagem: ${error.message}`);
-        
-        if (connectionAttempts < MAX_CONNECTION_ATTEMPTS) {
-            console.log(`   🔄 Tentando novamente em 3 segundos...`);
-            setTimeout(connectDB, 3000);
-        }
-        
+        console.error('❌ Erro na configuração MongoDB:', error.message);
         return false;
     }
 }
 
 async function initializeCollections() {
     try {
+        if (!isConnected) return;
+        
         console.log('📋 Inicializando collections...');
         
         const collections = await db.listCollections().toArray();
         const collectionNames = collections.map(c => c.name);
         
         // Collections necessárias
-        const requiredCollections = [
-            { name: 'products', index: 'type' },
-            { name: 'flavors', index: 'type' },
-            { name: 'orders', index: 'orderId' }
-        ];
+        const requiredCollections = ['products', 'flavors', 'orders'];
         
-        for (const { name, index } of requiredCollections) {
+        for (const name of requiredCollections) {
             if (!collectionNames.includes(name)) {
                 await db.createCollection(name);
                 console.log(`   ✅ Collection "${name}" criada`);
@@ -131,12 +135,14 @@ async function initializeCollections() {
             }
         }
         
-        console.log('✅ Collections inicializadas!');
+        console.log('✅ Collections OK!');
         
     } catch (error) {
-        console.error('❌ Erro ao inicializar collections:', error.message);
+        console.error('❌ Erro nas collections:', error.message);
     }
 }
+
+// ========== ROTAS DA API ==========
 
 // Middleware de autenticação
 function checkAdminPassword(req, res, next) {
@@ -159,24 +165,10 @@ function checkAdminPassword(req, res, next) {
     next();
 }
 
-// ========== ROTAS DA API ==========
-
-// Health Check
-app.get('/health', async (req, res) => {
-    res.json({
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        service: 'BebCom Delivery API',
-        version: '3.0',
-        mongodb: isConnected ? 'connected' : 'disconnected',
-        environment: 'production'
-    });
-});
-
 // Obter disponibilidade de produtos
 app.get('/api/product-availability', async (req, res) => {
     try {
-        if (!isConnected) {
+        if (!isConnected || !db) {
             return res.json({
                 success: true,
                 productAvailability: {},
@@ -206,7 +198,7 @@ app.get('/api/product-availability', async (req, res) => {
 // Obter disponibilidade de sabores
 app.get('/api/flavor-availability', async (req, res) => {
     try {
-        if (!isConnected) {
+        if (!isConnected || !db) {
             return res.json({
                 success: true,
                 flavorAvailability: {},
@@ -236,7 +228,7 @@ app.get('/api/flavor-availability', async (req, res) => {
 // Atualizar produtos (admin)
 app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req, res) => {
     try {
-        console.log('📦 RECEBENDO ATUALIZAÇÃO DE PRODUTOS...');
+        console.log('📦 Recebendo atualização de produtos...');
         
         const { productAvailability } = req.body;
         
@@ -247,7 +239,7 @@ app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req,
             });
         }
         
-        if (!isConnected) {
+        if (!isConnected || !db) {
             console.log('❌ MongoDB offline, não é possível salvar');
             return res.status(503).json({
                 success: false,
@@ -269,19 +261,21 @@ app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req,
             { upsert: true }
         );
         
-        console.log('✅ PRODUTOS SALVOS NO MONGODB!');
-        console.log(`   Itens: ${Object.keys(productAvailability).length}`);
-        console.log(`   MongoDB: ${result.modifiedCount} modificado(s)`);
+        console.log(`✅ Produtos salvos! Itens: ${Object.keys(productAvailability).length}`);
         
         res.json({
             success: true,
             message: 'Produtos atualizados com sucesso no MongoDB',
             timestamp: new Date().toISOString(),
-            count: Object.keys(productAvailability).length
+            count: Object.keys(productAvailability).length,
+            mongodbResult: {
+                matched: result.matchedCount,
+                modified: result.modifiedCount
+            }
         });
         
     } catch (error) {
-        console.error('❌ ERRO AO SALVAR PRODUTOS:', error.message);
+        console.error('❌ Erro ao salvar produtos:', error.message);
         res.status(500).json({
             success: false,
             error: `Erro ao salvar produtos: ${error.message}`
@@ -292,7 +286,7 @@ app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req,
 // Atualizar sabores (admin)
 app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, res) => {
     try {
-        console.log('🍹 RECEBENDO ATUALIZAÇÃO DE SABORES...');
+        console.log('🍹 Recebendo atualização de sabores...');
         
         const { flavorAvailability } = req.body;
         
@@ -303,7 +297,7 @@ app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, 
             });
         }
         
-        if (!isConnected) {
+        if (!isConnected || !db) {
             console.log('❌ MongoDB offline, não é possível salvar');
             return res.status(503).json({
                 success: false,
@@ -324,8 +318,7 @@ app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, 
             { upsert: true }
         );
         
-        console.log('✅ SABORES SALVOS NO MONGODB!');
-        console.log(`   Itens: ${Object.keys(flavorAvailability).length}`);
+        console.log(`✅ Sabores salvos! Itens: ${Object.keys(flavorAvailability).length}`);
         
         res.json({
             success: true,
@@ -334,7 +327,7 @@ app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, 
             count: Object.keys(flavorAvailability).length
         });
     } catch (error) {
-        console.error('❌ ERRO AO SALVAR SABORES:', error.message);
+        console.error('❌ Erro ao salvar sabores:', error.message);
         res.status(500).json({
             success: false,
             error: `Erro ao salvar sabores: ${error.message}`
@@ -345,7 +338,7 @@ app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, 
 // Sincronizar dados
 app.get('/api/sync-all', async (req, res) => {
     try {
-        if (!isConnected) {
+        if (!isConnected || !db) {
             return res.json({
                 success: true,
                 productAvailability: {},
@@ -381,7 +374,7 @@ app.get('/api/sync-all', async (req, res) => {
 // Teste do MongoDB
 app.get('/api/test-db', async (req, res) => {
     try {
-        if (!isConnected) {
+        if (!isConnected || !db) {
             return res.json({
                 success: false,
                 message: 'MongoDB não conectado',
@@ -420,7 +413,7 @@ app.post('/api/create-payment', async (req, res) => {
         const { orderId, customer, items, deliveryType, paymentMethod, totalAmount, deliveryFee } = req.body;
         
         // Salvar no MongoDB se conectado
-        if (isConnected) {
+        if (isConnected && db) {
             const order = {
                 orderId,
                 customer,
@@ -457,61 +450,66 @@ app.post('/api/create-payment', async (req, res) => {
     }
 });
 
-// Rota principal
-app.get('/', (req, res) => {
+// Listar endpoints
+app.get('/api/endpoints', (req, res) => {
     res.json({
-        service: 'BebCom Delivery API',
-        version: '3.0',
-        status: 'online',
-        mongodb: isConnected ? 'connected' : 'disconnected',
+        success: true,
         endpoints: [
-            '/health',
-            '/api/product-availability',
-            '/api/flavor-availability',
-            '/api/sync-all',
-            '/api/test-db'
+            { path: '/', method: 'GET', description: 'Status do serviço' },
+            { path: '/health', method: 'GET', description: 'Health check' },
+            { path: '/api/product-availability', method: 'GET', description: 'Obter disponibilidade de produtos' },
+            { path: '/api/flavor-availability', method: 'GET', description: 'Obter disponibilidade de sabores' },
+            { path: '/api/sync-all', method: 'GET', description: 'Sincronizar todos os dados' },
+            { path: '/api/test-db', method: 'GET', description: 'Testar conexão MongoDB' },
+            { path: '/api/endpoints', method: 'GET', description: 'Listar todos endpoints' }
         ],
         adminEndpoints: [
-            '/api/admin/product-availability/bulk',
-            '/api/admin/flavor-availability/bulk'
+            { path: '/api/admin/product-availability/bulk', method: 'POST', description: 'Atualizar produtos (admin)' },
+            { path: '/api/admin/flavor-availability/bulk', method: 'POST', description: 'Atualizar sabores (admin)' }
         ]
     });
 });
 
-// Iniciar servidor
+// ========== INICIAR SERVIDOR ==========
 async function startServer() {
-    console.log('🔌 Conectando ao MongoDB...');
-    await connectDB();
+    // Iniciar conexão MongoDB em background (não bloqueante)
+    connectDB();
     
-    app.listen(PORT, '0.0.0.0', () => {
+    // Iniciar servidor HTTP IMEDIATAMENTE
+    const server = app.listen(PORT, '0.0.0.0', () => {
         console.log('─'.repeat(60));
-        console.log(`✅ SERVIDOR INICIADO!`);
+        console.log(`✅ SERVIDOR HTTP INICIADO!`);
         console.log(`🌐 Porta: ${PORT}`);
-        console.log(`📊 MongoDB: ${isConnected ? '✅ CONECTADO' : '❌ OFFLINE'}`);
+        console.log(`📡 Render Health Check: http://localhost:${PORT}/`);
+        console.log(`🔗 Acesse: https://bebcom-cardapio-delivery.onrender.com`);
         console.log('='.repeat(60));
-        console.log('📝 Aguardando requisições...');
+        console.log('📝 Serviço pronto para receber requisições...');
+    });
+    
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+        console.log('👋 Recebido SIGTERM, encerrando graciosamente...');
+        server.close(() => {
+            console.log('✅ Servidor HTTP fechado');
+            if (client) {
+                client.close();
+                console.log('🔌 MongoDB desconectado');
+            }
+            process.exit(0);
+        });
+    });
+    
+    process.on('SIGINT', () => {
+        console.log('👋 Recebido SIGINT, encerrando...');
+        server.close(() => {
+            if (client) client.close();
+            process.exit(0);
+        });
     });
 }
 
-// Encerramento
-process.on('SIGTERM', async () => {
-    console.log('👋 Encerrando servidor...');
-    if (client) {
-        await client.close();
-    }
-    process.exit(0);
-});
-
-process.on('SIGINT', async () => {
-    console.log('👋 Servidor interrompido');
-    if (client) {
-        await client.close();
-    }
-    process.exit(0);
-});
-
 // Iniciar
 startServer().catch(error => {
-    console.error('💥 ERRO AO INICIAR:', error);
+    console.error('💥 ERRO AO INICIAR SERVIDOR:', error);
     process.exit(1);
 });
