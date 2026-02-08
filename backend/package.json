@@ -1,6 +1,6 @@
 {
   "name": "bebcom-delivery-backend",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Backend para BebCom Delivery",
   "main": "server.js",
   "scripts": {
@@ -8,9 +8,12 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
+    "express": "^4.18.2",
     "mongodb": "^6.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
   },
   "engines": {
     "node": ">=18.0.0"
