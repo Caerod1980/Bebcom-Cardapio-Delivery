@@ -1,4 +1,4 @@
-// backend/server.js - VERSÃO PRODUÇÃO RENDER/MONGODB ATLAS
+// backend/server.js - VERSÃO OTIMIZADA PARA RENDER
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion } = require('mongodb');
@@ -6,33 +6,13 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// ========== CONFIGURAÇÃO CORS PARA PRODUÇÃO RENDER ==========
+// Middleware
 app.use(cors({
-    origin: [
-        'https://bebcom-cardapio-delivery.onrender.com',
-        'https://*.onrender.com',
-        'http://localhost:3000',
-        'http://localhost:10000'
-    ],
-    credentials: true,
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
-
-// Middleware para logs detalhados
-app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    console.log('Origin:', req.headers.origin);
-    if (req.method === 'POST' && req.body && Object.keys(req.body).length > 0) {
-        console.log('Body recebido:', JSON.stringify(req.body, null, 2).substring(0, 500));
-    }
-    next();
-});
-
 app.use(express.json());
-
-// Middleware para tratamento de preflight
-app.options('*', cors());
 
 // Configurações
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -44,11 +24,11 @@ app.get('/', (req, res) => {
     res.json({
         status: 'online',
         service: 'BebCom Delivery API',
-        version: '4.0',
+        version: '3.1',
         timestamp: new Date().toISOString(),
-        mongodb: isConnected ? 'connected' : 'disconnected',
-        environment: 'production',
-        url: req.protocol + '://' + req.get('host')
+        message: 'API rodando normalmente',
+        dbConnected: isConnected,
+        adminPasswordConfigured: !!ADMIN_PASSWORD
     });
 });
 
@@ -58,78 +38,54 @@ app.get('/health', (req, res) => {
         status: 'ok',
         timestamp: new Date().toISOString(),
         service: 'BebCom Delivery API',
-        mongodb: isConnected ? 'connected' : 'disconnected',
-        mongodbState: isConnected
+        db: isConnected ? 'connected' : 'disconnected'
     });
 });
 
-// ========== STATUS MONGODB (PARA DIAGNÓSTICO) ==========
-app.get('/api/mongodb-status', async (req, res) => {
-    try {
-        if (!isConnected || !db) {
-            return res.json({
-                success: false,
-                message: 'MongoDB não conectado',
-                state: 'disconnected'
-            });
-        }
-        
-        const collections = await db.listCollections().toArray();
-        const collectionsCount = await db.collection('products').countDocuments();
-        const flavorsCount = await db.collection('flavors').countDocuments();
-        
-        res.json({
-            success: true,
-            message: 'MongoDB Atlas conectado com sucesso!',
-            timestamp: new Date().toISOString(),
-            connection: {
-                state: 'connected',
-                host: 'mongodb.atlas',
-                database: DB_NAME
-            },
-            collections: collections.map(c => c.name),
-            stats: {
-                totalCollections: collections.length,
-                products: collectionsCount,
-                flavors: flavorsCount,
-                orders: await db.collection('orders').countDocuments()
-            }
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message,
-            state: 'error'
-        });
-    }
+// ========== OBTER SENHA ADMIN ==========
+app.get('/api/admin-password', (req, res) => {
+    // Retorna um hash da senha para verificação no frontend
+    // Não expõe a senha diretamente
+    const crypto = require('crypto');
+    const passwordHash = crypto
+        .createHash('sha256')
+        .update(ADMIN_PASSWORD || '')
+        .digest('hex');
+    
+    res.json({
+        success: true,
+        passwordHash: passwordHash,
+        salt: 'bebcom_' + new Date().getFullYear()
+    });
 });
 
 console.log('='.repeat(60));
-console.log('🚀 INICIANDO BEBCOM DELIVERY API - PRODUÇÃO');
+console.log('🚀 INICIANDO BEBCOM DELIVERY API v3.1');
 console.log('='.repeat(60));
 console.log(`📅 ${new Date().toISOString()}`);
 console.log(`🌐 Porta: ${PORT}`);
 console.log(`🔐 Senha Admin: ${ADMIN_PASSWORD ? '✅ CONFIGURADA' : '❌ NÃO CONFIGURADA'}`);
 console.log(`🗄️  MongoDB URI: ${MONGODB_URI ? '✅ CONFIGURADA' : '❌ NÃO CONFIGURADA'}`);
-console.log(`🌍 Ambiente: ${process.env.NODE_ENV || 'production'}`);
 console.log('─'.repeat(60));
 
 // Conexão MongoDB
 let db;
 let client;
 let isConnected = false;
+let connectionRetryCount = 0;
+const MAX_RETRIES = 5;
 
 async function connectDB() {
     try {
         if (!MONGODB_URI) {
             console.error('❌ CRÍTICO: MONGODB_URI não configurada no Render!');
-            console.log('⚠️  Servidor rodará em modo offline');
+            console.log('⚠️  Servidor rodará em modo offline (apenas leitura)');
             return false;
         }
 
         console.log('🔌 Conectando ao MongoDB Atlas...');
         
-        // Configuração para MongoDB Atlas
+        // Configuração otimizada para MongoDB Atlas
         client = new MongoClient(MONGODB_URI, {
             serverApi: {
                 version: ServerApiVersion.v1,
@@ -137,30 +93,15 @@ async function connectDB() {
                 deprecationErrors: true,
             },
             maxPoolSize: 10,
-            minPoolSize: 2,
-            connectTimeoutMS: 10000,
+            minPoolSize: 1,
+            maxIdleTimeMS: 10000,
+            serverSelectionTimeoutMS: 5000,
             socketTimeoutMS: 45000,
+            connectTimeoutMS: 10000
         });
 
-        // Conectar (sem bloquear startup)
-        setTimeout(async () => {
-            try {
-                await client.connect();
-                await client.db('admin').command({ ping: 1 });
-                db = client.db(DB_NAME);
-                isConnected = true;
-                console.log('✅ CONEXÃO MONGODB ESTABELECIDA!');
-                console.log(`📊 Banco: ${DB_NAME}`);
-                
-                // Inicializar collections em background
-                initializeCollections();
-            } catch (error) {
-                console.error('❌ MongoDB offline:', error.message);
-                console.error('Detalhes do erro:', error);
-            }
-        }, 1000); // Esperar 1 segundo antes de conectar
-        
-        return true;
+        // Conectar com retry
+        await connectWithRetry();
         
     } catch (error) {
         console.error('❌ Erro na configuração MongoDB:', error.message);
@@ -168,9 +109,69 @@ async function connectDB() {
     }
 }
 
+async function connectWithRetry() {
+    try {
+        await client.connect();
+        await client.db('admin').command({ ping: 1 });
+        db = client.db(DB_NAME);
+        isConnected = true;
+        connectionRetryCount = 0;
+        console.log('✅ CONEXÃO MONGODB ESTABELECIDA!');
+        console.log(`📊 Banco: ${DB_NAME}`);
+        
+        // Configurar keep-alive
+        setInterval(async () => {
+            try {
+                if (client && isConnected) {
+                    await client.db('admin').command({ ping: 1 });
+                }
+            } catch (error) {
+                console.log('⚠️  MongoDB keep-alive falhou:', error.message);
+                isConnected = false;
+                await reconnectDB();
+            }
+        }, 30000); // Ping a cada 30 segundos
+        
+        // Inicializar collections em background
+        setTimeout(initializeCollections, 2000);
+        
+        return true;
+        
+    } catch (error) {
+        connectionRetryCount++;
+        console.error(`❌ MongoDB offline (tentativa ${connectionRetryCount}/${MAX_RETRIES}):`, error.message);
+        
+        if (connectionRetryCount < MAX_RETRIES) {
+            console.log(`🔄 Tentando reconectar em ${connectionRetryCount * 2} segundos...`);
+            setTimeout(connectWithRetry, connectionRetryCount * 2000);
+        } else {
+            console.log('⚠️  MongoDB permanece offline, servidor funcionando em modo local');
+            isConnected = false;
+        }
+        return false;
+    }
+}
+
+async function reconnectDB() {
+    if (connectionRetryCount >= MAX_RETRIES) return;
+    
+    try {
+        console.log('🔄 Tentando reconectar ao MongoDB...');
+        await client.connect();
+        isConnected = true;
+        connectionRetryCount = 0;
+        console.log('✅ MongoDB reconectado!');
+    } catch (error) {
+        console.error('❌ Falha na reconexão:', error.message);
+    }
+}
+
 async function initializeCollections() {
     try {
-        if (!isConnected) return;
+        if (!isConnected || !db) {
+            console.log('⚠️  MongoDB offline, pulando inicialização de collections');
+            return;
+        }
         
         console.log('📋 Inicializando collections...');
         
@@ -191,16 +192,20 @@ async function initializeCollections() {
                         type: 'availability',
                         data: {},
                         lastUpdated: new Date().toISOString(),
-                        createdAt: new Date().toISOString()
+                        createdAt: new Date().toISOString(),
+                        version: '3.1'
                     });
+                    console.log('   📦 Dados padrão de produtos inicializados');
                 }
                 if (name === 'flavors') {
                     await db.collection(name).insertOne({
                         type: 'availability',
                         data: {},
                         lastUpdated: new Date().toISOString(),
-                        createdAt: new Date().toISOString()
+                        createdAt: new Date().toISOString(),
+                        version: '3.1'
                     });
+                    console.log('   🍹 Dados padrão de sabores inicializados');
                 }
             }
         }
@@ -212,48 +217,39 @@ async function initializeCollections() {
     }
 }
 
-// ========== MIDDLEWARE DE AUTENTICAÇÃO ADMIN ==========
+// ========== ROTAS DA API ==========
+
+// Middleware de autenticação
 function checkAdminPassword(req, res, next) {
-    console.log('🔐 Validando senha administrativa...');
-    
-    // Verificar senha do corpo da requisição
-    const password = req.body.password;
+    const password = req.body.password || req.headers['x-admin-password'];
     
     if (!password) {
-        console.log('❌ Senha não fornecida no body');
         return res.status(401).json({
             success: false,
-            error: 'Senha administrativa não fornecida',
-            code: 'NO_PASSWORD'
+            error: 'Senha administrativa não fornecida'
         });
     }
     
     if (password !== ADMIN_PASSWORD) {
-        console.log('❌ Senha incorreta');
         return res.status(401).json({
             success: false,
-            error: 'Senha administrativa incorreta',
-            code: 'INVALID_PASSWORD'
+            error: 'Senha administrativa incorreta'
         });
     }
     
-    console.log('✅ Senha validada com sucesso');
     next();
 }
-
-// ========== ROTAS DA API ==========
 
 // Obter disponibilidade de produtos
 app.get('/api/product-availability', async (req, res) => {
     try {
         if (!isConnected || !db) {
-            console.log('⚠️ MongoDB offline, retornando dados locais');
             return res.json({
                 success: true,
                 productAvailability: {},
                 lastUpdated: new Date().toISOString(),
                 offline: true,
-                message: 'Modo offline - MongoDB desconectado'
+                message: 'Modo offline - usando cache local'
             });
         }
         
@@ -263,14 +259,16 @@ app.get('/api/product-availability', async (req, res) => {
             success: true,
             productAvailability: productData?.data || {},
             lastUpdated: productData?.lastUpdated || new Date().toISOString(),
-            offline: false
+            offline: false,
+            message: 'Dados carregados do MongoDB'
         });
     } catch (error) {
         console.error('Erro ao buscar produtos:', error);
         res.status(500).json({
             success: false,
             error: 'Erro ao buscar produtos',
-            productAvailability: {}
+            productAvailability: {},
+            offline: true
         });
     }
 });
@@ -283,7 +281,8 @@ app.get('/api/flavor-availability', async (req, res) => {
                 success: true,
                 flavorAvailability: {},
                 lastUpdated: new Date().toISOString(),
-                offline: true
+                offline: true,
+                message: 'Modo offline - usando cache local'
             });
         }
         
@@ -293,51 +292,31 @@ app.get('/api/flavor-availability', async (req, res) => {
             success: true,
             flavorAvailability: flavorData?.data || {},
             lastUpdated: flavorData?.lastUpdated || new Date().toISOString(),
-            offline: false
+            offline: false,
+            message: 'Dados carregados do MongoDB'
         });
     } catch (error) {
         console.error('Erro ao buscar sabores:', error);
         res.status(500).json({
             success: false,
             error: 'Erro ao buscar sabores',
-            flavorAvailability: {}
+            flavorAvailability: {},
+            offline: true
         });
     }
 });
 
-// ========== ROTAS ADMIN (COM SENHA NO BODY) ==========
-
-// Atualizar produtos (admin) - VERSÃO CORRIGIDA
-app.post('/api/admin/product-availability/bulk', async (req, res) => {
-    console.log('📦 Recebendo atualização de produtos...');
-    console.log('Body recebido:', JSON.stringify(req.body, null, 2));
-    
+// Atualizar produtos (admin)
+app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req, res) => {
     try {
-        const { productAvailability, password } = req.body;
+        console.log('📦 Recebendo atualização de produtos...');
         
-        // VALIDAR SENHA PRIMEIRO
-        if (!password) {
-            console.log('❌ Senha não fornecida');
-            return res.status(401).json({
-                success: false,
-                error: 'Senha administrativa não fornecida',
-                code: 'NO_PASSWORD'
-            });
-        }
-        
-        if (password !== ADMIN_PASSWORD) {
-            console.log('❌ Senha incorreta');
-            return res.status(401).json({
-                success: false,
-                error: 'Senha administrativa incorreta',
-                code: 'INVALID_PASSWORD'
-            });
-        }
+        const { productAvailability } = req.body;
         
         if (!productAvailability || typeof productAvailability !== 'object') {
             return res.status(400).json({
                 success: false,
-                error: 'Dados inválidos - productAvailability é obrigatório'
+                error: 'Dados inválidos'
             });
         }
         
@@ -350,7 +329,13 @@ app.post('/api/admin/product-availability/bulk', async (req, res) => {
             });
         }
         
-        console.log(`💾 Salvando ${Object.keys(productAvailability).length} produtos no MongoDB...`);
+        // Log da ação
+        await db.collection('admin_logs').insertOne({
+            action: 'update_product_availability',
+            itemsCount: Object.keys(productAvailability).length,
+            timestamp: new Date().toISOString(),
+            source: req.headers['x-forwarded-for'] || req.ip
+        });
         
         // Salvar no MongoDB
         const result = await db.collection('products').updateOne(
@@ -365,74 +350,41 @@ app.post('/api/admin/product-availability/bulk', async (req, res) => {
             { upsert: true }
         );
         
-        // Log da ação
-        await db.collection('admin_logs').insertOne({
-            action: 'update_products',
-            timestamp: new Date().toISOString(),
-            itemsCount: Object.keys(productAvailability).length,
-            result: {
-                matched: result.matchedCount,
-                modified: result.modifiedCount
-            }
-        });
-        
-        console.log(`✅ Produtos salvos no MongoDB! Itens: ${Object.keys(productAvailability).length}`);
-        console.log('Resultado MongoDB:', result);
+        console.log(`✅ Produtos salvos! Itens: ${Object.keys(productAvailability).length}`);
         
         res.json({
             success: true,
-            message: 'Produtos atualizados com sucesso no MongoDB Atlas',
+            message: 'Produtos atualizados com sucesso no MongoDB',
             timestamp: new Date().toISOString(),
             count: Object.keys(productAvailability).length,
             mongodbResult: {
                 matched: result.matchedCount,
                 modified: result.modifiedCount,
-                upsertedId: result.upsertedId
+                upserted: result.upsertedCount
             },
-            saved: true
+            savedAt: new Date().toISOString()
         });
         
     } catch (error) {
         console.error('❌ Erro ao salvar produtos:', error.message);
-        console.error('Stack:', error.stack);
         res.status(500).json({
             success: false,
-            error: `Erro ao salvar produtos: ${error.message}`,
-            saved: false
+            error: `Erro ao salvar produtos: ${error.message}`
         });
     }
 });
 
-// Atualizar sabores (admin) - VERSÃO CORRIGIDA
-app.post('/api/admin/flavor-availability/bulk', async (req, res) => {
-    console.log('🍹 Recebendo atualização de sabores...');
-    
+// Atualizar sabores (admin)
+app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, res) => {
     try {
-        const { flavorAvailability, password } = req.body;
+        console.log('🍹 Recebendo atualização de sabores...');
         
-        // VALIDAR SENHA PRIMEIRO
-        if (!password) {
-            console.log('❌ Senha não fornecida');
-            return res.status(401).json({
-                success: false,
-                error: 'Senha administrativa não fornecida',
-                code: 'NO_PASSWORD'
-            });
-        }
-        
-        if (password !== ADMIN_PASSWORD) {
-            console.log('❌ Senha incorreta');
-            return res.status(401).json({
-                success: false,
-                error: 'Senha administrativa incorreta',
-                code: 'INVALID_PASSWORD'
-            });
-        }
+        const { flavorAvailability } = req.body;
         
         if (!flavorAvailability || typeof flavorAvailability !== 'object') {
             return res.status(400).json({
                 success: false,
-                error: 'Dados inválidos - flavorAvailability é obrigatório'
+                error: 'Dados inválidos'
             });
         }
         
@@ -445,7 +397,13 @@ app.post('/api/admin/flavor-availability/bulk', async (req, res) => {
             });
         }
         
-        console.log(`💾 Salvando ${Object.keys(flavorAvailability).length} sabores no MongoDB...`);
+        // Log da ação
+        await db.collection('admin_logs').insertOne({
+            action: 'update_flavor_availability',
+            itemsCount: Object.keys(flavorAvailability).length,
+            timestamp: new Date().toISOString(),
+            source: req.headers['x-forwarded-for'] || req.ip
+        });
         
         const result = await db.collection('flavors').updateOne(
             { type: 'availability' },
@@ -459,77 +417,25 @@ app.post('/api/admin/flavor-availability/bulk', async (req, res) => {
             { upsert: true }
         );
         
-        // Log da ação
-        await db.collection('admin_logs').insertOne({
-            action: 'update_flavors',
-            timestamp: new Date().toISOString(),
-            itemsCount: Object.keys(flavorAvailability).length,
-            result: {
-                matched: result.matchedCount,
-                modified: result.modifiedCount
-            }
-        });
-        
-        console.log(`✅ Sabores salvos no MongoDB! Itens: ${Object.keys(flavorAvailability).length}`);
+        console.log(`✅ Sabores salvos! Itens: ${Object.keys(flavorAvailability).length}`);
         
         res.json({
             success: true,
-            message: 'Sabores atualizados com sucesso no MongoDB Atlas',
+            message: 'Sabores atualizados com sucesso no MongoDB',
             timestamp: new Date().toISOString(),
             count: Object.keys(flavorAvailability).length,
             mongodbResult: {
                 matched: result.matchedCount,
-                modified: result.modifiedCount
+                modified: result.modifiedCount,
+                upserted: result.upsertedCount
             },
-            saved: true
+            savedAt: new Date().toISOString()
         });
     } catch (error) {
         console.error('❌ Erro ao salvar sabores:', error.message);
         res.status(500).json({
             success: false,
-            error: `Erro ao salvar sabores: ${error.message}`,
-            saved: false
-        });
-    }
-});
-
-// Teste de salvamento (para diagnóstico)
-app.post('/api/test-save', async (req, res) => {
-    console.log('🧪 TEST SAVE endpoint chamado');
-    
-    try {
-        if (!isConnected || !db) {
-            return res.status(503).json({
-                success: false,
-                message: 'MongoDB offline'
-            });
-        }
-        
-        const testData = {
-            test: true,
-            timestamp: new Date().toISOString(),
-            data: req.body || {}
-        };
-        
-        const result = await db.collection('test_logs').insertOne(testData);
-        
-        res.json({
-            success: true,
-            message: 'Teste de salvamento realizado com sucesso!',
-            timestamp: new Date().toISOString(),
-            dataReceived: req.body,
-            mongodbResult: {
-                insertedId: result.insertedId
-            },
-            server: 'Render Production',
-            instanceId: process.env.RENDER_INSTANCE_ID || 'unknown'
-        });
-        
-    } catch (error) {
-        console.error('❌ Erro no teste de salvamento:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
+            error: `Erro ao salvar sabores: ${error.message}`
         });
     }
 });
@@ -543,7 +449,8 @@ app.get('/api/sync-all', async (req, res) => {
                 productAvailability: {},
                 flavorAvailability: {},
                 lastSync: new Date().toISOString(),
-                offline: true
+                offline: true,
+                dbStatus: 'disconnected'
             });
         }
         
@@ -557,15 +464,18 @@ app.get('/api/sync-all', async (req, res) => {
             productAvailability: products?.data || {},
             flavorAvailability: flavors?.data || {},
             lastSync: new Date().toISOString(),
-            offline: false
+            offline: false,
+            dbStatus: 'connected',
+            syncTimestamp: new Date().toISOString()
         });
     } catch (error) {
         console.error('Erro na sincronização:', error);
-        res.json({
+        res.status(500).json({
             success: false,
             error: 'Erro na sincronização',
             productAvailability: {},
-            flavorAvailability: {}
+            flavorAvailability: {},
+            offline: true
         });
     }
 });
@@ -577,33 +487,41 @@ app.get('/api/test-db', async (req, res) => {
             return res.json({
                 success: false,
                 message: 'MongoDB não conectado',
-                isConnected: false
+                isConnected: false,
+                timestamp: new Date().toISOString()
             });
         }
         
         // Teste simples
         const testDoc = {
-            test: 'ok',
+            test: 'connection_test',
             timestamp: new Date().toISOString(),
-            server: 'Render Production'
+            service: 'BebCom Delivery'
         };
         
         await db.collection('test').insertOne(testDoc);
         const count = await db.collection('test').countDocuments();
         
+        // Limpar documentos de teste antigos
+        await db.collection('test').deleteMany({
+            timestamp: { $lt: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+        });
+        
         res.json({
             success: true,
-            message: 'MongoDB funcionando',
+            message: 'MongoDB funcionando perfeitamente',
             isConnected: true,
             testCount: count,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            dbName: DB_NAME
         });
     } catch (error) {
-        res.json({
+        res.status(500).json({
             success: false,
             message: 'MongoDB falhou',
             error: error.message,
-            isConnected: false
+            isConnected: false,
+            timestamp: new Date().toISOString()
         });
     }
 });
@@ -625,28 +543,75 @@ app.post('/api/create-payment', async (req, res) => {
                 deliveryFee: deliveryFee || 0,
                 status: 'pending',
                 paid: false,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             };
             
             await db.collection('orders').insertOne(order);
             console.log(`📝 Pedido ${orderId} salvo no MongoDB`);
+            
+            // Log do pedido
+            await db.collection('admin_logs').insertOne({
+                action: 'new_order',
+                orderId: orderId,
+                customerName: customer.name,
+                total: totalAmount,
+                timestamp: new Date().toISOString()
+            });
         }
         
         // Simular resposta PIX
+        const total = totalAmount || items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
         res.json({
             success: true,
             orderId,
-            qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`PIX:${orderId}:${totalAmount || 50}`)}`,
+            qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`PIX:${orderId}:${total}`)}`,
             copyPasteKey: '00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-4266141740005204000053039865406' + 
-                         Math.floor((totalAmount || 50) * 100).toString().padStart(10, '0') + 
+                         Math.floor(total * 100).toString().padStart(10, '0') + 
                          '5802BR5925BEBCOM DELIVERY LTDA6008BAURU-SP62070503***6304ABCD',
-            message: 'QR Code PIX gerado com sucesso'
+            message: 'QR Code PIX gerado com sucesso',
+            paymentUrl: `https://bebcom-cardapio-delivery.onrender.com/api/payment/${orderId}`,
+            timestamp: new Date().toISOString()
         });
     } catch (error) {
         console.error('Erro ao criar pedido:', error);
         res.status(500).json({
             success: false,
-            error: 'Erro ao processar pedido'
+            error: 'Erro ao processar pedido',
+            message: error.message
+        });
+    }
+});
+
+// Status do pedido
+app.get('/api/order-status/:orderId', async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        
+        if (!isConnected || !db) {
+            return res.json({
+                success: true,
+                orderId,
+                paid: false,
+                status: 'pending',
+                offline: true
+            });
+        }
+        
+        const order = await db.collection('orders').findOne({ orderId });
+        
+        res.json({
+            success: true,
+            orderId,
+            paid: order?.paid || false,
+            status: order?.status || 'pending',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao verificar status'
         });
     }
 });
@@ -658,64 +623,81 @@ app.get('/api/endpoints', (req, res) => {
         endpoints: [
             { path: '/', method: 'GET', description: 'Status do serviço' },
             { path: '/health', method: 'GET', description: 'Health check' },
-            { path: '/api/mongodb-status', method: 'GET', description: 'Status MongoDB Atlas' },
+            { path: '/api/admin-password', method: 'GET', description: 'Obter hash da senha admin' },
             { path: '/api/product-availability', method: 'GET', description: 'Obter disponibilidade de produtos' },
             { path: '/api/flavor-availability', method: 'GET', description: 'Obter disponibilidade de sabores' },
             { path: '/api/sync-all', method: 'GET', description: 'Sincronizar todos os dados' },
             { path: '/api/test-db', method: 'GET', description: 'Testar conexão MongoDB' },
-            { path: '/api/test-save', method: 'POST', description: 'Teste de salvamento' },
-            { path: '/api/endpoints', method: 'GET', description: 'Listar todos endpoints' }
+            { path: '/api/endpoints', method: 'GET', description: 'Listar todos endpoints' },
+            { path: '/api/order-status/:orderId', method: 'GET', description: 'Verificar status do pedido' }
         ],
         adminEndpoints: [
-            { path: '/api/admin/product-availability/bulk', method: 'POST', description: 'Atualizar produtos (admin - enviar senha no body)' },
-            { path: '/api/admin/flavor-availability/bulk', method: 'POST', description: 'Atualizar sabores (admin - enviar senha no body)' }
+            { path: '/api/admin/product-availability/bulk', method: 'POST', description: 'Atualizar produtos (admin)' },
+            { path: '/api/admin/flavor-availability/bulk', method: 'POST', description: 'Atualizar sabores (admin)' }
         ],
-        note: 'Para endpoints admin, enviar senha no campo "password" do body'
+        timestamp: new Date().toISOString()
     });
 });
 
 // ========== INICIAR SERVIDOR ==========
 async function startServer() {
-    // Iniciar conexão MongoDB em background (não bloqueante)
-    connectDB();
-    
-    // Iniciar servidor HTTP IMEDIATAMENTE
-    const server = app.listen(PORT, '0.0.0.0', () => {
-        console.log('─'.repeat(60));
-        console.log(`✅ SERVIDOR HTTP INICIADO!`);
-        console.log(`🌐 Porta: ${PORT}`);
-        console.log(`📡 Render Health Check: http://localhost:${PORT}/`);
-        console.log(`🔗 URL Pública: https://bebcom-cardapio-delivery.onrender.com`);
-        console.log(`🗄️  MongoDB: ${MONGODB_URI ? '✅ CONFIGURADO' : '❌ NÃO CONFIGURADO'}`);
-        console.log(`🔐 Admin: ${ADMIN_PASSWORD ? '✅ CONFIGURADO' : '❌ NÃO CONFIGURADO'}`);
-        console.log('='.repeat(60));
-        console.log('📝 Serviço pronto para receber requisições...');
-    });
-    
-    // Graceful shutdown
-    process.on('SIGTERM', () => {
-        console.log('👋 Recebido SIGTERM, encerrando graciosamente...');
-        server.close(() => {
-            console.log('✅ Servidor HTTP fechado');
-            if (client) {
-                client.close();
-                console.log('🔌 MongoDB desconectado');
-            }
-            process.exit(0);
+    try {
+        // Iniciar conexão MongoDB em background (não bloqueante)
+        connectDB().then(() => {
+            console.log('🔌 Conexão MongoDB inicializada');
+        }).catch(error => {
+            console.error('❌ Falha ao conectar MongoDB:', error);
         });
-    });
-    
-    process.on('SIGINT', () => {
-        console.log('👋 Recebido SIGINT, encerrando...');
-        server.close(() => {
-            if (client) client.close();
-            process.exit(0);
+        
+        // Iniciar servidor HTTP IMEDIATAMENTE
+        const server = app.listen(PORT, '0.0.0.0', () => {
+            console.log('─'.repeat(60));
+            console.log(`✅ SERVIDOR HTTP INICIADO!`);
+            console.log(`🌐 Porta: ${PORT}`);
+            console.log(`📡 Render Health Check: http://localhost:${PORT}/`);
+            console.log(`🔗 Acesse: https://bebcom-cardapio-delivery.onrender.com`);
+            console.log(`🗄️  MongoDB: ${isConnected ? '✅ CONECTADO' : '⚠️  OFFLINE'}`);
+            console.log('='.repeat(60));
+            console.log('📝 Serviço pronto para receber requisições...');
         });
-    });
+        
+        // Otimizar timeout para Render
+        server.keepAliveTimeout = 65000; // 65 segundos
+        server.headersTimeout = 66000; // 66 segundos
+        
+        // Graceful shutdown otimizado
+        const gracefulShutdown = async (signal) => {
+            console.log(`👋 Recebido ${signal}, encerrando graciosamente...`);
+            
+            // Parar de aceitar novas conexões
+            server.close(() => {
+                console.log('✅ Servidor HTTP fechado');
+                
+                // Fechar conexão MongoDB
+                if (client) {
+                    client.close();
+                    console.log('🔌 MongoDB desconectado');
+                }
+                
+                console.log(`🔄 Encerramento completo (${signal})`);
+                process.exit(0);
+            });
+            
+            // Timeout forçado após 10 segundos
+            setTimeout(() => {
+                console.error('❌ Timeout no encerramento, forçando saída...');
+                process.exit(1);
+            }, 10000);
+        };
+        
+        process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+        process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+        
+    } catch (error) {
+        console.error('💥 ERRO AO INICIAR SERVIDOR:', error);
+        process.exit(1);
+    }
 }
 
 // Iniciar
-startServer().catch(error => {
-    console.error('💥 ERRO AO INICIAR SERVIDOR:', error);
-    process.exit(1);
-});
+startServer();
