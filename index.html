@@ -559,7 +559,6 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -787,7 +786,18 @@
             font-weight: bold;
             cursor: pointer;
             font-size: 16px;
+            transition: all 0.3s ease;
         }
+
+            .password-button:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+            }
+
+            .password-button:disabled {
+                opacity: 0.7;
+                cursor: not-allowed;
+            }
 
         .admin-main {
             padding: 20px 30px;
@@ -913,6 +923,16 @@
             text-align: center;
         }
 
+            .admin-action-btn:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .admin-action-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
         .save-btn {
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             color: white;
@@ -961,7 +981,6 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -1001,7 +1020,6 @@
                 opacity: 0;
                 transform: scale(0.9);
             }
-
             to {
                 opacity: 1;
                 transform: scale(1);
@@ -1159,7 +1177,6 @@
 
         /* ====== CORREÇÕES PARA ADMIN NO MOBILE ====== */
         @media (max-width: 768px) {
-            /* Ajustes para modal administrativo no mobile */
             .admin-modal {
                 padding: 10px !important;
             }
@@ -1195,7 +1212,6 @@
                 align-self: flex-end !important;
             }
 
-            /* Correção específica para gerenciador de sabores no mobile */
             #flavorsList > div {
                 grid-template-columns: 1fr !important;
             }
@@ -1205,7 +1221,6 @@
                 font-size: 16px !important;
             }
 
-            /* Garantir que o modal de sabores seja legível no mobile */
             .flavor-modal-overlay {
                 align-items: flex-start !important;
                 padding-top: 20px !important;
@@ -1224,7 +1239,6 @@
                 grid-template-columns: 1fr !important;
             }
 
-            /* Indicador de indisponibilidade no mobile */
             .flavor-option.unavailable {
                 opacity: 0.7 !important;
             }
@@ -1241,7 +1255,6 @@
                     width: 100% !important;
                 }
 
-            /* Botões modais no mobile */
             .modal-buttons {
                 flex-direction: column !important;
             }
@@ -1251,7 +1264,6 @@
             }
         }
 
-        /* Correção adicional para telas muito pequenas */
         @media (max-width: 480px) {
             .admin-button {
                 width: 45px !important;
@@ -1273,7 +1285,6 @@
                 font-size: 14px !important;
             }
 
-            /* Modal de sabores - melhor visualização */
             .flavor-modal-title {
                 font-size: 18px !important;
             }
@@ -1284,7 +1295,6 @@
             }
         }
 
-        /* Garantir que o estado de indisponibilidade seja visível em todos os dispositivos */
         .product-card.unavailable::after {
             font-size: 14px !important;
             padding: 10px 20px !important;
@@ -1301,14 +1311,12 @@
             max-width: 90% !important;
         }
 
-        /* Scroll suave para modais no mobile */
         .admin-main,
         .flavor-modal-content,
         .age-modal-content {
             -webkit-overflow-scrolling: touch !important;
         }
 
-        /* Responsivo para o modal de idade */
         @media (max-width: 768px) {
             .age-modal-content {
                 max-width: 95%;
@@ -1332,7 +1340,6 @@
             }
         }
 
-        /* Responsivo geral */
         @media (max-width: 1024px) {
             .main-container {
                 flex-direction: column;
@@ -1428,8 +1435,8 @@
     </style>
 </head>
 <body>
-    <!-- Botão Admin - COM ONCLICK ADICIONADO -->
-    <button class="admin-button" id="adminButton" title="Painel Administrativo" onclick="openAdminPanel()">
+    <!-- Botão Admin -->
+    <button class="admin-button" id="adminButton" title="Painel Administrativo">
         🔧
     </button>
 
@@ -1469,11 +1476,11 @@
             </div>
 
             <div class="age-modal-footer">
-                <button class="age-btn age-btn-exit" onclick="exitSite()">
+                <button class="age-btn age-btn-exit" id="exitSiteButton">
                     ❌ Sair do Site
                     <small>Menor de 18 anos</small>
                 </button>
-                <button class="age-btn age-btn-enter" id="enterSiteButton" onclick="enterSite()" disabled>
+                <button class="age-btn age-btn-enter" id="enterSiteButton" disabled>
                     ✅ Entrar no Site
                     <small>Sou maior de 18 anos</small>
                 </button>
@@ -1656,7 +1663,9 @@
             <div class="admin-password" id="passwordSection">
                 <h3 style="color: #60a5fa; margin-bottom: 20px; text-align: center;">🔐 Acesso Administrativo</h3>
                 <input type="password" class="password-input" id="adminPassword" placeholder="Digite a senha administrativa">
-                <button class="password-button" onclick="checkAdminPassword()">Entrar</button>
+                <button class="password-button" onclick="checkAdminPassword()" id="adminLoginButton">
+                    Entrar
+                </button>
                 <p class="admin-help">
                     (Ctrl+Alt+A para abrir rapidamente)
                 </p>
@@ -1732,7 +1741,7 @@
                 <button class="admin-action-btn none-btn" onclick="setAllAvailable(false)">
                     ❌ Marcar Todos Indisponível
                 </button>
-                <button class="admin-action-btn save-btn" onclick="saveAvailability()">
+                <button class="admin-action-btn save-btn" onclick="saveAvailability()" id="saveAdminButton">
                     💾 Salvar Alterações
                 </button>
                 <button class="admin-action-btn reset-btn" onclick="resetAvailability()">
@@ -1754,121 +1763,16 @@
 
     <script>
         // ============================================
-        // FUNÇÕES DE VERIFICAÇÃO DE IDADE
-        // ============================================
-
-        // Variável para controle do modal de idade
-        let ageVerified = false;
-
-        // Função para inicializar o modal de idade
-        function initAgeVerification() {
-            // Verificar se já foi confirmado anteriormente (usando localStorage)
-            const hasConfirmedAge = localStorage.getItem('bebcom_age_verified');
-
-            if (hasConfirmedAge === 'true') {
-                ageVerified = true;
-                document.getElementById('ageVerificationModal').style.display = 'none';
-                return;
-            }
-
-            // Mostrar modal
-            document.getElementById('ageVerificationModal').style.display = 'flex';
-
-            // Configurar evento para o checkbox
-            const checkbox = document.getElementById('ageConfirmationCheckbox');
-            const enterButton = document.getElementById('enterSiteButton');
-
-            checkbox.addEventListener('change', function () {
-                enterButton.disabled = !this.checked;
-            });
-
-            // Impedir fechamento do modal com ESC ou clicando fora
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape' && !ageVerified) {
-                    e.preventDefault();
-                    exitSite();
-                }
-            });
-
-            // Impedir rolagem enquanto o modal estiver aberto
-            document.body.style.overflow = 'hidden';
-        }
-
-        // Função para entrar no site
-        function enterSite() {
-            ageVerified = true;
-            localStorage.setItem('bebcom_age_verified', 'true');
-            document.getElementById('ageVerificationModal').style.display = 'none';
-            document.body.style.overflow = 'auto';
-            showNotification('✅ Acesso permitido. Aproveite nosso cardápio com responsabilidade!');
-        }
-
-        // Função para sair do site (menor de idade)
-        function exitSite() {
-            // Redirecionar para uma página apropriada ou mostrar mensagem
-            document.body.innerHTML = `
-                    <div style="
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        justify-content: center;
-                        color: white;
-                        text-align: center;
-                        padding: 20px;
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    ">
-                        <div style="font-size: 80px; margin-bottom: 20px;">🚫</div>
-                        <h1 style="font-size: 32px; margin-bottom: 20px; color: #dc2626;">Acesso Restrito</h1>
-                        <p style="font-size: 18px; max-width: 600px; line-height: 1.6; margin-bottom: 30px;">
-                            Conforme a legislação brasileira (Estatuto da Criança e do Adolescente - Lei 8.069/90),
-                            o acesso a sites de venda de bebidas alcoólicas é restrito a maiores de 18 anos.
-                        </p>
-                        <p style="font-size: 16px; color: #aaa; max-width: 600px; line-height: 1.5;">
-                            O BebCom Delivery segue rigorosamente as normas legais para proteger menores de idade
-                            e promover o consumo responsável de bebidas alcoólicas.
-                        </p>
-                        <div style="margin-top: 40px;">
-                            <button onclick="window.location.href='https://www.google.com'" style="
-                                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-                                color: white;
-                                border: none;
-                                padding: 15px 30px;
-                                border-radius: 8px;
-                                font-size: 16px;
-                                cursor: pointer;
-                                font-weight: bold;
-                            ">
-                                Voltar para a navegação segura
-                            </button>
-                        </div>
-                        <div style="margin-top: 50px; font-size: 12px; color: #666;">
-                            BebCom Delivery © ${new Date().getFullYear()} - Todos os direitos reservados
-                        </div>
-                    </div>
-                `;
-        }
-
-        // ============================================
-        // CONFIGURAÇÕES DO SISTEMA (SEGURO)
+        // CONFIGURAÇÕES DO SISTEMA
         // ============================================
         const CONFIG = {
-            // 🔒 URL do backend no Render
             backendUrl: 'https://bebcom-cardapio-delivery.onrender.com',
-
             whatsappNumber: '5514996130369',
-
             storeLocation: {
                 lat: -22.35892,
                 lng: -49.0987233,
                 address: "R. José Henrique Ferraz, 18-10 - Centro, Bauru - SP"
             },
-
             deliveryRates: {
                 baseFee: 5.00,
                 perKm: 2.65,
@@ -1879,115 +1783,28 @@
         };
 
         // ============================================
-        // DADOS DOS PRODUTOS ATUALIZADOS (COMPLETO)
+        // DADOS DOS PRODUTOS
         // ============================================
         const products = {
             'drinks-whisky': [
-                {
-                    id: 'old-star',
-                    name: 'Copão Old Star',
-                    description: 'Drink clássico de whisky',
-                    price: 11.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'whisky_oldstar',
-                    nextStep: 'ice'
-                },
-                {
-                    id: 'passport',
-                    name: 'Copão Passport',
-                    description: 'Whisky importado',
-                    price: 18.00,
-                    requiresFlavorSelection: false,
-                    flavorType: null
-                },
-                {
-                    id: 'natu-nobilis',
-                    name: 'Copão Natu Nobilis',
-                    description: 'Whisky premium',
-                    price: 17.00,
-                    requiresFlavorSelection: false,
-                    flavorType: null
-                },
-                {
-                    id: 'white-horse',
-                    name: 'Copão White Horse',
-                    description: 'Whisky escocês',
-                    price: 22.00,
-                    requiresFlavorSelection: false,
-                    flavorType: null
-                },
-                {
-                    id: 'red-label',
-                    name: 'Copão Red Label',
-                    description: 'Johnnie Walker Red Label',
-                    price: 25.00,
-                    requiresFlavorSelection: false,
-                    flavorType: null
-                },
-                {
-                    id: 'ballantines',
-                    name: 'Copão Ballantines',
-                    description: 'Whisky escocês',
-                    price: 28.00,
-                    requiresFlavorSelection: false,
-                    flavorType: null
-                },
-                {
-                    id: 'jack-daniels',
-                    name: 'Copão Jack Daniels',
-                    description: 'Whisky americano',
-                    price: 35.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'whisky_jack',
-                    nextStep: 'ice'
-                }
+                { id: 'old-star', name: 'Copão Old Star', description: 'Drink clássico de whisky', price: 11.00, requiresFlavorSelection: true, flavorType: 'whisky_oldstar', nextStep: 'ice' },
+                { id: 'passport', name: 'Copão Passport', description: 'Whisky importado', price: 18.00, requiresFlavorSelection: false, flavorType: null },
+                { id: 'natu-nobilis', name: 'Copão Natu Nobilis', description: 'Whisky premium', price: 17.00, requiresFlavorSelection: false, flavorType: null },
+                { id: 'white-horse', name: 'Copão White Horse', description: 'Whisky escocês', price: 22.00, requiresFlavorSelection: false, flavorType: null },
+                { id: 'red-label', name: 'Copão Red Label', description: 'Johnnie Walker Red Label', price: 25.00, requiresFlavorSelection: false, flavorType: null },
+                { id: 'ballantines', name: 'Copão Ballantines', description: 'Whisky escocês', price: 28.00, requiresFlavorSelection: false, flavorType: null },
+                { id: 'jack-daniels', name: 'Copão Jack Daniels', description: 'Whisky americano', price: 35.00, requiresFlavorSelection: true, flavorType: 'whisky_jack', nextStep: 'ice' }
             ],
             'drinks-gin': [
-                {
-                    id: 'danoninho-gin',
-                    name: 'Danoninho de Gin',
-                    description: 'Batida com Gin',
-                    price: 18.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'gin_sabores',
-                    nextStep: 'ice'
-                },
-                {
-                    id: 'copa-gin',
-                    name: 'Copão de Gin',
-                    description: 'Drink com Gin Askov Sabores',
-                    price: 18.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'gin_sabores',
-                    nextStep: 'ice'
-                }
+                { id: 'danoninho-gin', name: 'Danoninho de Gin', description: 'Batida com Gin', price: 18.00, requiresFlavorSelection: true, flavorType: 'gin_sabores', nextStep: 'ice' },
+                { id: 'copa-gin', name: 'Copão de Gin', description: 'Drink com Gin Askov Sabores', price: 18.00, requiresFlavorSelection: true, flavorType: 'gin_sabores', nextStep: 'ice' }
             ],
             'drinks-vodka': [
-                {
-                    id: 'danoninho-corote',
-                    name: 'Danoninho Corote',
-                    description: 'Batida com Corote',
-                    price: 15.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'corote_sabores'
-                },
-                {
-                    id: 'danoninho-askov',
-                    name: 'Danoninho Askov',
-                    description: 'Askov de frutas com leite condensado',
-                    price: 18.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'vodka_sabores'
-                }
+                { id: 'danoninho-corote', name: 'Danoninho Corote', description: 'Batida com Corote', price: 15.00, requiresFlavorSelection: true, flavorType: 'corote_sabores' },
+                { id: 'danoninho-askov', name: 'Danoninho Askov', description: 'Askov de frutas com leite condensado', price: 18.00, requiresFlavorSelection: true, flavorType: 'vodka_sabores' }
             ],
             'drinks-vinho': [
-                {
-                    id: 'danoninho-vinho',
-                    name: 'Danoninho de Vinho',
-                    description: 'Batida de Cantinho do Valle com leite condensado',
-                    price: 18.00,
-                    requiresFlavorSelection: false
-                }
+                { id: 'danoninho-vinho', name: 'Danoninho de Vinho', description: 'Batida de Cantinho do Valle com leite condensado', price: 18.00, requiresFlavorSelection: false }
             ],
             'cervejas': [
                 { id: 'brahma', name: 'Brahma', description: 'Cerveja tradicional brasileira', price: 4.25 },
@@ -2029,39 +1846,11 @@
                 { id: 'conhaque', name: 'Conhaque', description: 'Destilado envelhecido', price: 19.00 },
                 { id: 'dimel', name: 'Dimel', description: 'Licor italiano', price: 30.00 },
                 { id: 'campari', name: 'Campari', description: 'Bitter italiano', price: 65.00 },
-                {
-                    id: 'gin-askov',
-                    name: 'Gin Askov',
-                    description: 'Gin brasileiro',
-                    price: 20.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'gin_sabores'
-                },
+                { id: 'gin-askov', name: 'Gin Askov', description: 'Gin brasileiro', price: 20.00, requiresFlavorSelection: true, flavorType: 'gin_sabores' },
                 { id: 'askov-pura', name: 'Askov Pura', description: 'Vodka brasileira pura', price: 20.00 },
-                {
-                    id: 'askov-ice',
-                    name: 'Askov Ice',
-                    description: 'Bebida ready to drink',
-                    price: 8.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'ice_askov'
-                },
-                {
-                    id: 'ice-leev',
-                    name: 'Ice Leev',
-                    description: 'Bebida ready to drink',
-                    price: 8.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'ice_leev'
-                },
-                {
-                    id: 'beats-lata',
-                    name: 'Beats Lata',
-                    description: 'Bebida em lata',
-                    price: 7.50,
-                    requiresFlavorSelection: true,
-                    flavorType: 'beats'
-                },
+                { id: 'askov-ice', name: 'Askov Ice', description: 'Bebida ready to drink', price: 8.00, requiresFlavorSelection: true, flavorType: 'ice_askov' },
+                { id: 'ice-leev', name: 'Ice Leev', description: 'Bebida ready to drink', price: 8.00, requiresFlavorSelection: true, flavorType: 'ice_leev' },
+                { id: 'beats-lata', name: 'Beats Lata', description: 'Bebida em lata', price: 7.50, requiresFlavorSelection: true, flavorType: 'beats' },
                 { id: 'beats-long', name: 'Beats Long', description: 'Bebida Sense em long neck', price: 9.00 },
                 { id: 'smirnoff-ice', name: 'Smirnoff Ice', description: 'Bebida de limão com vodka', price: 10.00 },
                 { id: 'velho-barreiro', name: 'Velho Barreiro', description: 'Cachaça tradicional', price: 19.00 },
@@ -2070,14 +1859,7 @@
                 { id: 'red-label-dest', name: 'Red Label', description: 'Johnnie Walker', price: 140.00 },
                 { id: 'ballantines-dest', name: 'Ballantines', description: 'Whisky escocês', price: 135.00 },
                 { id: 'smirnoff-1l', name: 'Smirnoff 1L', description: 'Vodka premium 1 litro', price: 56.00 },
-                {
-                    id: 'askov-sabor-1l',
-                    name: 'Askov Sabor 1L',
-                    description: 'Vodka com sabor 1 litro',
-                    price: 20.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'vodka_sabores'
-                },
+                { id: 'askov-sabor-1l', name: 'Askov Sabor 1L', description: 'Vodka com sabor 1 litro', price: 20.00, requiresFlavorSelection: true, flavorType: 'vodka_sabores' },
                 { id: 'canelinha', name: 'Canelinha', description: 'Canelinha da Rocha', price: 25.00 },
                 { id: 'dom-bosco', name: 'Dom Bosco', description: 'Vinho brasileiro', price: 20.00 },
                 { id: 'chapinha', name: 'Chapinha', description: 'Vinho brasileira', price: 15.00 },
@@ -2093,22 +1875,8 @@
                 { id: 'agua-coco-1l', name: 'Água de Coco 1L', description: 'Água de coco natural', price: 12.00 },
                 { id: 'agua-gas-500ml', name: 'Água Gás 500ml', description: 'Água com gás', price: 3.50 },
                 { id: 'agua-gas-1.5l', name: 'Água Gás 1,5L', description: 'Água com gás família', price: 7.00 },
-                {
-                    id: 'h2o-500ml',
-                    name: 'H2O 500ml',
-                    description: 'Água mineral premium',
-                    price: 5.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'h2o_sabores'
-                },
-                {
-                    id: 'h2o-1.5l',
-                    name: 'H2O 1,5L',
-                    description: 'Água premium família',
-                    price: 10.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'h2o_sabores'
-                },
+                { id: 'h2o-500ml', name: 'H2O 500ml', description: 'Água mineral premium', price: 5.00, requiresFlavorSelection: true, flavorType: 'h2o_sabores' },
+                { id: 'h2o-1.5l', name: 'H2O 1,5L', description: 'Água premium família', price: 10.00, requiresFlavorSelection: true, flavorType: 'h2o_sabores' },
                 { id: 'gatorade', name: 'Gatorade', description: 'Bebida isotônica', price: 8.00 }
             ],
             'refri-latas': [
@@ -2142,70 +1910,21 @@
                 { id: 'guarana-mini', name: 'Guaraná Mini', description: 'Guaraná Antarctica individual', price: 3.00 }
             ],
             'sucos': [
-                {
-                    id: 'del-valle-1l',
-                    name: 'Del Valle 1L',
-                    description: 'Suco de caixinha',
-                    price: 12.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'suco_delvalle'
-                },
+                { id: 'del-valle-1l', name: 'Del Valle 1L', description: 'Suco de caixinha', price: 12.00, requiresFlavorSelection: true, flavorType: 'suco_delvalle' },
                 { id: 'prats-300ml-laranja', name: 'Prats 300ml Laranja', description: 'Suco de laranja', price: 6.00 },
-                {
-                    id: 'kapo',
-                    name: 'Kapo',
-                    description: 'Suco em pó',
-                    price: 4.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'suco_kapo'
-                },
+                { id: 'kapo', name: 'Kapo', description: 'Suco em pó', price: 4.00, requiresFlavorSelection: true, flavorType: 'suco_kapo' },
                 { id: 'prats-1.5l-laranja', name: 'Prats 1,5L Laranja', description: 'Suco de laranja família', price: 23.00 },
-                {
-                    id: 'life-900ml',
-                    name: 'Life 900ml',
-                    description: 'Suco premium',
-                    price: 14.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'suco_life'
-                }
+                { id: 'life-900ml', name: 'Life 900ml', description: 'Suco premium', price: 14.00, requiresFlavorSelection: true, flavorType: 'suco_life' }
             ],
             'energeticos': [
                 { id: 'big-power-2l', name: 'Big Power 2L', description: 'Energético grande', price: 13.00 },
-                {
-                    id: 'monster-473ml',
-                    name: 'Monster 473ml',
-                    description: 'Energético importado',
-                    price: 12.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'energetico_monster'
-                },
+                { id: 'monster-473ml', name: 'Monster 473ml', description: 'Energético importado', price: 12.00, requiresFlavorSelection: true, flavorType: 'energetico_monster' },
                 { id: 'red-bull-250ml', name: 'Red Bull Tradicional 250ml', description: 'Energético pequeno', price: 14.00 },
-                {
-                    id: 'bally-2l',
-                    name: 'Bally 2L',
-                    description: 'Energético 2 litros',
-                    price: 15.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'energetico_bally'
-                },
-                {
-                    id: 'bally-473ml',
-                    name: 'Bally 473ml',
-                    description: 'Energético lata grande',
-                    price: 10.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'energetico_bally'
-                }
+                { id: 'bally-2l', name: 'Bally 2L', description: 'Energético 2 litros', price: 15.00, requiresFlavorSelection: true, flavorType: 'energetico_bally' },
+                { id: 'bally-473ml', name: 'Bally 473ml', description: 'Energético lata grande', price: 10.00, requiresFlavorSelection: true, flavorType: 'energetico_bally' }
             ],
             'gelo-carvao': [
-                {
-                    id: 'gelo-saborizado',
-                    name: 'Gelo Saborizado',
-                    description: 'Gelo com sabor',
-                    price: 3.00,
-                    requiresFlavorSelection: true,
-                    flavorType: 'gelo_sabores'
-                },
+                { id: 'gelo-saborizado', name: 'Gelo Saborizado', description: 'Gelo com sabor', price: 3.00, requiresFlavorSelection: true, flavorType: 'gelo_sabores' },
                 { id: 'carvao-3kg', name: 'Carvão 3kg', description: 'Carvão para churrasco', price: 20.00 },
                 { id: 'gelo-4.5kg', name: 'Gelo 4,5Kg', description: 'Gelo em saco', price: 11.00 },
                 { id: 'carvao-6kg', name: 'Carvão 6Kg', description: 'Carvão grande', price: 30.00 }
@@ -2213,117 +1932,26 @@
         };
 
         // ============================================
-        // CATÁLOGO DE SABORES POR TIPO
+        // CATÁLOGO DE SABORES
         // ============================================
         const FLAVOR_CATALOG = {
-            'whisky_oldstar': [
-                'Old Star Tradicional',
-                'Old Star Maçã-Verde'
-            ],
-            'whisky_jack': [
-                'Jack Tradicional',
-                'Jack Mel',
-                'Jack Maçã-Verde'
-            ],
-            'gin_sabores': [
-                'Tropical',
-                'Melancia',
-                'Morango',
-                'Maçã-Verde'
-            ],
-            'corote_sabores': [
-                'Morango',
-                'Melância',
-                'Maracujá',
-                'Pêssego',
-                'Blueberry',
-                'Limão',
-                'Canelinha'
-            ],
-            'vodka_sabores': [
-                'Frutas Vermelhas',
-                'Maracujá',
-                'Frutas Roxas',
-                'Kiwi',
-                'Pêssego',
-                'Limão',
-                'Blueberry'
-            ],
-            'ice_askov': [
-                'Maracujá',
-                'Limão',
-                'Frutas Vermelhas',
-                'Pina Colada'
-            ],
-            'ice_leev': [
-                'Morango',
-                'Limão',
-                'Melância',
-                'Maracujá',
-                'Abacaxi com Hortelã',
-                'Maçã-Verde'
-            ],
-            'beats': [
-                'Sense',
-                'GT',
-                'Red Mix',
-                'Green Mix'
-            ],
-            'h2o_sabores': [
-                'Limão',
-                'Limoneto'
-            ],
-            'suco_delvalle': [
-                'Laranja',
-                'Manga',
-                'Maracujá',
-                'Caju (sem açúcar)',
-                'Uva',
-                'Pêssego'
-            ],
-            'suco_kapo': [
-                'Uva',
-                'Morango',
-                'Maracujá',
-                'Laranja'
-            ],
-            'suco_life': [
-                'Uva',
-                'Laranja'
-            ],
-            'energetico_monster': [
-                'Tradicional',
-                'Tradicional Zero',
-                'Uva',
-                'Mango Loco',
-                'Melancia',
-                'Mango Loco Zero',
-                'Ultra Monster',
-                'Absolut',
-                'Cereja',
-                'Pêssego',
-                'Rio',
-                'Laranja'
-            ],
-            'energetico_bally': [
-                'Tradicional',
-                'Morango e Pêssego',
-                'Melancia',
-                'Tropical'
-            ],
-            'gelo_sabores': [
-                'Melancia',
-                'Morango',
-                'Limão',
-                'Côco',
-                'Maçã-Verde',
-                'Abacaxi com Hortelã',
-                'Maracujá',
-                'Laranja'
-            ]
+            'whisky_oldstar': ['Old Star Tradicional', 'Old Star Maçã-Verde'],
+            'whisky_jack': ['Jack Tradicional', 'Jack Mel', 'Jack Maçã-Verde'],
+            'gin_sabores': ['Tropical', 'Melancia', 'Morango', 'Maçã-Verde'],
+            'corote_sabores': ['Morango', 'Melância', 'Maracujá', 'Pêssego', 'Blueberry', 'Limão', 'Canelinha'],
+            'vodka_sabores': ['Frutas Vermelhas', 'Maracujá', 'Frutas Roxas', 'Kiwi', 'Pêssego', 'Limão', 'Blueberry'],
+            'ice_askov': ['Maracujá', 'Limão', 'Frutas Vermelhas', 'Pina Colada'],
+            'ice_leev': ['Morango', 'Limão', 'Melância', 'Maracujá', 'Abacaxi com Hortelã', 'Maçã-Verde'],
+            'beats': ['Sense', 'GT', 'Red Mix', 'Green Mix'],
+            'h2o_sabores': ['Limão', 'Limoneto'],
+            'suco_delvalle': ['Laranja', 'Manga', 'Maracujá', 'Caju (sem açúcar)', 'Uva', 'Pêssego'],
+            'suco_kapo': ['Uva', 'Morango', 'Maracujá', 'Laranja'],
+            'suco_life': ['Uva', 'Laranja'],
+            'energetico_monster': ['Tradicional', 'Tradicional Zero', 'Uva', 'Mango Loco', 'Melancia', 'Mango Loco Zero', 'Ultra Monster', 'Absolut', 'Cereja', 'Pêssego', 'Rio', 'Laranja'],
+            'energetico_bally': ['Tradicional', 'Morango e Pêssego', 'Melancia', 'Tropical'],
+            'gelo_sabores': ['Melancia', 'Morango', 'Limão', 'Côco', 'Maçã-Verde', 'Abacaxi com Hortelã', 'Maracujá', 'Laranja']
         };
 
-        // Constante para tipos de sabor
         const FLAVOR_TYPES = {
             'whisky_oldstar': 'Old Star',
             'whisky_jack': 'Jack Daniels',
@@ -2343,7 +1971,7 @@
         };
 
         // ============================================
-        // ESTADO GLOBAL ATUALIZADO
+        // ESTADO GLOBAL
         // ============================================
         const state = {
             cart: [],
@@ -2360,62 +1988,135 @@
             currentFlavorStep: null,
             currentButton: null,
             adminAuthenticated: false,
+            adminPassword: null,
             productAvailability: {},
-            flavorAvailability: {}
+            flavorAvailability: {},
+            ageVerified: false
         };
+
+        // ============================================
+        // FUNÇÕES DE VERIFICAÇÃO DE IDADE
+        // ============================================
+        function initAgeVerification() {
+            const hasConfirmedAge = localStorage.getItem('bebcom_age_verified');
+            
+            if (hasConfirmedAge === 'true') {
+                state.ageVerified = true;
+                document.getElementById('ageVerificationModal').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('ageVerificationModal').style.display = 'flex';
+            
+            const checkbox = document.getElementById('ageConfirmationCheckbox');
+            const enterButton = document.getElementById('enterSiteButton');
+            const exitButton = document.getElementById('exitSiteButton');
+            
+            checkbox.addEventListener('change', function() {
+                enterButton.disabled = !this.checked;
+            });
+            
+            enterButton.addEventListener('click', enterSite);
+            exitButton.addEventListener('click', exitSite);
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !state.ageVerified) {
+                    e.preventDefault();
+                    exitSite();
+                }
+            });
+            
+            document.body.style.overflow = 'hidden';
+        }
+
+        function enterSite() {
+            state.ageVerified = true;
+            localStorage.setItem('bebcom_age_verified', 'true');
+            document.getElementById('ageVerificationModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            showNotification('✅ Acesso permitido. Aproveite nosso cardápio com responsabilidade!');
+            initializeApp();
+        }
+
+        function exitSite() {
+            document.body.innerHTML = `
+                <div style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    text-align: center;
+                    padding: 20px;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                ">
+                    <div style="font-size: 80px; margin-bottom: 20px;">🚫</div>
+                    <h1 style="font-size: 32px; margin-bottom: 20px; color: #dc2626;">Acesso Restrito</h1>
+                    <p style="font-size: 18px; max-width: 600px; line-height: 1.6; margin-bottom: 30px;">
+                        Conforme a legislação brasileira (Estatuto da Criança e do Adolescente - Lei 8.069/90),
+                        o acesso a sites de venda de bebidas alcoólicas é restrito a maiores de 18 anos.
+                    </p>
+                    <div style="margin-top: 40px;">
+                        <button onclick="window.location.href='https://www.google.com'" style="
+                            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            cursor: pointer;
+                            font-weight: bold;
+                        ">
+                            Voltar para a navegação segura
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
 
         // ============================================
         // FUNÇÕES DE INICIALIZAÇÃO
         // ============================================
-        async function init() {
-            console.log('🚀 Inicializando BebCom Delivery v3.0');
-
-            // Inicializar verificação de idade
-            initAgeVerification();
-
-            // Só inicializar o resto do sistema se a idade for verificada
-            if (!ageVerified) return;
-
-            // Configurar listeners
+        async function initializeApp() {
+            console.log('🚀 Inicializando BebCom Delivery v3.1');
+            
             setupEventListeners();
             setupAdminListeners();
-            
-            // Configurações básicas
             setupPhoneMask();
             setupAutoSave();
-
-            // Carregar dados
+            
             loadCartFromLocalStorage();
             loadLocalAvailability();
-
-            // Inicializar componentes visuais
+            
             showCategory('drinks-whisky');
             selectDeliveryType('pickup');
             updateCartDisplay();
-
-            console.log('✅ Sistema BebCom Delivery inicializado com sucesso');
             
-            // Tentar sincronizar com MongoDB em segundo plano (não bloqueia o carregamento)
-            setTimeout(() => {
-                syncAllFromServer();
+            console.log('✅ Sistema inicializado');
+            
+            // Sincronizar em background
+            setTimeout(async () => {
+                await syncAllFromServer();
             }, 1000);
         }
 
         // ============================================
-        // FUNÇÕES PARA DISPONIBILIDADE DE PRODUTOS
+        // FUNÇÕES PARA DISPONIBILIDADE
         // ============================================
-
-        // Carregar disponibilidade local
         function loadLocalAvailability() {
-            // Carregar produtos do localStorage
             const savedProducts = localStorage.getItem('bebcom_product_availability');
             state.productAvailability = savedProducts ? JSON.parse(savedProducts) : {};
             
-            // Carregar sabores do localStorage
             const savedFlavors = localStorage.getItem('bebcom_flavor_availability');
             state.flavorAvailability = savedFlavors ? JSON.parse(savedFlavors) : {};
             
-            // Inicializar produtos faltantes como disponíveis
+            // Inicializar produtos faltantes
             Object.keys(products).forEach(category => {
                 products[category].forEach(product => {
                     if (state.productAvailability[product.id] === undefined) {
@@ -2424,7 +2125,7 @@
                 });
             });
             
-            // Inicializar sabores faltantes como disponíveis
+            // Inicializar sabores faltantes
             Object.keys(FLAVOR_CATALOG).forEach(flavorType => {
                 FLAVOR_CATALOG[flavorType].forEach(flavor => {
                     const key = `${flavorType}_${flavor}`;
@@ -2435,78 +2136,87 @@
             });
         }
 
-        // Verificar se produto está disponível
         function isProductAvailable(productId) {
             return state.productAvailability[productId] !== false;
         }
 
-        // Verificar se sabor está disponível
         function isFlavorAvailable(flavorType, flavorName) {
             const key = `${flavorType}_${flavorName}`;
             return state.flavorAvailability[key] !== false;
         }
 
         // ============================================
-        // SINCRONIZAÇÃO COM MONGODB (APENAS PARA ADMIN)
+        // SINCRONIZAÇÃO COM BACKEND
         // ============================================
-        
-        async function loadProductAvailability() {
-            try {
-                const response = await fetch(`${CONFIG.backendUrl}/api/product-availability`);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.productAvailability) {
-                        state.productAvailability = data.productAvailability;
-                        localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
-                        console.log('✅ Disponibilidade de produtos carregada do MongoDB');
-                        return true;
-                    }
-                }
-                throw new Error('Resposta inválida do servidor');
-            } catch (error) {
-                console.log('⚠️ Fallback: Carregando produtos do localStorage');
-                return false;
-            }
-        }
-
-        async function loadFlavorAvailability() {
-            try {
-                const response = await fetch(`${CONFIG.backendUrl}/api/flavor-availability`);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.flavorAvailability) {
-                        state.flavorAvailability = data.flavorAvailability;
-                        localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
-                        console.log('✅ Disponibilidade de sabores carregada do MongoDB');
-                        return true;
-                    }
-                }
-                throw new Error('Resposta inválida do servidor');
-            } catch (error) {
-                console.log('⚠️ Fallback: Carregando sabores do localStorage');
-                return false;
-            }
-        }
-
         async function syncAllFromServer() {
-            console.log('🔄 Sincronizando dados do MongoDB...');
+            console.log('🔄 Sincronizando dados...');
+            
+            const statusDiv = document.createElement('div');
+            statusDiv.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: rgba(59, 130, 246, 0.9);
+                color: white;
+                padding: 10px 15px;
+                border-radius: 8px;
+                z-index: 9999;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+            statusDiv.innerHTML = `<span class="loading-spinner"></span> Sincronizando...`;
+            document.body.appendChild(statusDiv);
             
             try {
-                const [productsLoaded, flavorsLoaded] = await Promise.all([
-                    loadProductAvailability(),
-                    loadFlavorAvailability()
-                ]);
+                const response = await fetch(`${CONFIG.backendUrl}/api/sync-all`);
                 
-                if (productsLoaded || flavorsLoaded) {
-                    updateMenuAvailability();
-                    console.log('✅ Dados sincronizados com MongoDB');
-                    return true;
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (data.productAvailability) {
+                            state.productAvailability = data.productAvailability;
+                            localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
+                        }
+                        
+                        if (data.flavorAvailability) {
+                            state.flavorAvailability = data.flavorAvailability;
+                            localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                        }
+                        
+                        updateMenuAvailability();
+                        
+                        statusDiv.innerHTML = `✅ Sincronizado com MongoDB`;
+                        statusDiv.style.background = 'rgba(34, 197, 94, 0.9)';
+                        
+                        console.log('✅ Dados sincronizados');
+                        
+                        setTimeout(() => {
+                            if (statusDiv.parentNode) {
+                                document.body.removeChild(statusDiv);
+                            }
+                        }, 3000);
+                        
+                        return true;
+                    }
                 }
-                return false;
+                
+                throw new Error('Resposta inválida');
+                
             } catch (error) {
                 console.log('⚠️ Sincronização falhou:', error.message);
+                
+                statusDiv.innerHTML = `⚠️ Usando cache local`;
+                statusDiv.style.background = 'rgba(245, 158, 11, 0.9)';
+                
+                setTimeout(() => {
+                    if (statusDiv.parentNode) {
+                        document.body.removeChild(statusDiv);
+                    }
+                }, 3000);
+                
                 return false;
             }
         }
@@ -2545,16 +2255,16 @@
                 }
 
                 productCard.innerHTML = `
-                        ${hasFlavors ? '<div class="flavor-badge">⚡</div>' : ''}
-                        <div class="product-name">${product.name}</div>
-                        <div class="product-info">${product.description}</div>
-                        <div class="product-price">R$ ${product.price.toFixed(2)}</div>
-                        <button class="${buttonClass}"
-                                onclick="handleAddToCart('${product.id}', this)"
-                                ${!isAvailable ? 'disabled' : ''}>
-                            ${buttonText}
-                        </button>
-                    `;
+                    ${hasFlavors ? '<div class="flavor-badge">⚡</div>' : ''}
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-info">${product.description}</div>
+                    <div class="product-price">R$ ${product.price.toFixed(2)}</div>
+                    <button class="${buttonClass}"
+                            onclick="handleAddToCart('${product.id}', this)"
+                            ${!isAvailable ? 'disabled' : ''}>
+                        ${buttonText}
+                    </button>
+                `;
                 productsGrid.appendChild(productCard);
             });
         }
@@ -2581,7 +2291,6 @@
                 state.currentButton = button;
 
                 if (product.flavorType && FLAVOR_CATALOG[product.flavorType]) {
-                    // Verificar se há algum sabor disponível
                     const flavors = FLAVOR_CATALOG[product.flavorType];
                     const hasAvailableFlavor = flavors.some(flavor =>
                         isFlavorAvailable(product.flavorType, flavor)
@@ -2616,72 +2325,68 @@
             const grid = document.getElementById('flavorsGrid');
             const confirmButton = document.getElementById('confirmFlavorButton');
 
-            grid.innerHTML = '<div style="text-align: center; padding: 20px; color: #aaa;">Carregando sabores...</div>';
+            grid.innerHTML = '';
             state.currentFlavorStep = step;
 
-            setTimeout(() => {
-                grid.innerHTML = '';
+            let flavorType = product.flavorType;
+            let flavors = FLAVOR_CATALOG[flavorType] || [];
 
-                let flavorType = product.flavorType;
-                let flavors = FLAVOR_CATALOG[flavorType] || [];
+            if (step === 'ice' && product.nextStep === 'ice') {
+                flavorType = 'gelo_sabores';
+                flavors = FLAVOR_CATALOG.gelo_sabores || [];
+                title.textContent = '🧊 Escolha o sabor do gelo';
+                instruction.textContent = 'Selecione um sabor para o seu drink (sem custo adicional)';
+            } else {
+                title.textContent = `Escolha o sabor do ${getFlavorTypeName(flavorType)}`;
+                instruction.textContent = `Selecione o sabor desejado para ${product.name}`;
+            }
 
-                if (step === 'ice' && product.nextStep === 'ice') {
-                    flavorType = 'gelo_sabores';
-                    flavors = FLAVOR_CATALOG.gelo_sabores || [];
-                    title.textContent = '🧊 Escolha o sabor do gelo';
-                    instruction.textContent = 'Selecione um sabor para o seu drink (sem custo adicional)';
-                } else {
-                    title.textContent = `Escolha o sabor do ${getFlavorTypeName(flavorType)}`;
-                    instruction.textContent = `Selecione o sabor desejado para ${product.name}`;
-                }
-
-                if (flavors.length === 0) {
-                    grid.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc2626;">Nenhum sabor disponível</div>';
-                    confirmButton.disabled = true;
-                    return;
-                }
-
-                let hasAvailableFlavor = false;
-
-                flavors.forEach(flavor => {
-                    const isAvailable = isFlavorAvailable(flavorType, flavor);
-                    const option = document.createElement('div');
-                    option.className = `flavor-option ${!isAvailable ? 'unavailable' : ''}`;
-                    option.textContent = flavor;
-                    option.dataset.flavor = flavor;
-
-                    if (!isAvailable) {
-                        option.style.opacity = '0.6';
-                        option.style.cursor = 'not-allowed';
-                    } else {
-                        hasAvailableFlavor = true;
-                        option.onclick = function () {
-                            document.querySelectorAll('.flavor-option').forEach(el => {
-                                el.classList.remove('selected');
-                            });
-                            this.classList.add('selected');
-
-                            if (step === 'primary') {
-                                state.pendingFlavors.primary = flavor;
-                            } else if (step === 'ice') {
-                                state.pendingFlavors.ice = flavor;
-                            }
-
-                            confirmButton.disabled = false;
-                        };
-                    }
-
-                    grid.appendChild(option);
-                });
-
-                if (!hasAvailableFlavor) {
-                    instruction.textContent = '⚠️ Todos os sabores estão temporariamente indisponíveis';
-                    instruction.style.color = '#dc2626';
-                }
-
+            if (flavors.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc2626;">Nenhum sabor disponível</div>';
                 confirmButton.disabled = true;
-                modal.style.display = 'flex';
-            }, 100);
+                return;
+            }
+
+            let hasAvailableFlavor = false;
+
+            flavors.forEach(flavor => {
+                const isAvailable = isFlavorAvailable(flavorType, flavor);
+                const option = document.createElement('div');
+                option.className = `flavor-option ${!isAvailable ? 'unavailable' : ''}`;
+                option.textContent = flavor;
+                option.dataset.flavor = flavor;
+
+                if (!isAvailable) {
+                    option.style.opacity = '0.6';
+                    option.style.cursor = 'not-allowed';
+                } else {
+                    hasAvailableFlavor = true;
+                    option.onclick = function() {
+                        document.querySelectorAll('.flavor-option').forEach(el => {
+                            el.classList.remove('selected');
+                        });
+                        this.classList.add('selected');
+
+                        if (step === 'primary') {
+                            state.pendingFlavors.primary = flavor;
+                        } else if (step === 'ice') {
+                            state.pendingFlavors.ice = flavor;
+                        }
+
+                        confirmButton.disabled = false;
+                    };
+                }
+
+                grid.appendChild(option);
+            });
+
+            if (!hasAvailableFlavor) {
+                instruction.textContent = '⚠️ Todos os sabores estão temporariamente indisponíveis';
+                instruction.style.color = '#dc2626';
+            }
+
+            confirmButton.disabled = true;
+            modal.style.display = 'flex';
         }
 
         function getFlavorTypeName(flavorType) {
@@ -2765,10 +2470,7 @@
                 if (item.name !== productName) return false;
                 if (!item.flavors && !flavors) return true;
                 if (!item.flavors || !flavors) return false;
-
-                const itemFlavors = JSON.stringify(item.flavors);
-                const newFlavors = JSON.stringify(flavors);
-                return itemFlavors === newFlavors;
+                return JSON.stringify(item.flavors) === JSON.stringify(flavors);
             });
         }
 
@@ -2846,18 +2548,18 @@
                 }
 
                 cartItem.innerHTML = `
-                        <div>
-                            <strong>${itemName}</strong><br>
-                            <small>R$${item.price.toFixed(2)} un.</small>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <button onclick="updateQuantity(${index}, -1)" class="quantity-btn">-</button>
-                            <span style="min-width: 20px; text-align: center;">${item.quantity}</span>
-                            <button onclick="updateQuantity(${index}, 1)" class="quantity-btn">+</button>
-                            <span style="margin-left: 10px; font-weight: bold;">R$${itemTotal.toFixed(2)}</span>
-                            <button onclick="removeFromCart(${index})" class="remove-item-btn">✕</button>
-                        </div>
-                    `;
+                    <div>
+                        <strong>${itemName}</strong><br>
+                        <small>R$${item.price.toFixed(2)} un.</small>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button onclick="updateQuantity(${index}, -1)" class="quantity-btn">-</button>
+                        <span style="min-width: 20px; text-align: center;">${item.quantity}</span>
+                        <button onclick="updateQuantity(${index}, 1)" class="quantity-btn">+</button>
+                        <span style="margin-left: 10px; font-weight: bold;">R$${itemTotal.toFixed(2)}</span>
+                        <button onclick="removeFromCart(${index})" class="remove-item-btn">✕</button>
+                    </div>
+                `;
                 cartItems.appendChild(cartItem);
             });
 
@@ -2928,7 +2630,7 @@
                 const cartData = {
                     items: state.cart,
                     timestamp: Date.now(),
-                    version: '3.0'
+                    version: '3.1'
                 };
                 localStorage.setItem('bebcom_cart', JSON.stringify(cartData));
                 return true;
@@ -2959,14 +2661,13 @@
         }
 
         // ============================================
-        // FUNÇÕES DE ENTREGA
+        // FUNÇÕES DE ENTREGA E PAGAMENTO
         // ============================================
         function selectDeliveryType(type) {
             state.deliveryType = type;
             const paymentLabel = document.getElementById('paymentLabel');
             const paymentMethods = document.getElementById('paymentMethods');
             const payButton = document.getElementById('payButton');
-            const whatsappButton = document.getElementById('whatsappButton');
 
             const pickupBtn = document.querySelector('.delivery-option:nth-child(1)');
             const deliveryBtn = document.querySelector('.delivery-option:nth-child(2)');
@@ -2986,8 +2687,6 @@
                 state.paymentMethod = null;
                 state.paymentConfirmed = true;
 
-                validateForm();
-
             } else {
                 pickupBtn.classList.remove('selected');
                 deliveryBtn.classList.add('selected');
@@ -3006,9 +2705,6 @@
             validateForm();
         }
 
-        // ============================================
-        // FUNÇÕES DE PAGAMENTO
-        // ============================================
         function selectPaymentMethod(method) {
             if (state.deliveryType !== 'delivery') return;
 
@@ -3040,33 +2736,6 @@
             }
         }
 
-        function validateOrder() {
-            const errors = [];
-            const customerName = document.getElementById('customerName').value.trim();
-            const customerPhone = document.getElementById('customerPhone').value.trim();
-
-            if (!customerName) errors.push('• Digite seu nome completo');
-            if (!customerPhone || customerPhone.length < 10) errors.push('• Digite um WhatsApp válido');
-            if (state.cart.length === 0) errors.push('• Adicione itens ao carrinho');
-
-            if (state.deliveryType === 'delivery') {
-                const street = document.getElementById('street').value.trim();
-                const number = document.getElementById('number').value.trim();
-                const neighborhood = document.getElementById('neighborhood').value.trim();
-                const city = document.getElementById('city').value.trim();
-
-                if (!street) errors.push('• Digite a rua');
-                if (!number) errors.push('• Digite o número');
-                if (!neighborhood) errors.push('• Digite o bairro');
-                if (!city) errors.push('• Digite a cidade');
-
-                if (!state.paymentMethod) errors.push('• Selecione um método de pagamento');
-                if (!state.paymentConfirmed) errors.push('• Confirme o pagamento antes de enviar');
-            }
-
-            return errors;
-        }
-
         function validateForm() {
             const customerName = document.getElementById('customerName').value.trim();
             const customerPhone = document.getElementById('customerPhone').value.trim();
@@ -3075,23 +2744,17 @@
 
             let isValid = true;
 
-            // Validação de nome
-            if (customerName.length < 3) {
-                isValid = false;
-            }
-
-            // Validação de telefone
+            // Validação básica
+            if (customerName.length < 3) isValid = false;
+            
             const phoneRegex = /^\(\d{2}\) \d{5}-\d{4}$/;
             if (!phoneRegex.test(customerPhone) && customerPhone.replace(/\D/g, '').length < 10) {
                 isValid = false;
             }
 
-            // Validação do carrinho
-            if (state.cart.length === 0) {
-                isValid = false;
-            }
+            if (state.cart.length === 0) isValid = false;
 
-            // Validação específica para entrega
+            // Validação para entrega
             if (state.deliveryType === 'delivery') {
                 const street = document.getElementById('street').value.trim();
                 const number = document.getElementById('number').value.trim();
@@ -3116,7 +2779,6 @@
 
             whatsappButton.disabled = !isValid;
 
-            // Atualizar estilo do botão
             if (isValid) {
                 whatsappButton.style.opacity = '1';
                 whatsappButton.style.cursor = 'pointer';
@@ -3128,6 +2790,689 @@
             return isValid;
         }
 
+        // ============================================
+        // SISTEMA ADMINISTRATIVO
+        // ============================================
+        function setupAdminListeners() {
+            const adminBtn = document.getElementById('adminButton');
+            const adminClose = document.getElementById('adminClose');
+            const adminModal = document.getElementById('adminModal');
+            
+            adminBtn.addEventListener('click', openAdminPanel);
+            adminClose.addEventListener('click', closeAdminPanel);
+            
+            adminModal.addEventListener('click', function(e) {
+                if (e.target === this) closeAdminPanel();
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.altKey && e.key === 'a') {
+                    e.preventDefault();
+                    openAdminPanel();
+                }
+                
+                if (e.key === 'Escape') {
+                    closeAdminPanel();
+                }
+            });
+        }
+
+        function openAdminPanel() {
+            const modal = document.getElementById('adminModal');
+            modal.style.display = 'block';
+
+            document.getElementById('passwordSection').style.display = 'block';
+            document.getElementById('adminMain').style.display = 'none';
+            document.getElementById('adminActions').style.display = 'none';
+            
+            state.adminAuthenticated = false;
+            state.adminPassword = null;
+            
+            const passwordInput = document.getElementById('adminPassword');
+            if (passwordInput) {
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminModal').style.display = 'none';
+            state.adminAuthenticated = false;
+            state.adminPassword = null;
+        }
+
+        async function verifyAdminPassword(password) {
+            try {
+                const response = await fetch(`${CONFIG.backendUrl}/api/admin/product-availability/bulk`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productAvailability: {},
+                        password: password
+                    })
+                });
+                
+                if (response.status === 401) {
+                    return { success: false, error: 'Senha incorreta' };
+                }
+                
+                if (response.ok) {
+                    return { success: true };
+                }
+                
+                return { success: false, error: 'Erro na verificação' };
+                
+            } catch (error) {
+                console.error('Erro ao verificar senha:', error);
+                return { success: false, error: 'Erro de conexão' };
+            }
+        }
+
+        async function checkAdminPassword() {
+            const password = document.getElementById('adminPassword').value;
+            
+            if (!password) {
+                showNotification('❌ Digite a senha administrativa', 'error');
+                return;
+            }
+            
+            const button = document.getElementById('adminLoginButton');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="loading-spinner"></span> Verificando...';
+            button.disabled = true;
+            
+            try {
+                const result = await verifyAdminPassword(password);
+                
+                if (result.success) {
+                    state.adminAuthenticated = true;
+                    state.adminPassword = password;
+                    
+                    document.getElementById('passwordSection').style.display = 'none';
+                    document.getElementById('adminMain').style.display = 'block';
+                    document.getElementById('adminActions').style.display = 'block';
+                    
+                    loadAdminProducts();
+                    showNotification('✅ Modo administrativo ativado', 'success');
+                    
+                } else {
+                    showNotification(`❌ ${result.error || 'Senha incorreta'}`, 'error');
+                    document.getElementById('adminPassword').value = '';
+                    document.getElementById('adminPassword').focus();
+                }
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                showNotification('❌ Erro ao verificar senha. Tente novamente.', 'error');
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+
+        function loadAdminProducts() {
+            const categoryContainers = {
+                'drinks-whisky': 'adminWhiskyProducts',
+                'drinks-gin': 'adminGinProducts',
+                'drinks-vodka': 'adminVodkaProducts',
+                'drinks-vinho': 'adminVinhoProducts',
+                'cervejas': 'adminCervejaProducts',
+                'destilados': 'adminDestiladoProducts',
+                'aguas': 'adminAguaProducts',
+                'refri-latas': 'adminRefriLataProducts',
+                'refri-pet': 'adminRefriPetProducts',
+                'sucos': 'adminSucoProducts',
+                'energeticos': 'adminEnergeticoProducts',
+                'gelo-carvao': 'adminGeloProducts'
+            };
+
+            Object.keys(categoryContainers).forEach(category => {
+                const containerId = categoryContainers[category];
+                const container = document.getElementById(containerId);
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                const categoryProducts = products[category] || [];
+                categoryProducts.forEach(product => {
+                    const isAvailable = isProductAvailable(product.id);
+
+                    const productDiv = document.createElement('div');
+                    productDiv.className = 'admin-product-item';
+                    productDiv.innerHTML = `
+                        <div>
+                            <div class="admin-product-name">${product.name}</div>
+                            <div class="admin-product-price">R$ ${product.price.toFixed(2)}</div>
+                            ${product.requiresFlavorSelection ? '<small style="color: #60a5fa; font-size: 12px;">⚡ Com seleção de sabores</small>' : ''}
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" class="toggle-checkbox"
+                                   id="admin_toggle_${product.id}"
+                                   ${isAvailable ? 'checked' : ''}
+                                   onchange="adminToggleProductAvailability('${product.id}', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    `;
+                    container.appendChild(productDiv);
+                });
+            });
+        }
+
+        function adminToggleProductAvailability(productId, isAvailable) {
+            state.productAvailability[productId] = isAvailable;
+
+            const product = findProductById(productId);
+            const productElements = document.querySelectorAll(`[data-product-id="${productId}"]`);
+
+            productElements.forEach(element => {
+                if (isAvailable) {
+                    element.classList.remove('unavailable');
+                    const button = element.querySelector('button');
+                    if (button) {
+                        button.disabled = false;
+                        let buttonText = '🛒 Adicionar';
+                        if (product && product.requiresFlavorSelection) buttonText = '⚡ Escolher Sabores';
+                        button.innerHTML = buttonText;
+                    }
+                } else {
+                    element.classList.add('unavailable');
+                    const button = element.querySelector('button');
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = '❌ Indisponível';
+                    }
+                }
+            });
+        }
+
+        function setAllAvailable(isAvailable) {
+            Object.keys(products).forEach(category => {
+                products[category].forEach(product => {
+                    state.productAvailability[product.id] = isAvailable;
+
+                    const toggle = document.getElementById(`admin_toggle_${product.id}`);
+                    if (toggle) toggle.checked = isAvailable;
+
+                    const productElements = document.querySelectorAll(`[data-product-id="${product.id}"]`);
+                    productElements.forEach(element => {
+                        if (isAvailable) {
+                            element.classList.remove('unavailable');
+                            const button = element.querySelector('button');
+                            if (button) {
+                                button.disabled = false;
+                                let buttonText = '🛒 Adicionar';
+                                if (product.requiresFlavorSelection) buttonText = '⚡ Escolher Sabores';
+                                button.innerHTML = buttonText;
+                            }
+                        } else {
+                            element.classList.add('unavailable');
+                            const button = element.querySelector('button');
+                            if (button) {
+                                button.disabled = true;
+                                button.innerHTML = '❌ Indisponível';
+                            }
+                        }
+                    });
+                });
+            });
+
+            showNotification(isAvailable ? '✅ Todos os produtos marcados como disponíveis' : '❌ Todos os produtos marcados como indisponíveis');
+        }
+
+        async function saveAvailability() {
+            if (!state.adminAuthenticated || !state.adminPassword) {
+                showNotification('❌ Faça login novamente', 'error');
+                openAdminPanel();
+                return;
+            }
+            
+            const button = document.getElementById('saveAdminButton');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="loading-spinner"></span> Salvando...';
+            button.disabled = true;
+            
+            try {
+                // Salvar produtos
+                const productResponse = await fetch(`${CONFIG.backendUrl}/api/admin/product-availability/bulk`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-password': state.adminPassword
+                    },
+                    body: JSON.stringify({
+                        productAvailability: state.productAvailability
+                    })
+                });
+                
+                // Salvar sabores
+                const flavorResponse = await fetch(`${CONFIG.backendUrl}/api/admin/flavor-availability/bulk`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-password': state.adminPassword
+                    },
+                    body: JSON.stringify({
+                        flavorAvailability: state.flavorAvailability
+                    })
+                });
+                
+                if (productResponse.ok && flavorResponse.ok) {
+                    localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
+                    localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                    
+                    showNotification('✅ Alterações salvas no MongoDB!', 'success');
+                    
+                    setTimeout(() => {
+                        closeAdminPanel();
+                    }, 1500);
+                    
+                } else {
+                    throw new Error('Erro ao salvar no servidor');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                
+                localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
+                localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                
+                showNotification('⚠️ Alterações salvas apenas localmente', 'warning');
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+
+        function resetAvailability() {
+            if (confirm('Restaurar todos os produtos como disponíveis?')) {
+                Object.keys(products).forEach(category => {
+                    products[category].forEach(product => {
+                        state.productAvailability[product.id] = true;
+                    });
+                });
+
+                Object.keys(FLAVOR_CATALOG).forEach(flavorType => {
+                    FLAVOR_CATALOG[flavorType].forEach(flavor => {
+                        const key = `${flavorType}_${flavor}`;
+                        state.flavorAvailability[key] = true;
+                    });
+                });
+
+                loadAdminProducts();
+                updateMenuAvailability();
+
+                showNotification('🔄 Disponibilidade restaurada', 'info');
+            }
+        }
+
+        // ============================================
+        // GERENCIAMENTO DE SABORES
+        // ============================================
+        function openFlavorManagement() {
+            const adminMain = document.getElementById('adminMain');
+            const adminActions = document.getElementById('adminActions');
+
+            adminActions.style.display = 'none';
+
+            adminMain.innerHTML = `
+                <div style="margin-bottom: 30px;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                        <button onclick="loadAdminProducts(); document.getElementById('adminActions').style.display='block';"
+                                style="background: #3b82f6; color: white; border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer;">
+                            ↩️ Voltar
+                        </button>
+                        <h3 style="color: #60a5fa; margin: 0; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; flex: 1;">
+                            🍹 Gerenciamento de Sabores por Tipo
+                        </h3>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                        <p style="color: #94a3b8; margin-bottom: 15px; font-size: 14px;">
+                            <strong>Instruções:</strong> Selecione um tipo de produto para gerenciar a disponibilidade dos sabores.
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 25px;">
+                        <label style="color: #ddd; display: block; margin-bottom: 8px; font-weight: bold;">
+                            Selecione o tipo de produto:
+                        </label>
+                        <select id="flavorTypeSelect" class="form-input" style="width: 100%; padding: 12px; margin-bottom: 20px;"
+                                onchange="loadFlavorsForType(this.value)">
+                            <option value="">-- Selecione um tipo de produto --</option>
+                            ${Object.entries(FLAVOR_TYPES).map(([key, name]) =>
+                                `<option value="${key}">${name}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+
+                    <div id="flavorManagementSection" style="display: none;">
+                        <h4 style="color: #94a3b8; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444;"
+                            id="flavorTypeTitle"></h4>
+
+                        <div id="flavorsList" style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            <!-- Lista de sabores será gerada aqui -->
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button class="modal-button confirm" onclick="saveFlavorChanges()" style="flex: 1;">
+                                💾 Salvar Alterações
+                            </button>
+                            <button class="modal-button cancel" onclick="loadFlavorsForType('')" style="flex: 1;">
+                                🔄 Limpar Seleção
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadFlavorsForType(flavorType) {
+            const section = document.getElementById('flavorManagementSection');
+            const title = document.getElementById('flavorTypeTitle');
+            const list = document.getElementById('flavorsList');
+
+            if (!flavorType) {
+                section.style.display = 'none';
+                return;
+            }
+
+            const flavors = FLAVOR_CATALOG[flavorType] || [];
+            const flavorTypeName = FLAVOR_TYPES[flavorType] || flavorType;
+
+            if (flavors.length === 0) {
+                title.textContent = `Nenhum sabor cadastrado para ${flavorTypeName}`;
+                list.innerHTML = `
+                    <div style="text-align: center; color: #aaa; padding: 40px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">😕</div>
+                        <p>Não há sabores cadastrados para este tipo de produto.</p>
+                    </div>
+                `;
+                section.style.display = 'block';
+                return;
+            }
+
+            title.textContent = `Gerenciando sabores de ${flavorTypeName} (${flavors.length} sabores)`;
+
+            const availableCount = flavors.filter(flavor =>
+                isFlavorAvailable(flavorType, flavor)
+            ).length;
+
+            list.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+                    <span style="color: #f5f5f5;">
+                        <strong>Status:</strong> ${availableCount} de ${flavors.length} sabores disponíveis
+                    </span>
+                    <div>
+                        <button onclick="setAllFlavorsAvailable('${flavorType}', true)"
+                                style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 6px 12px; margin-right: 5px; cursor: pointer; font-size: 12px;">
+                            ✅ Todos
+                        </button>
+                        <button onclick="setAllFlavorsAvailable('${flavorType}', false)"
+                                style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 12px;">
+                            ❌ Nenhum
+                        </button>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px;">
+                    ${flavors.map((flavor, index) => {
+                        const isAvailable = isFlavorAvailable(flavorType, flavor);
+                        return `
+                            <div style="display: flex; justify-content: space-between; align-items: center;
+                                        padding: 15px; background: ${isAvailable ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
+                                        border-radius: 8px; border: 1px solid ${isAvailable ? '#10b981' : '#ef4444'};">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                        <span style="font-size: 20px;">${isAvailable ? '✅' : '❌'}</span>
+                                        <div>
+                                            <span style="color: #f5f5f5; font-weight: 500; font-size: 16px;">${flavor}</span>
+                                            <br>
+                                            <small style="color: ${isAvailable ? '#10b981' : '#ef4444'}; font-size: 12px;">
+                                                ${isAvailable ? 'Disponível' : 'Indisponível'}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="toggle-checkbox flavor-toggle"
+                                           data-flavor-type="${flavorType}"
+                                           data-flavor-name="${flavor}"
+                                           ${isAvailable ? 'checked' : ''}
+                                           onchange="toggleFlavorAvailability('${flavorType}', '${flavor}', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+
+            section.style.display = 'block';
+        }
+
+        function toggleFlavorAvailability(flavorType, flavorName, isAvailable) {
+            const key = `${flavorType}_${flavorName}`;
+            state.flavorAvailability[key] = isAvailable;
+
+            showNotification(`${flavorName} ${isAvailable ? '✅ disponível' : '❌ indisponível'}`,
+                isAvailable ? 'success' : 'error');
+        }
+
+        function setAllFlavorsAvailable(flavorType, makeAvailable) {
+            const flavors = FLAVOR_CATALOG[flavorType] || [];
+
+            flavors.forEach(flavor => {
+                const key = `${flavorType}_${flavor}`;
+                state.flavorAvailability[key] = makeAvailable;
+            });
+
+            loadFlavorsForType(flavorType);
+
+            showNotification(`${makeAvailable ? '✅ Todos os sabores disponíveis' : '❌ Todos os sabores indisponíveis'}`,
+                makeAvailable ? 'success' : 'warning');
+        }
+
+        async function saveFlavorChanges() {
+            if (!state.adminAuthenticated || !state.adminPassword) {
+                showNotification('❌ Faça login novamente', 'error');
+                openAdminPanel();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${CONFIG.backendUrl}/api/admin/flavor-availability/bulk`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-password': state.adminPassword
+                    },
+                    body: JSON.stringify({
+                        flavorAvailability: state.flavorAvailability
+                    })
+                });
+                
+                if (response.ok) {
+                    localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                    showNotification('✅ Alterações de sabores salvas no MongoDB!');
+                    return true;
+                } else {
+                    throw new Error('Erro ao salvar');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao salvar sabores:', error);
+                localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                showNotification('⚠️ Alterações salvas apenas localmente', 'warning');
+                return false;
+            }
+        }
+
+        function updateMenuAvailability() {
+            Object.keys(products).forEach(category => {
+                products[category].forEach(product => {
+                    const productElements = document.querySelectorAll(`[data-product-id="${product.id}"]`);
+                    const isAvailable = isProductAvailable(product.id);
+                    const hasFlavors = product.requiresFlavorSelection || false;
+
+                    productElements.forEach(element => {
+                        if (isAvailable) {
+                            element.classList.remove('unavailable');
+                            const button = element.querySelector('button');
+                            if (button) {
+                                button.disabled = false;
+                                let buttonText = '🛒 Adicionar';
+                                if (hasFlavors) buttonText = '⚡ Escolher Sabores';
+                                button.innerHTML = buttonText;
+
+                                if (hasFlavors) {
+                                    button.classList.add('has-flavors');
+                                    element.classList.add('with-flavors');
+                                    if (!element.querySelector('.flavor-badge')) {
+                                        const badge = document.createElement('div');
+                                        badge.className = 'flavor-badge';
+                                        badge.textContent = '⚡';
+                                        element.insertBefore(badge, element.firstChild);
+                                    }
+                                } else {
+                                    button.classList.remove('has-flavors');
+                                    element.classList.remove('with-flavors');
+                                    const badge = element.querySelector('.flavor-badge');
+                                    if (badge) badge.remove();
+                                }
+                            }
+                        } else {
+                            element.classList.add('unavailable');
+                            const button = element.querySelector('button');
+                            if (button) {
+                                button.disabled = true;
+                                button.innerHTML = '❌ Indisponível';
+                            }
+                        }
+                    });
+                });
+            });
+        }
+
+        // ============================================
+        // FUNÇÕES UTILITÁRIAS
+        // ============================================
+        function showNotification(text, type = 'success') {
+            const notification = document.createElement('div');
+            const colors = {
+                success: 'linear-gradient(135deg, #28a745 0%, #218838 100%)',
+                error: 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)',
+                warning: 'linear-gradient(135deg, #ffc107 0%, #ff9800 100%)',
+                info: 'linear-gradient(135deg, #17a2b8 0%, #138496 100%)'
+            };
+
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${colors[type] || colors.success};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+                font-weight: bold;
+                min-width: 300px;
+                max-width: 400px;
+                word-break: break-word;
+            `;
+
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">
+                        ${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}
+                    </span>
+                    <span>${text}</span>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function setupEventListeners() {
+            document.getElementById('customerName').addEventListener('input', validateForm);
+            document.getElementById('customerPhone').addEventListener('input', validateForm);
+            document.getElementById('street').addEventListener('input', validateForm);
+            document.getElementById('number').addEventListener('input', validateForm);
+            document.getElementById('neighborhood').addEventListener('input', validateForm);
+            document.getElementById('city').addEventListener('input', validateForm);
+        }
+
+        function setupPhoneMask() {
+            const phoneInput = document.getElementById('customerPhone');
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+
+                if (value.length > 11) value = value.substring(0, 11);
+
+                if (value.length > 0) {
+                    value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
+                }
+
+                if (value.length > 9) {
+                    value = value.substring(0, 10) + '-' + value.substring(10);
+                }
+
+                e.target.value = value;
+                validateForm();
+            });
+        }
+
+        function setupAutoSave() {
+            window.addEventListener('beforeunload', function(e) {
+                if (state.cart.length > 0) {
+                    saveCartToLocalStorage();
+                }
+            });
+        }
+
+        function exportOrder() {
+            const orderData = {
+                cart: state.cart,
+                customer: {
+                    name: document.getElementById('customerName').value,
+                    phone: document.getElementById('customerPhone').value
+                },
+                deliveryType: state.deliveryType,
+                total: getCartTotal(),
+                timestamp: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(orderData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+            const exportFileDefaultName = `pedido_bebcom_${Date.now()}.json`;
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+
+            showNotification('📁 Pedido exportado com sucesso', 'info');
+        }
+
+        function getCartTotal() {
+            return state.cart.reduce((total, item) => {
+                return total + (item.price * item.quantity);
+            }, 0);
+        }
+
+        // ============================================
+        // FUNÇÕES DE PAGAMENTO (simplificadas)
+        // ============================================
         async function processPayment() {
             if (state.deliveryType === 'pickup') {
                 state.paymentConfirmed = true;
@@ -3166,6 +3511,33 @@
             }
         }
 
+        function validateOrder() {
+            const errors = [];
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+
+            if (!customerName) errors.push('• Digite seu nome completo');
+            if (!customerPhone || customerPhone.length < 10) errors.push('• Digite um WhatsApp válido');
+            if (state.cart.length === 0) errors.push('• Adicione itens ao carrinho');
+
+            if (state.deliveryType === 'delivery') {
+                const street = document.getElementById('street').value.trim();
+                const number = document.getElementById('number').value.trim();
+                const neighborhood = document.getElementById('neighborhood').value.trim();
+                const city = document.getElementById('city').value.trim();
+
+                if (!street) errors.push('• Digite a rua');
+                if (!number) errors.push('• Digite o número');
+                if (!neighborhood) errors.push('• Digite o bairro');
+                if (!city) errors.push('• Digite a cidade');
+
+                if (!state.paymentMethod) errors.push('• Selecione um método de pagamento');
+                if (!state.paymentConfirmed) errors.push('• Confirme o pagamento antes de enviar');
+            }
+
+            return errors;
+        }
+
         async function processOnlinePayment() {
             try {
                 const orderData = prepareOrderData();
@@ -3200,10 +3572,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    if (data.paymentUrl) {
-                        window.open(data.paymentUrl, '_blank');
-                        startPaymentStatusCheck(state.currentOrderId);
-                    } else if (data.qrCode) {
+                    if (data.qrCode) {
                         showPixPayment(data.qrCode, data.copyPasteKey);
                     } else {
                         confirmPayment();
@@ -3216,95 +3585,6 @@
                 console.error('Erro:', error);
                 showManualPixPayment();
             }
-        }
-
-        function showPixPayment(qrCode, copyPasteKey) {
-            const statusDiv = document.getElementById('paymentStatus');
-            const orderData = prepareOrderData();
-            const total = orderData.total;
-
-            statusDiv.className = 'payment-status';
-            statusDiv.innerHTML = `
-                    <div style="text-align: center;">
-                        <h4 style="margin-bottom: 15px;">🧾 PIX para Pagamento</h4>
-                        <p>Valor: <strong>R$ ${total.toFixed(2)}</strong></p>
-                        <div style="margin: 15px 0;">
-                            <img src="${qrCode}" alt="QR Code PIX" style="width: 200px; height: 200px; border: 2px solid #28a745; border-radius: 8px;">
-                        </div>
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left;">
-                            <strong>Chave PIX para copiar:</strong><br>
-                            <span style="font-family: monospace; word-break: break-all; color: #333;">
-                                ${copyPasteKey}
-                            </span>
-                            <button onclick="navigator.clipboard.writeText('${copyPasteKey}'); alert('Chave PIX copiada!');"
-                                    style="margin-top: 10px; background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
-                                📋 Copiar Chave
-                            </button>
-                        </div>
-                        <p style="font-size: 14px; color: #aaa;">
-                            ⏱️ Após pagar, clique em "Já Paguei" para confirmar
-                        </p>
-                        <button onclick="confirmPayment()" style="
-                            background: #28a745; color: white; border: none;
-                            padding: 12px 24px; border-radius: 8px; cursor: pointer;
-                            margin: 10px; font-weight: bold;">
-                            ✅ Já Paguei
-                        </button>
-                        <button onclick="cancelPayment()" style="
-                            background: #dc3545; color: white; border: none;
-                            padding: 12px 24px; border-radius: 8px; cursor: pointer;
-                            margin: 10px; font-weight: bold;">
-                            ❌ Cancelar
-                        </button>
-                    </div>
-                `;
-
-            state.paymentProcessing = false;
-            document.getElementById('payButton').style.display = 'none';
-        }
-
-        function showManualPixPayment() {
-            const statusDiv = document.getElementById('paymentStatus');
-            const orderData = prepareOrderData();
-            const total = orderData.total;
-
-            statusDiv.className = 'payment-status';
-            statusDiv.innerHTML = `
-                    <div style="text-align: center;">
-                        <h4 style="margin-bottom: 15px;">🧾 PIX Manual</h4>
-                        <p>Valor: <strong>R$ ${total.toFixed(2)}</strong></p>
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
-                            <strong>Chave PIX (CNPJ):</strong><br>
-                            <span style="font-family: monospace; word-break: break-all;">
-                                12.345.678/0001-90
-                            </span>
-                        </div>
-                        <p style="font-size: 14px; color: #aaa;">
-                            ⏱️ Após pagar, envie o comprovante para o WhatsApp (14) 99613-0369
-                        </p>
-                        <button onclick="confirmPayment()" style="
-                            background: #28a745; color: white; border: none;
-                            padding: 12px 24px; border-radius: 8px; cursor: pointer;
-                            margin: 10px; font-weight: bold;">
-                            ✅ Já Paguei
-                        </button>
-                        <button onclick="cancelPayment()" style="
-                            background: #dc3545; color: white; border: none;
-                            padding: 12px 24px; border-radius: 8px; cursor: pointer;
-                            margin: 10px; font-weight: bold;">
-                            ❌ Cancelar
-                        </button>
-                    </div>
-                `;
-
-            state.paymentProcessing = false;
-            document.getElementById('payButton').style.display = 'none';
-        }
-
-        function cancelPayment() {
-            resetPaymentState();
-            document.getElementById('paymentStatus').style.display = 'none';
-            document.getElementById('payButton').style.display = 'block';
         }
 
         function prepareOrderData() {
@@ -3335,31 +3615,93 @@
             };
         }
 
-        function startPaymentStatusCheck(orderId) {
-            if (state.paymentInterval) clearInterval(state.paymentInterval);
+        function showPixPayment(qrCode, copyPasteKey) {
+            const statusDiv = document.getElementById('paymentStatus');
+            const orderData = prepareOrderData();
+            const total = orderData.total;
 
-            state.paymentInterval = setInterval(async () => {
-                try {
-                    const response = await fetch(`${CONFIG.backendUrl}/api/order-status/${orderId}`);
-                    if (!response.ok) return;
+            statusDiv.className = 'payment-status';
+            statusDiv.innerHTML = `
+                <div style="text-align: center;">
+                    <h4 style="margin-bottom: 15px;">🧾 PIX para Pagamento</h4>
+                    <p>Valor: <strong>R$ ${total.toFixed(2)}</strong></p>
+                    <div style="margin: 15px 0;">
+                        <img src="${qrCode}" alt="QR Code PIX" style="width: 200px; height: 200px; border: 2px solid #28a745; border-radius: 8px;">
+                    </div>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left;">
+                        <strong>Chave PIX para copiar:</strong><br>
+                        <span style="font-family: monospace; word-break: break-all; color: #333;">
+                            ${copyPasteKey}
+                        </span>
+                        <button onclick="navigator.clipboard.writeText('${copyPasteKey}'); alert('Chave PIX copiada!');"
+                                style="margin-top: 10px; background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                            📋 Copiar Chave
+                        </button>
+                    </div>
+                    <p style="font-size: 14px; color: #aaa;">
+                        ⏱️ Após pagar, clique em "Já Paguei" para confirmar
+                    </p>
+                    <button onclick="confirmPayment()" style="
+                        background: #28a745; color: white; border: none;
+                        padding: 12px 24px; border-radius: 8px; cursor: pointer;
+                        margin: 10px; font-weight: bold;">
+                        ✅ Já Paguei
+                    </button>
+                    <button onclick="cancelPayment()" style="
+                        background: #dc3545; color: white; border: none;
+                        padding: 12px 24px; border-radius: 8px; cursor: pointer;
+                        margin: 10px; font-weight: bold;">
+                        ❌ Cancelar
+                    </button>
+                </div>
+            `;
 
-                    const data = await response.json();
+            state.paymentProcessing = false;
+            document.getElementById('payButton').style.display = 'none';
+        }
 
-                    if (data.paid) {
-                        clearInterval(state.paymentInterval);
-                        confirmPayment();
-                    }
-                } catch (error) {
-                    console.error('Erro ao verificar status:', error);
-                }
-            }, 5000);
+        function showManualPixPayment() {
+            const statusDiv = document.getElementById('paymentStatus');
+            const orderData = prepareOrderData();
+            const total = orderData.total;
 
-            setTimeout(() => {
-                if (state.paymentInterval) {
-                    clearInterval(state.paymentInterval);
-                    showPaymentError('Tempo limite excedido. Tente novamente.');
-                }
-            }, 30 * 60 * 1000);
+            statusDiv.className = 'payment-status';
+            statusDiv.innerHTML = `
+                <div style="text-align: center;">
+                    <h4 style="margin-bottom: 15px;">🧾 PIX Manual</h4>
+                    <p>Valor: <strong>R$ ${total.toFixed(2)}</strong></p>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <strong>Chave PIX (CNPJ):</strong><br>
+                        <span style="font-family: monospace; word-break: break-all;">
+                            12.345.678/0001-90
+                        </span>
+                    </div>
+                    <p style="font-size: 14px; color: #aaa;">
+                        ⏱️ Após pagar, envie o comprovante para o WhatsApp (14) 99613-0369
+                    </p>
+                    <button onclick="confirmPayment()" style="
+                        background: #28a745; color: white; border: none;
+                        padding: 12px 24px; border-radius: 8px; cursor: pointer;
+                        margin: 10px; font-weight: bold;">
+                        ✅ Já Paguei
+                    </button>
+                    <button onclick="cancelPayment()" style="
+                        background: #dc3545; color: white; border: none;
+                        padding: 12px 24px; border-radius: 8px; cursor: pointer;
+                        margin: 10px; font-weight: bold;">
+                        ❌ Cancelar
+                    </button>
+                </div>
+            `;
+
+            state.paymentProcessing = false;
+            document.getElementById('payButton').style.display = 'none';
+        }
+
+        function cancelPayment() {
+            resetPaymentState();
+            document.getElementById('paymentStatus').style.display = 'none';
+            document.getElementById('payButton').style.display = 'block';
         }
 
         function confirmPayment() {
@@ -3368,11 +3710,6 @@
             }
 
             state.paymentProcessing = false;
-
-            if (state.paymentInterval) {
-                clearInterval(state.paymentInterval);
-                state.paymentInterval = null;
-            }
 
             const statusDiv = document.getElementById('paymentStatus');
             statusDiv.className = 'payment-status success';
@@ -3394,14 +3731,6 @@
                 : 'Pedido confirmado! Agora envie o pedido pelo WhatsApp.');
         }
 
-        function showPaymentError(message) {
-            const statusDiv = document.getElementById('paymentStatus');
-            statusDiv.className = 'payment-status error';
-            statusDiv.innerHTML = `❌ ${message}`;
-            state.paymentProcessing = false;
-            resetPayButton();
-        }
-
         function resetPayButton(originalText) {
             const button = document.getElementById('payButton');
             if (state.deliveryType === 'delivery') {
@@ -3420,11 +3749,6 @@
             state.currentOrderId = null;
             state.currentPreferenceId = null;
 
-            if (state.paymentInterval) {
-                clearInterval(state.paymentInterval);
-                state.paymentInterval = null;
-            }
-
             document.getElementById('paymentStatus').style.display = 'none';
             document.getElementById('whatsappButton').disabled = true;
 
@@ -3438,7 +3762,6 @@
         // ============================================
         // FUNÇÕES DO WHATSAPP
         // ============================================
-
         function sendToWhatsApp() {
             if (!validateForm()) {
                 alert('Complete todas as informações antes de enviar!');
@@ -3549,639 +3872,10 @@
         }
 
         // ============================================
-        // SISTEMA ADMINISTRATIVO
-        // ============================================
-        function setupAdminListeners() {
-            const adminBtn = document.getElementById('adminButton');
-            const adminClose = document.getElementById('adminClose');
-            const adminModal = document.getElementById('adminModal');
-            
-            if (adminBtn) {
-                adminBtn.addEventListener('click', openAdminPanel);
-            }
-            
-            if (adminClose) {
-                adminClose.addEventListener('click', closeAdminPanel);
-            }
-            
-            if (adminModal) {
-                adminModal.addEventListener('click', function(e) {
-                    if (e.target === this) closeAdminPanel();
-                });
-            }
-            
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && e.altKey && e.key === 'a') {
-                    e.preventDefault();
-                    openAdminPanel();
-                }
-                
-                if (e.key === 'Escape') {
-                    closeAdminPanel();
-                }
-            });
-        }
-
-        function openAdminPanel() {
-            const modal = document.getElementById('adminModal');
-            modal.style.display = 'block';
-
-            document.getElementById('passwordSection').style.display = 'block';
-            document.getElementById('adminMain').style.display = 'none';
-            document.getElementById('adminActions').style.display = 'none';
-            
-            state.adminAuthenticated = false;
-            
-            const passwordInput = document.getElementById('adminPassword');
-            if (passwordInput) {
-                passwordInput.value = '';
-                passwordInput.focus();
-            }
-        }
-
-        function closeAdminPanel() {
-            document.getElementById('adminModal').style.display = 'none';
-            state.adminAuthenticated = false;
-        }
-
-        function checkAdminPassword() {
-            const password = document.getElementById('adminPassword').value;
-
-            if (!password) {
-                alert('Digite a senha administrativa');
-                return;
-            }
-            
-            // Para simplificar, vamos usar uma senha fixa para o exemplo
-            // EM PRODUÇÃO, isso deve ser verificado no backend
-            if (password === 'bebcom123') {
-                state.adminAuthenticated = true;
-                document.getElementById('passwordSection').style.display = 'none';
-                document.getElementById('adminMain').style.display = 'block';
-                document.getElementById('adminActions').style.display = 'block';
-                loadAdminProducts();
-                showNotification('✅ Modo administrativo ativado');
-            } else {
-                alert('Senha incorreta');
-            }
-        }
-
-        function loadAdminProducts() {
-            const categoryContainers = {
-                'drinks-whisky': 'adminWhiskyProducts',
-                'drinks-gin': 'adminGinProducts',
-                'drinks-vodka': 'adminVodkaProducts',
-                'drinks-vinho': 'adminVinhoProducts',
-                'cervejas': 'adminCervejaProducts',
-                'destilados': 'adminDestiladoProducts',
-                'aguas': 'adminAguaProducts',
-                'refri-latas': 'adminRefriLataProducts',
-                'refri-pet': 'adminRefriPetProducts',
-                'sucos': 'adminSucoProducts',
-                'energeticos': 'adminEnergeticoProducts',
-                'gelo-carvao': 'adminGeloProducts'
-            };
-
-            Object.keys(categoryContainers).forEach(category => {
-                const containerId = categoryContainers[category];
-                const container = document.getElementById(containerId);
-                if (!container) return;
-
-                container.innerHTML = '';
-
-                const categoryProducts = products[category] || [];
-                categoryProducts.forEach(product => {
-                    const isAvailable = isProductAvailable(product.id);
-
-                    const productDiv = document.createElement('div');
-                    productDiv.className = 'admin-product-item';
-                    productDiv.innerHTML = `
-                            <div>
-                                <div class="admin-product-name">${product.name}</div>
-                                <div class="admin-product-price">R$ ${product.price.toFixed(2)}</div>
-                                ${product.requiresFlavorSelection ? '<small style="color: #60a5fa; font-size: 12px;">⚡ Com seleção de sabores</small>' : ''}
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" class="toggle-checkbox"
-                                       id="admin_toggle_${product.id}"
-                                       ${isAvailable ? 'checked' : ''}
-                                       onchange="adminToggleProductAvailability('${product.id}', this.checked)">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        `;
-                    container.appendChild(productDiv);
-                });
-            });
-        }
-
-        function adminToggleProductAvailability(productId, isAvailable) {
-            state.productAvailability[productId] = isAvailable;
-
-            const product = findProductById(productId);
-            const productElements = document.querySelectorAll(`[data-product-id="${productId}"]`);
-
-            productElements.forEach(element => {
-                if (isAvailable) {
-                    element.classList.remove('unavailable');
-                    const button = element.querySelector('button');
-                    if (button) {
-                        button.disabled = false;
-                        let buttonText = '🛒 Adicionar';
-                        if (product && product.requiresFlavorSelection) buttonText = '⚡ Escolher Sabores';
-                        button.innerHTML = buttonText;
-                    }
-                } else {
-                    element.classList.add('unavailable');
-                    const button = element.querySelector('button');
-                    if (button) {
-                        button.disabled = true;
-                        button.innerHTML = '❌ Indisponível';
-                    }
-                }
-            });
-        }
-
-        function setAllAvailable(isAvailable) {
-            Object.keys(products).forEach(category => {
-                products[category].forEach(product => {
-                    state.productAvailability[product.id] = isAvailable;
-
-                    const toggle = document.getElementById(`admin_toggle_${product.id}`);
-                    if (toggle) toggle.checked = isAvailable;
-
-                    const productElements = document.querySelectorAll(`[data-product-id="${product.id}"]`);
-                    productElements.forEach(element => {
-                        if (isAvailable) {
-                            element.classList.remove('unavailable');
-                            const button = element.querySelector('button');
-                            if (button) {
-                                button.disabled = false;
-                                let buttonText = '🛒 Adicionar';
-                                if (product.requiresFlavorSelection) buttonText = '⚡ Escolher Sabores';
-                                button.innerHTML = buttonText;
-                            }
-                        } else {
-                            element.classList.add('unavailable');
-                            const button = element.querySelector('button');
-                            if (button) {
-                                button.disabled = true;
-                                button.innerHTML = '❌ Indisponível';
-                            }
-                        }
-                    });
-                });
-            });
-
-            showNotification(isAvailable ? '✅ Todos os produtos marcados como disponíveis' : '❌ Todos os produtos marcados como indisponíveis');
-        }
-
-        // ============================================
-        // SALVAR DISPONIBILIDADE NO BACKEND
-        // ============================================
-        async function saveAvailability() {
-            console.log('💾 Salvando alterações...');
-            
-            const password = document.getElementById('adminPassword').value;
-            
-            if (!password || password !== 'bebcom123') {
-                alert('Senha administrativa incorreta');
-                return;
-            }
-            
-            try {
-                // Salvar produtos
-                const productResponse = await fetch(`${CONFIG.backendUrl}/api/admin/product-availability/bulk`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        productAvailability: state.productAvailability,
-                        password: password
-                    })
-                });
-                
-                // Salvar sabores
-                const flavorResponse = await fetch(`${CONFIG.backendUrl}/api/admin/flavor-availability/bulk`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        flavorAvailability: state.flavorAvailability,
-                        password: password
-                    })
-                });
-                
-                if (productResponse.ok && flavorResponse.ok) {
-                    // Salvar localmente também
-                    localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
-                    localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
-                    
-                    showNotification('✅ Alterações salvas no MongoDB!', 'success');
-                    closeAdminPanel();
-                } else {
-                    throw new Error('Erro ao salvar no servidor');
-                }
-                
-            } catch (error) {
-                console.error('Erro ao salvar:', error);
-                
-                // Fallback: salvar apenas localmente
-                localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
-                localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
-                
-                showNotification('⚠️ Alterações salvas apenas localmente', 'warning');
-            }
-        }
-
-        function resetAvailability() {
-            if (confirm('Restaurar todos os produtos como disponíveis?')) {
-                Object.keys(products).forEach(category => {
-                    products[category].forEach(product => {
-                        state.productAvailability[product.id] = true;
-                    });
-                });
-
-                Object.keys(FLAVOR_CATALOG).forEach(flavorType => {
-                    FLAVOR_CATALOG[flavorType].forEach(flavor => {
-                        const key = `${flavorType}_${flavor}`;
-                        state.flavorAvailability[key] = true;
-                    });
-                });
-
-                loadAdminProducts();
-                updateMenuAvailability();
-
-                showNotification('🔄 Disponibilidade restaurada', 'info');
-            }
-        }
-
-        // ============================================
-        // GERENCIAMENTO DE SABORES
-        // ============================================
-        function openFlavorManagement() {
-            const adminMain = document.getElementById('adminMain');
-            const adminActions = document.getElementById('adminActions');
-
-            adminActions.style.display = 'none';
-
-            adminMain.innerHTML = `
-                    <div style="margin-bottom: 30px;">
-                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
-                            <button onclick="loadAdminProducts(); document.getElementById('adminActions').style.display='block';"
-                                    style="background: #3b82f6; color: white; border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer;">
-                                ↩️ Voltar
-                            </button>
-                            <h3 style="color: #60a5fa; margin: 0; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; flex: 1;">
-                                🍹 Gerenciamento de Sabores por Tipo
-                            </h3>
-                        </div>
-
-                        <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; margin-bottom: 25px;">
-                            <p style="color: #94a3b8; margin-bottom: 15px; font-size: 14px;">
-                                <strong>Instruções:</strong> Selecione um tipo de produto para gerenciar a disponibilidade dos sabores.
-                            </p>
-                        </div>
-
-                        <div style="margin-bottom: 25px;">
-                            <label style="color: #ddd; display: block; margin-bottom: 8px; font-weight: bold;">
-                                Selecione o tipo de produto:
-                            </label>
-                            <select id="flavorTypeSelect" class="form-input" style="width: 100%; padding: 12px; margin-bottom: 20px;"
-                                    onchange="loadFlavorsForType(this.value)">
-                                <option value="">-- Selecione um tipo de produto --</option>
-                                ${Object.entries(FLAVOR_TYPES).map(([key, name]) =>
-                `<option value="${key}">${name}</option>`
-            ).join('')}
-                            </select>
-                        </div>
-
-                        <div id="flavorManagementSection" style="display: none;">
-                            <h4 style="color: #94a3b8; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #444;"
-                                id="flavorTypeTitle"></h4>
-
-                            <div id="flavorsList" style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                                <!-- Lista de sabores será gerada aqui -->
-                            </div>
-
-                            <div style="display: flex; gap: 10px;">
-                                <button class="modal-button confirm" onclick="saveFlavorChanges()" style="flex: 1;">
-                                    💾 Salvar Alterações
-                                </button>
-                                <button class="modal-button cancel" onclick="loadFlavorsForType('')" style="flex: 1;">
-                                    🔄 Limpar Seleção
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-        }
-
-        function loadFlavorsForType(flavorType) {
-            const section = document.getElementById('flavorManagementSection');
-            const title = document.getElementById('flavorTypeTitle');
-            const list = document.getElementById('flavorsList');
-
-            if (!flavorType) {
-                section.style.display = 'none';
-                return;
-            }
-
-            const flavors = FLAVOR_CATALOG[flavorType] || [];
-            const flavorTypeName = FLAVOR_TYPES[flavorType] || flavorType;
-
-            if (flavors.length === 0) {
-                title.textContent = `Nenhum sabor cadastrado para ${flavorTypeName}`;
-                list.innerHTML = `
-                        <div style="text-align: center; color: #aaa; padding: 40px; background: rgba(0,0,0,0.3); border-radius: 8px;">
-                            <div style="font-size: 48px; margin-bottom: 15px;">😕</div>
-                            <p>Não há sabores cadastrados para este tipo de produto.</p>
-                        </div>
-                    `;
-                section.style.display = 'block';
-                return;
-            }
-
-            title.textContent = `Gerenciando sabores de ${flavorTypeName} (${flavors.length} sabores)`;
-
-            const availableCount = flavors.filter(flavor =>
-                isFlavorAvailable(flavorType, flavor)
-            ).length;
-
-            list.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 6px;">
-                        <span style="color: #f5f5f5;">
-                            <strong>Status:</strong> ${availableCount} de ${flavors.length} sabores disponíveis
-                        </span>
-                        <div>
-                            <button onclick="setAllFlavorsAvailable('${flavorType}', true)"
-                                    style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 6px 12px; margin-right: 5px; cursor: pointer; font-size: 12px;">
-                                ✅ Todos
-                            </button>
-                            <button onclick="setAllFlavorsAvailable('${flavorType}', false)"
-                                    style="background: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 12px;">
-                                ❌ Nenhum
-                            </button>
-                        </div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px;">
-                        ${flavors.map((flavor, index) => {
-                const isAvailable = isFlavorAvailable(flavorType, flavor);
-                return `
-                                <div style="display: flex; justify-content: space-between; align-items: center;
-                                            padding: 15px; background: ${isAvailable ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
-                                            border-radius: 8px; border: 1px solid ${isAvailable ? '#10b981' : '#ef4444'};">
-                                    <div style="flex: 1;">
-                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-                                            <span style="font-size: 20px;">${isAvailable ? '✅' : '❌'}</span>
-                                            <div>
-                                                <span style="color: #f5f5f5; font-weight: 500; font-size: 16px;">${flavor}</span>
-                                                <br>
-                                                <small style="color: ${isAvailable ? '#10b981' : '#ef4444'}; font-size: 12px;">
-                                                    ${isAvailable ? 'Disponível' : 'Indisponível'}
-                                                </small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" class="toggle-checkbox flavor-toggle"
-                                               data-flavor-type="${flavorType}"
-                                               data-flavor-name="${flavor}"
-                                               ${isAvailable ? 'checked' : ''}
-                                               onchange="toggleFlavorAvailability('${flavorType}', '${flavor}', this.checked)">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            `;
-            }).join('')}
-                    </div>
-                `;
-
-            section.style.display = 'block';
-        }
-
-        function toggleFlavorAvailability(flavorType, flavorName, isAvailable) {
-            const key = `${flavorType}_${flavorName}`;
-            state.flavorAvailability[key] = isAvailable;
-
-            showNotification(`${flavorName} ${isAvailable ? '✅ disponível' : '❌ indisponível'}`,
-                isAvailable ? 'success' : 'error');
-        }
-
-        function setAllFlavorsAvailable(flavorType, makeAvailable) {
-            const flavors = FLAVOR_CATALOG[flavorType] || [];
-
-            flavors.forEach(flavor => {
-                const key = `${flavorType}_${flavor}`;
-                state.flavorAvailability[key] = makeAvailable;
-            });
-
-            loadFlavorsForType(flavorType);
-
-            showNotification(`${makeAvailable ? '✅ Todos os sabores disponíveis' : '❌ Todos os sabores indisponíveis'}`,
-                makeAvailable ? 'success' : 'warning');
-        }
-
-        async function saveFlavorChanges() {
-            try {
-                const password = document.getElementById('adminPassword').value;
-                
-                if (!password || password !== 'bebcom123') {
-                    alert('Senha incorreta');
-                    return;
-                }
-                
-                const response = await fetch(`${CONFIG.backendUrl}/api/admin/flavor-availability/bulk`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        flavorAvailability: state.flavorAvailability,
-                        password: password
-                    })
-                });
-                
-                if (response.ok) {
-                    localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
-                    showNotification('✅ Alterações de sabores salvas!');
-                    return true;
-                } else {
-                    throw new Error('Erro ao salvar');
-                }
-                
-            } catch (error) {
-                console.error('Erro ao salvar sabores:', error);
-                showNotification('⚠️ Alterações salvas apenas localmente: ' + error.message, 'warning');
-                localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
-                return false;
-            }
-        }
-
-        function updateMenuAvailability() {
-            Object.keys(products).forEach(category => {
-                products[category].forEach(product => {
-                    const productElements = document.querySelectorAll(`[data-product-id="${product.id}"]`);
-                    const isAvailable = isProductAvailable(product.id);
-                    const hasFlavors = product.requiresFlavorSelection || false;
-
-                    productElements.forEach(element => {
-                        if (isAvailable) {
-                            element.classList.remove('unavailable');
-                            const button = element.querySelector('button');
-                            if (button) {
-                                button.disabled = false;
-                                let buttonText = '🛒 Adicionar';
-                                if (hasFlavors) buttonText = '⚡ Escolher Sabores';
-                                button.innerHTML = buttonText;
-
-                                if (hasFlavors) {
-                                    button.classList.add('has-flavors');
-                                    element.classList.add('with-flavors');
-                                    if (!element.querySelector('.flavor-badge')) {
-                                        const badge = document.createElement('div');
-                                        badge.className = 'flavor-badge';
-                                        badge.textContent = '⚡';
-                                        element.insertBefore(badge, element.firstChild);
-                                    }
-                                } else {
-                                    button.classList.remove('has-flavors');
-                                    element.classList.remove('with-flavors');
-                                    const badge = element.querySelector('.flavor-badge');
-                                    if (badge) badge.remove();
-                                }
-                            }
-                        } else {
-                            element.classList.add('unavailable');
-                            const button = element.querySelector('button');
-                            if (button) {
-                                button.disabled = true;
-                                button.innerHTML = '❌ Indisponível';
-                            }
-                        }
-                    });
-                });
-            });
-        }
-
-        // ============================================
-        // FUNÇÕES UTILITÁRIAS
-        // ============================================
-        function showNotification(text, type = 'success') {
-            const notification = document.createElement('div');
-            const colors = {
-                success: 'linear-gradient(135deg, #28a745 0%, #218838 100%)',
-                error: 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)',
-                warning: 'linear-gradient(135deg, #ffc107 0%, #ff9800 100%)',
-                info: 'linear-gradient(135deg, #17a2b8 0%, #138496 100%)'
-            };
-
-            notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: ${colors[type] || colors.success};
-                    color: white;
-                    padding: 15px 25px;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-                    z-index: 10000;
-                    animation: slideIn 0.3s ease;
-                    font-weight: bold;
-                    min-width: 300px;
-                    max-width: 400px;
-                    word-break: break-word;
-                `;
-
-            notification.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 20px;">
-                            ${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}
-                        </span>
-                        <span>${text}</span>
-                    </div>
-                `;
-
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.style.animation = 'slideIn 0.3s ease reverse';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        document.body.removeChild(notification);
-                    }
-                }, 300);
-            }, 3000);
-        }
-
-        function setupEventListeners() {
-            document.getElementById('customerName').addEventListener('input', validateForm);
-            document.getElementById('customerPhone').addEventListener('input', validateForm);
-            document.getElementById('street').addEventListener('input', validateForm);
-            document.getElementById('number').addEventListener('input', validateForm);
-            document.getElementById('neighborhood').addEventListener('input', validateForm);
-            document.getElementById('city').addEventListener('input', validateForm);
-        }
-
-        function setupPhoneMask() {
-            const phoneInput = document.getElementById('customerPhone');
-            phoneInput.addEventListener('input', function (e) {
-                let value = e.target.value.replace(/\D/g, '');
-
-                if (value.length > 11) value = value.substring(0, 11);
-
-                if (value.length > 0) {
-                    value = '(' + value.substring(0, 2) + ') ' + value.substring(2);
-                }
-
-                if (value.length > 9) {
-                    value = value.substring(0, 10) + '-' + value.substring(10);
-                }
-
-                e.target.value = value;
-                validateForm();
-            });
-        }
-
-        function setupAutoSave() {
-            window.addEventListener('beforeunload', function (e) {
-                if (state.cart.length > 0) {
-                    saveCartToLocalStorage();
-                }
-            });
-        }
-
-        function exportOrder() {
-            const orderData = {
-                cart: state.cart,
-                customer: {
-                    name: document.getElementById('customerName').value,
-                    phone: document.getElementById('customerPhone').value
-                },
-                deliveryType: state.deliveryType,
-                total: getCartTotal(),
-                timestamp: new Date().toISOString()
-            };
-
-            const dataStr = JSON.stringify(orderData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-
-            const exportFileDefaultName = `pedido_bebcom_${Date.now()}.json`;
-
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-
-            showNotification('📁 Pedido exportado com sucesso', 'info');
-        }
-
-        function getCartTotal() {
-            return state.cart.reduce((total, item) => {
-                return total + (item.price * item.quantity);
-            }, 0);
-        }
-
-        // ============================================
         // INICIALIZAÇÃO
         // ============================================
-        document.addEventListener('DOMContentLoaded', function () {
-            init();
+        document.addEventListener('DOMContentLoaded', function() {
+            initAgeVerification();
         });
     </script>
 </body>
