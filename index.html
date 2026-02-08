@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BebCom Delivery</title>
 
-    <!-- SDK Mercado Pago REMOVIDO por segurança -->
-
     <style>
         /* ====== ESTILOS GERAIS ====== */
         * {
@@ -1451,7 +1449,7 @@
                         <li><strong>Verificação de Idade Obrigatória:</strong> Este site é destinado exclusivamente a maiores de 18 anos;</li>
                         <li><strong>Responsabilidade do Consumidor:</strong> Ao prosseguir, você declara, sob as penas da lei, que possui idade igual ou superior a 18 anos;</li>
                         <li><strong>Verificação na Entrega:</strong> Reservamo-nos o direito de solicitar documento de identificação com foto no momento da entrega/retirada, recusando o serviço em caso de não comprovação da maioridade;</li>
-                        <li><strong>Consumo Responsável:</strong> Recomendamos o consumo moderado de bebidas alcoólicas. O abuso pode causar dependência química e prejudicar sua saúde.</li>
+                        <li><strong>Consumo Responsável:</strong> Recomendamos o consumo moderado de bebidas alcoólicas. O abuso pode cause dependência química e prejudicar sua saúde.</li>
                     </ol>
 
                     <p><strong>Art. 243, §1º do ECA:</strong> "Vender, fornecer ainda que gratuitamente ou entregar, de qualquer forma, a criança ou adolescente, sem justa causa, produtos cujos componentes possam causar dependência física ou psíquica, ainda que por utilização indevida: Pena - detenção de 2 (dois) a 4 (quatro) anos, e multa."</p>
@@ -1888,6 +1886,125 @@
             // 🔒 SENHA ADMINISTRATIVA - Altere para uma senha forte!
             adminPassword: 'Bebcom25*'
         };
+
+        // ============================================
+        // FUNÇÕES UTILITÁRIAS DE HASH (SEGURANÇA)
+        // ============================================
+        async function sha256(message) {
+            // Converte string para ArrayBuffer
+            const msgBuffer = new TextEncoder().encode(message);
+            
+            // Calcula o hash usando Web Crypto API
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            
+            // Converte ArrayBuffer para hex string
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            
+            return hashHex;
+        }
+
+        // Fallback para navegadores mais antigos
+        function sha256Fallback(text) {
+            // Implementação JS pura de SHA-256
+            function rightRotate(value, amount) {
+                return (value >>> amount) | (value << (32 - amount));
+            }
+
+            const K = [
+                0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+                0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+                0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+                0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+                0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+                0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+                0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+                0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+                0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+                0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+                0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+                0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+                0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+                0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+                0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+                0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+            ];
+
+            let H = [
+                0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+                0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+            ];
+
+            const message = unescape(encodeURIComponent(text));
+            const messageLength = message.length;
+            const totalWords = ((messageLength + 8) >>> 6) + 1;
+            const words = new Array(totalWords * 16).fill(0);
+
+            for (let i = 0; i < messageLength; i++) {
+                words[i >>> 2] |= (message.charCodeAt(i) & 0xff) << (24 - (i % 4) * 8);
+            }
+
+            words[messageLength >>> 2] |= 0x80 << (24 - (messageLength % 4) * 8);
+            words[totalWords * 16 - 1] = messageLength * 8;
+
+            for (let block = 0; block < totalWords; block++) {
+                const schedule = new Array(64).fill(0);
+
+                for (let t = 0; t < 16; t++) {
+                    schedule[t] = words[block * 16 + t];
+                }
+
+                for (let t = 16; t < 64; t++) {
+                    const s0 = rightRotate(schedule[t - 15], 7) ^ 
+                              rightRotate(schedule[t - 15], 18) ^ 
+                              (schedule[t - 15] >>> 3);
+                    const s1 = rightRotate(schedule[t - 2], 17) ^ 
+                              rightRotate(schedule[t - 2], 19) ^ 
+                              (schedule[t - 2] >>> 10);
+                    schedule[t] = (schedule[t - 16] + s0 + schedule[t - 7] + s1) & 0xffffffff;
+                }
+
+                let a = H[0], b = H[1], c = H[2], d = H[3];
+                let e = H[4], f = H[5], g = H[6], h = H[7];
+
+                for (let t = 0; t < 64; t++) {
+                    const S1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);
+                    const ch = (e & f) ^ ((~e) & g);
+                    const temp1 = (h + S1 + ch + K[t] + schedule[t]) & 0xffffffff;
+                    const S0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);
+                    const maj = (a & b) ^ (a & c) ^ (b & c);
+                    const temp2 = (S0 + maj) & 0xffffffff;
+
+                    h = g;
+                    g = f;
+                    f = e;
+                    e = (d + temp1) & 0xffffffff;
+                    d = c;
+                    c = b;
+                    b = a;
+                    a = (temp1 + temp2) & 0xffffffff;
+                }
+
+                H[0] = (H[0] + a) & 0xffffffff;
+                H[1] = (H[1] + b) & 0xffffffff;
+                H[2] = (H[2] + c) & 0xffffffff;
+                H[3] = (H[3] + d) & 0xffffffff;
+                H[4] = (H[4] + e) & 0xffffffff;
+                H[5] = (H[5] + f) & 0xffffffff;
+                H[6] = (H[6] + g) & 0xffffffff;
+                H[7] = (H[7] + h) & 0xffffffff;
+            }
+
+            return H.map(h => h.toString(16).padStart(8, '0')).join('');
+        }
+
+        async function calculateHash(text) {
+            if (window.crypto && window.crypto.subtle) {
+                return await sha256(text);
+            } else {
+                return sha256Fallback(text);
+            }
+        }
 
         // ============================================
         // DADOS DOS PRODUTOS ATUALIZADOS (COMPLETO)
@@ -3520,7 +3637,7 @@
         }
 
         // ============================================
-        // SISTEMA ADMINISTRATIVO (ATUALIZADO COM BACKEND)
+        // SISTEMA ADMINISTRATIVO (ATUALIZADO COM SEGURANÇA)
         // ============================================
         function setupAdminListeners() {
             document.getElementById('adminButton').addEventListener('click', openAdminPanel);
@@ -3563,20 +3680,76 @@
             state.adminAuthenticated = false;
         }
 
-        function checkAdminPassword() {
+        async function checkAdminPassword() {
             const password = document.getElementById('adminPassword').value;
+            const button = document.querySelector('.password-button');
+            const originalText = button.innerHTML;
 
-            if (password === CONFIG.adminPassword) {
-                state.adminAuthenticated = true;
-                document.getElementById('passwordSection').style.display = 'none';
-                document.getElementById('adminMain').style.display = 'block';
-                document.getElementById('adminActions').style.display = 'block';
-                loadAdminProducts();
-                showNotification('✅ Acesso administrativo concedido');
-            } else {
-                alert('❌ Senha incorreta!');
+            // Mostrar loading
+            button.innerHTML = '<span class="loading-spinner"></span> Verificando...';
+            button.disabled = true;
+
+            try {
+                // 1. Primeiro tenta verificar com senha direta (para compatibilidade)
+                if (password === CONFIG.adminPassword) {
+                    // Senha correta em texto puro
+                    state.adminAuthenticated = true;
+                    document.getElementById('passwordSection').style.display = 'none';
+                    document.getElementById('adminMain').style.display = 'block';
+                    document.getElementById('adminActions').style.display = 'block';
+                    loadAdminProducts();
+                    showNotification('✅ Acesso administrativo concedido');
+                    return;
+                }
+
+                // 2. Se não for a senha direta, tenta verificar com hash
+                // Primeiro busca os dados de hash do servidor
+                const hashResponse = await fetch(`${CONFIG.backendUrl}/api/admin-password`);
+                
+                if (!hashResponse.ok) {
+                    throw new Error('Não foi possível verificar a senha no servidor');
+                }
+
+                const hashData = await hashResponse.json();
+                
+                if (!hashData.success) {
+                    throw new Error('Erro na resposta do servidor');
+                }
+
+                // Calcula o hash da senha digitada
+                const passwordHash = await calculateHash(password);
+                const passwordHashWithSalt = await calculateHash(password + hashData.salt);
+                
+                // Verifica se algum dos hashes corresponde
+                if (passwordHash === hashData.passwordHash || 
+                    passwordHashWithSalt === hashData.passwordHash) {
+                    
+                    // Acesso concedido!
+                    state.adminAuthenticated = true;
+                    document.getElementById('passwordSection').style.display = 'none';
+                    document.getElementById('adminMain').style.display = 'block';
+                    document.getElementById('adminActions').style.display = 'block';
+                    loadAdminProducts();
+                    showNotification('✅ Acesso administrativo concedido');
+                    
+                } else {
+                    // Senha incorreta
+                    throw new Error('Senha incorreta');
+                }
+
+            } catch (error) {
+                console.error('Erro na verificação:', error);
+                alert(`❌ ${error.message || 'Senha incorreta!'}`);
                 document.getElementById('adminPassword').value = '';
                 document.getElementById('adminPassword').focus();
+                
+                // Restaurar estado de autenticação
+                state.adminAuthenticated = false;
+                
+            } finally {
+                // Restaurar botão
+                button.innerHTML = originalText;
+                button.disabled = false;
             }
         }
 
