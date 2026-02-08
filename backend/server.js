@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 10000;
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-admin-password', 'X-Admin-Password', 'x-admin-key', 'X-Admin-Key']
 }));
 app.use(express.json());
 
@@ -221,7 +221,7 @@ async function initializeCollections() {
 
 // Middleware de autenticação
 function checkAdminPassword(req, res, next) {
-    const password = req.body.password || req.headers['x-admin-password'];
+    const password = req.body.password || req.headers['x-admin-password'] || req.headers['x-admin-key'];
     
     if (!password) {
         return res.status(401).json({
