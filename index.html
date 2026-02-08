@@ -463,10 +463,10 @@
             transition: all 0.3s ease;
             margin: 10px 0;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            }
 
             .secondary-button:hover:not(:disabled) {
                 transform: translateY(-3px);
@@ -1445,7 +1445,7 @@
 
                     <p>Conforme disposto no <strong>artigo 243, §1º do Estatuto da Criança e do Adolescente (Lei 8.069/90)</strong> e no <strong>artigo 81 do Código de Defesa do Consumidor (Lei 8.078/90)</strong>, a venda e o fornecimento de bebidas alcoólicas a menores de 18 (dezoito) anos constituem infrações sujeitas às penalidades legais, incluindo multas e responsabilização civil e penal.</p>
 
-                    <p>O <strong>BebCom Delivery</strong>, em estrita observância à legislação brasileira, adota os seguintes protocolos:</p>
+                    <p>O <strong>BebCom Delivery</strong>, em estrita observância à legislação brasileira, adota os seguinte protocolos:</p>
 
                     <ol>
                         <li><strong>Verificação de Idade Obrigatória:</strong> Este site é destinado exclusivamente a maiores de 18 anos;</li>
@@ -1760,45 +1760,55 @@
 
         // Função para inicializar o modal de idade
         function initAgeVerification() {
-            // Verificar se já foi confirmado anteriormente (usando localStorage)
             const hasConfirmedAge = localStorage.getItem('bebcom_age_verified');
 
+            // ✅ Se já confirmou antes, entra direto e inicializa o app
             if (hasConfirmedAge === 'true') {
-                ageVerified = true;
-                document.getElementById('ageVerificationModal').style.display = 'none';
+                state.ageVerified = true;
+
+                const modal = document.getElementById('ageVerificationModal');
+                if (modal) modal.style.display = 'none';
+
+                document.body.style.overflow = 'auto';
+
+                // ✅ CRÍTICO: isso garante que o admin e o resto do sistema funcionem
+                init();
                 return;
             }
 
-            // Mostrar modal
+            // Caso NÃO tenha confirmado idade ainda
             document.getElementById('ageVerificationModal').style.display = 'flex';
 
-            // Configurar evento para o checkbox
             const checkbox = document.getElementById('ageConfirmationCheckbox');
             const enterButton = document.getElementById('enterSiteButton');
 
-            checkbox.addEventListener('change', function() {
+            checkbox.addEventListener('change', function () {
                 enterButton.disabled = !this.checked;
             });
 
-            // Impedir fechamento do modal com ESC ou clicando fora
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && !ageVerified) {
+            enterButton.addEventListener('click', enterSite);
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && !state.ageVerified) {
                     e.preventDefault();
                     exitSite();
                 }
             });
 
-            // Impedir rolagem enquanto o modal estiver aberto
             document.body.style.overflow = 'hidden';
         }
 
         // Função para entrar no site
         function enterSite() {
             ageVerified = true;
+            state.ageVerified = true;
             localStorage.setItem('bebcom_age_verified', 'true');
             document.getElementById('ageVerificationModal').style.display = 'none';
             document.body.style.overflow = 'auto';
             showNotification('✅ Acesso permitido. Aproveite nosso cardápio com responsabilidade!');
+            
+            // Inicializa o aplicativo após confirmar idade
+            init();
         }
 
         // Função para sair do site (menor de idade)
@@ -2362,7 +2372,8 @@
             currentButton: null,
             adminAuthenticated: false,
             productAvailability: {},
-            flavorAvailability: {}
+            flavorAvailability: {},
+            ageVerified: false
         };
 
         // ============================================
@@ -2371,11 +2382,8 @@
         async function init() {
             console.log('🚀 Inicializando BebCom Delivery v3.0 (Seguro)');
 
-            // Inicializar verificação de idade
-            initAgeVerification();
-
             // Só inicializar o resto do sistema se a idade for verificada
-            if (!ageVerified) return;
+            if (!state.ageVerified) return;
 
             // Carregar dados persistentes
             loadCartFromLocalStorage();
@@ -4040,14 +4048,14 @@
         function setupAutoSync() {
             // Sincronizar imediatamente ao carregar
             setTimeout(() => {
-                if (ageVerified && !state.adminAuthenticated) {
+                if (state.ageVerified && !state.adminAuthenticated) {
                     syncAllFromServer();
                 }
             }, 3000);
 
             // Sincronizar a cada 5 minutos
             setInterval(() => {
-                if (ageVerified && !state.adminAuthenticated) {
+                if (state.ageVerified && !state.adminAuthenticated) {
                     syncAllFromServer();
                 }
             }, 5 * 60 * 1000);
@@ -4222,7 +4230,7 @@
         // INICIALIZAÇÃO
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
-            init();
+            initAgeVerification();
         });
     </script>
 </body>
