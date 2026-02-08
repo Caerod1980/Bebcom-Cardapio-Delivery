@@ -1,4 +1,4 @@
-// backend/server.js - VERSÃO OTIMIZADA PARA RENDER
+// backend/server.js - VERSÃO DEPLOY
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion } = require('mongodb');
