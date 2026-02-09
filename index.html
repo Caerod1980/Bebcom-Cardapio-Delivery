@@ -1769,8 +1769,8 @@
 
                 document.body.style.overflow = 'auto';
 
-                // ✅ CRÍTICO: isso garante que o admin e o resto do sistema funcionem
-                init();
+                // ✅ Inicializa o sistema principal
+                initUserInterface();
                 return;
             }
 
@@ -1806,7 +1806,7 @@
             showNotification('✅ Acesso permitido. Aproveite nosso cardápio com responsabilidade!');
             
             // Inicializa o aplicativo após confirmar idade
-            init();
+            initUserInterface();
         }
 
         // Função para sair do site (menor de idade)
@@ -2494,10 +2494,18 @@
         };
 
         // ============================================
-        // FUNÇÕES DE INICIALIZAÇÃO
+        // INICIALIZAÇÃO DO SISTEMA ADMINISTRATIVO (INDEPENDENTE DA IDADE)
         // ============================================
-        async function init() {
-            console.log('🚀 Inicializando BebCom Delivery v3.0 (Seguro)');
+        function initAdminSystem() {
+            console.log('🔧 Inicializando sistema administrativo...');
+            setupAdminListeners();
+        }
+
+        // ============================================
+        // INICIALIZAÇÃO DA INTERFACE DO USUÁRIO (SÓ APÓS VERIFICAÇÃO DE IDADE)
+        // ============================================
+        async function initUserInterface() {
+            console.log('🚀 Inicializando interface do usuário...');
 
             // Só inicializar o resto do sistema se a idade for verificada
             if (!state.ageVerified) return;
@@ -2518,10 +2526,9 @@
                 // Continuar com dados locais
             }
 
-            // Inicializar componentes
+            // Inicializar componentes do usuário
             showCategory('drinks-whisky');
             setupEventListeners();
-            setupAdminListeners();
 
             // Configurar delivery padrão
             selectDeliveryType('pickup');
@@ -2535,7 +2542,7 @@
             // Configurar sincronização automática
             setupAutoSync();
 
-            console.log('✅ Sistema BebCom Delivery inicializado com sucesso');
+            console.log('✅ Interface do usuário inicializada com sucesso');
         }
 
         // ============================================
@@ -3640,11 +3647,30 @@
         // SISTEMA ADMINISTRATIVO (ATUALIZADO COM SEGURANÇA)
         // ============================================
         function setupAdminListeners() {
-            document.getElementById('adminButton').addEventListener('click', openAdminPanel);
-            document.getElementById('adminClose').addEventListener('click', closeAdminPanel);
-            document.getElementById('adminModal').addEventListener('click', function(e) {
-                if (e.target === this) closeAdminPanel();
-            });
+            console.log('🔧 Configurando listeners administrativos...');
+            
+            const adminButton = document.getElementById('adminButton');
+            const adminClose = document.getElementById('adminClose');
+            const adminModal = document.getElementById('adminModal');
+            
+            if (adminButton) {
+                adminButton.addEventListener('click', openAdminPanel);
+                console.log('✅ Botão admin configurado');
+            } else {
+                console.error('❌ Botão admin não encontrado!');
+            }
+            
+            if (adminClose) {
+                adminClose.addEventListener('click', closeAdminPanel);
+                console.log('✅ Botão fechar admin configurado');
+            }
+            
+            if (adminModal) {
+                adminModal.addEventListener('click', function(e) {
+                    if (e.target === this) closeAdminPanel();
+                });
+                console.log('✅ Modal admin configurado');
+            }
 
             document.addEventListener('keydown', function(e) {
                 if (e.ctrlKey && e.altKey && e.key === 'a') {
@@ -3656,9 +3682,12 @@
                     closeAdminPanel();
                 }
             });
+            
+            console.log('✅ Sistema administrativo configurado com sucesso');
         }
 
         function openAdminPanel() {
+            console.log('🔧 Abrindo painel administrativo...');
             document.getElementById('adminModal').style.display = 'block';
 
             if (!state.adminAuthenticated) {
@@ -4400,9 +4429,15 @@
         }
 
         // ============================================
-        // INICIALIZAÇÃO
+        // INICIALIZAÇÃO PRINCIPAL
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM carregado, inicializando sistemas...');
+            
+            // Inicializar sistema administrativo INDEPENDENTE da idade
+            initAdminSystem();
+            
+            // Inicializar verificação de idade (para usuários normais)
             initAgeVerification();
         });
     </script>
