@@ -2,7 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
-const https = require('https'); // Adicionar módulo https
+const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -72,10 +72,12 @@ function performAutoPing() {
         
         console.log(`🔄 Auto-ping para: ${url}`);
         
-        // Verificar se é HTTP ou HTTPS
-        if (url.startsWith('https://')) {
-            // Usar módulo HTTPS
-            const req = https.get(url, (res) => {
+        // CORREÇÃO: Usar URL object para verificar protocolo corretamente
+        const parsedUrl = new URL(url);
+        
+        if (parsedUrl.protocol === 'https:') {
+            // Usar módulo HTTPS para URLs HTTPS
+            const req = https.get(parsedUrl, (res) => {
                 if (res.statusCode === 200) {
                     console.log(`✅ Auto-ping OK (HTTPS)`);
                 } else {
@@ -94,8 +96,8 @@ function performAutoPing() {
             });
             
         } else {
-            // Usar módulo HTTP
-            const req = http.get(url, (res) => {
+            // Usar módulo HTTP para URLs HTTP
+            const req = http.get(parsedUrl, (res) => {
                 if (res.statusCode === 200) {
                     console.log(`✅ Auto-ping OK (HTTP)`);
                 } else {
@@ -338,7 +340,7 @@ function setupMongoRoutes(app, db) {
         }
     });
     
-    // Atualizar produtos (admin)
+    // Atualizar produtos (admin) - PRIMEIRA DECLARAÇÃO (sem middleware)
     app.post('/api/admin/product-availability/bulk', async (req, res) => {
         try {
             const { productAvailability, adminName, source } = req.body;
@@ -388,7 +390,7 @@ function setupMongoRoutes(app, db) {
         }
     });
     
-    // Atualizar sabores (admin)
+    // Atualizar sabores (admin) - PRIMEIRA DECLARAÇÃO (sem middleware)
     app.post('/api/admin/flavor-availability/bulk', async (req, res) => {
         try {
             const { flavorAvailability, adminName, source } = req.body;
@@ -504,33 +506,130 @@ function checkAdminPassword(req, res, next) {
     }
 }
 
-// Adicionar middleware às rotas admin
+// ========== REMOVER ROTAS DUPLICADAS E APLICAR MIDDLEWARE ==========
+// Remover as rotas existentes e recriar com middleware
+app._router.stack = app._router.stack.filter(layer => {
+    // Remover as rotas admin existentes
+    if (layer.route) {
+        const path = layer.route.path;
+        return !(path === '/api/admin/product-availability/bulk' || 
+                path === '/api/admin/flavor-availability/bulk');
+    }
+    return true;
+});
+
+// Recriar rotas admin com middleware de autenticação
 app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req, res) => {
-    // O código desta rota já está definido em setupMongoRoutes
-    // Esta é apenas a assinatura para adicionar o middleware
-    const db = app.locals.db;
-    if (!db) {
-        return res.status(500).json({
+    try {
+        const db = app.locals.db;
+        if (!db) {
+            return res.status(500).json({
+                success: false,
+                error: 'Banco de dados não disponível'
+            });
+        }
+        
+        const { productAvailability, adminName, source } = req.body;
+        
+        if (!productAvailability || typeof productAvailability !== 'object') {
+            return res.status(400).json({
+                success: false,
+                error: 'Dados inválidos'
+            });
+        }
+        
+        const result = await db.collection('products').updateOne(
+            { type: 'availability' },
+            {
+                $set: {
+                    data: productAvailability,
+                    lastUpdated: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    updatedBy: adminName || 'Admin BebCom',
+                    source: source || 'direct'
+                }
+            },
+            { upsert: true }
+        );
+        
+        await db.collection('admin_logs').insertOne({
+            action: 'update_products',
+            admin: adminName || 'Admin BebCom',
+            count: Object.keys(productAvailability).length,
+            source: source || 'direct',
+            timestamp: new Date().toISOString()
+        });
+        
+        res.json({
+            success: true,
+            message: 'Produtos atualizados com sucesso',
+            timestamp: new Date().toISOString(),
+            count: Object.keys(productAvailability).length,
+            upsertedId: result.upsertedId
+        });
+        
+    } catch (error) {
+        res.status(500).json({
             success: false,
-            error: 'Banco de dados não disponível'
+            error: `Erro ao salvar produtos: ${error.message}`
         });
     }
-    
-    // Chama a função original
-    const originalHandler = setupMongoRoutes.toString();
-    // Implementação está em setupMongoRoutes
 });
 
 app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, res) => {
-    const db = app.locals.db;
-    if (!db) {
-        return res.status(500).json({
+    try {
+        const db = app.locals.db;
+        if (!db) {
+            return res.status(500).json({
+                success: false,
+                error: 'Banco de dados não disponível'
+            });
+        }
+        
+        const { flavorAvailability, adminName, source } = req.body;
+        
+        if (!flavorAvailability || typeof flavorAvailability !== 'object') {
+            return res.status(400).json({
+                success: false,
+                error: 'Dados inválidos'
+            });
+        }
+        
+        const result = await db.collection('flavors').updateOne(
+            { type: 'availability' },
+            {
+                $set: {
+                    data: flavorAvailability,
+                    lastUpdated: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    updatedBy: adminName || 'Admin BebCom',
+                    source: source || 'direct'
+                }
+            },
+            { upsert: true }
+        );
+        
+        await db.collection('admin_logs').insertOne({
+            action: 'update_flavors',
+            admin: adminName || 'Admin BebCom',
+            count: Object.keys(flavorAvailability).length,
+            source: source || 'direct',
+            timestamp: new Date().toISOString()
+        });
+        
+        res.json({
+            success: true,
+            message: 'Sabores atualizados com sucesso',
+            timestamp: new Date().toISOString(),
+            count: Object.keys(flavorAvailability).length,
+            upsertedId: result.upsertedId
+        });
+    } catch (error) {
+        res.status(500).json({
             success: false,
-            error: 'Banco de dados não disponível'
+            error: `Erro ao salvar sabores: ${error.message}`
         });
     }
-    
-    // Implementação está em setupMongoRoutes
 });
 
 // ========== GRACEFUL SHUTDOWN ==========
