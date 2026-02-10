@@ -1,4 +1,4 @@
-// backend/server.js - VERSÃO CORRIGIDA PARA RENDER COM HTTPS
+// backend/server.js - VERSÃO OTIMIZADA PARA RENDER
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
@@ -61,10 +61,17 @@ app.get('/', (req, res) => {
     });
 });
 
-// ========== SISTEMA DE AUTO-PING CORRIGIDO ==========
+// ========== SISTEMA DE AUTO-PING OTIMIZADO ==========
 let pingIntervalId = null;
+let isServerReady = false;
 
 function performAutoPing() {
+    // Só executa auto-ping se o servidor estiver pronto
+    if (!isServerReady) {
+        console.log('⏳ Servidor ainda não pronto, pulando auto-ping...');
+        return;
+    }
+    
     try {
         const url = process.env.RENDER_EXTERNAL_URL 
             ? `${process.env.RENDER_EXTERNAL_URL}/health`
@@ -72,48 +79,64 @@ function performAutoPing() {
         
         console.log(`🔄 Auto-ping para: ${url}`);
         
-        // CORREÇÃO: Usar URL object para verificar protocolo corretamente
         const parsedUrl = new URL(url);
         
+        const options = {
+            timeout: 10000, // 10 segundos
+            rejectUnauthorized: false // Ignorar erros de certificado para self-signed
+        };
+        
         if (parsedUrl.protocol === 'https:') {
-            // Usar módulo HTTPS para URLs HTTPS
-            const req = https.get(parsedUrl, (res) => {
-                if (res.statusCode === 200) {
-                    console.log(`✅ Auto-ping OK (HTTPS)`);
-                } else {
-                    console.log(`⚠️ Auto-ping status: ${res.statusCode}`);
-                }
-                res.resume(); // Consumir os dados
+            const req = https.get(parsedUrl, options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                res.on('end', () => {
+                    if (res.statusCode === 200) {
+                        console.log(`✅ Auto-ping OK (HTTPS) - Status: ${res.statusCode}`);
+                    } else {
+                        console.log(`⚠️ Auto-ping status: ${res.statusCode}`);
+                    }
+                });
             });
             
             req.on('error', (error) => {
                 console.log(`⚠️ Auto-ping HTTPS falhou: ${error.message}`);
             });
             
-            req.setTimeout(5000, () => {
+            req.on('timeout', () => {
                 req.destroy();
-                console.log('⚠️ Auto-ping HTTPS timeout (5s)');
+                console.log('⚠️ Auto-ping HTTPS timeout (10s)');
             });
             
+            req.setTimeout(10000);
+            
         } else {
-            // Usar módulo HTTP para URLs HTTP
-            const req = http.get(parsedUrl, (res) => {
-                if (res.statusCode === 200) {
-                    console.log(`✅ Auto-ping OK (HTTP)`);
-                } else {
-                    console.log(`⚠️ Auto-ping status: ${res.statusCode}`);
-                }
-                res.resume();
+            const req = http.get(parsedUrl, options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                res.on('end', () => {
+                    if (res.statusCode === 200) {
+                        console.log(`✅ Auto-ping OK (HTTP) - Status: ${res.statusCode}`);
+                    } else {
+                        console.log(`⚠️ Auto-ping status: ${res.statusCode}`);
+                    }
+                });
             });
             
             req.on('error', (error) => {
                 console.log(`⚠️ Auto-ping HTTP falhou: ${error.message}`);
             });
             
-            req.setTimeout(5000, () => {
+            req.on('timeout', () => {
                 req.destroy();
-                console.log('⚠️ Auto-ping HTTP timeout (5s)');
+                console.log('⚠️ Auto-ping HTTP timeout (10s)');
             });
+            
+            req.setTimeout(10000);
         }
         
     } catch (error) {
@@ -125,20 +148,28 @@ function startAutoPing() {
     if (process.env.RENDER || process.env.RENDER_EXTERNAL_URL) {
         console.log('🚀 Iniciando sistema de auto-ping para Render Free');
         
-        // Configurar ping periódico a cada 14 minutos
-        const PING_INTERVAL = 14 * 60 * 1000;
+        // Aguardar 3 minutos antes do primeiro ping (servidor estabilizar)
+        console.log('⏳ Aguardando 3 minutos para estabilização do servidor...');
         
-        // Primeiro ping após 2 minutos (dar tempo para estabilizar)
         setTimeout(() => {
+            console.log('✅ Servidor estabilizado, ativando auto-ping...');
+            isServerReady = true;
+            
+            // Configurar ping periódico a cada 13 minutos
+            const PING_INTERVAL = 13 * 60 * 1000;
+            
+            // Primeiro ping agora
             performAutoPing();
-        }, 120000);
+            
+            // Ping periódico
+            pingIntervalId = setInterval(performAutoPing, PING_INTERVAL);
+            
+            console.log(`⏰ Auto-ping configurado a cada ${PING_INTERVAL/60000} minutos`);
+        }, 180000); // 3 minutos
         
-        // Ping periódico
-        pingIntervalId = setInterval(performAutoPing, PING_INTERVAL);
-        
-        console.log(`⏰ Auto-ping configurado a cada ${PING_INTERVAL/60000} minutos`);
     } else {
         console.log('💻 Ambiente local - auto-ping desativado');
+        isServerReady = true;
     }
 }
 
@@ -158,7 +189,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`📅 ${new Date().toISOString()}`);
     console.log(`📡 Health Check: http://0.0.0.0:${PORT}/health`);
     console.log(`🌐 Acesso público: https://bebcom-cardapio-delivery.onrender.com`);
-    console.log(`🔧 Auto-ping: ${process.env.RENDER ? 'ATIVADO' : 'DESATIVADO'}`);
+    console.log(`🔧 Auto-ping: ${process.env.RENDER ? 'ATIVADO (inicia em 3min)' : 'DESATIVADO'}`);
     console.log('='.repeat(60));
     
     // Iniciar auto-ping depois que o servidor está rodando
@@ -340,105 +371,6 @@ function setupMongoRoutes(app, db) {
         }
     });
     
-    // Atualizar produtos (admin) - PRIMEIRA DECLARAÇÃO (sem middleware)
-    app.post('/api/admin/product-availability/bulk', async (req, res) => {
-        try {
-            const { productAvailability, adminName, source } = req.body;
-            
-            if (!productAvailability || typeof productAvailability !== 'object') {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Dados inválidos'
-                });
-            }
-            
-            const result = await db.collection('products').updateOne(
-                { type: 'availability' },
-                {
-                    $set: {
-                        data: productAvailability,
-                        lastUpdated: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                        updatedBy: adminName || 'Admin BebCom',
-                        source: source || 'direct'
-                    }
-                },
-                { upsert: true }
-            );
-            
-            await db.collection('admin_logs').insertOne({
-                action: 'update_products',
-                admin: adminName || 'Admin BebCom',
-                count: Object.keys(productAvailability).length,
-                source: source || 'direct',
-                timestamp: new Date().toISOString()
-            });
-            
-            res.json({
-                success: true,
-                message: 'Produtos atualizados com sucesso',
-                timestamp: new Date().toISOString(),
-                count: Object.keys(productAvailability).length,
-                upsertedId: result.upsertedId
-            });
-            
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                error: `Erro ao salvar produtos: ${error.message}`
-            });
-        }
-    });
-    
-    // Atualizar sabores (admin) - PRIMEIRA DECLARAÇÃO (sem middleware)
-    app.post('/api/admin/flavor-availability/bulk', async (req, res) => {
-        try {
-            const { flavorAvailability, adminName, source } = req.body;
-            
-            if (!flavorAvailability || typeof flavorAvailability !== 'object') {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Dados inválidos'
-                });
-            }
-            
-            const result = await db.collection('flavors').updateOne(
-                { type: 'availability' },
-                {
-                    $set: {
-                        data: flavorAvailability,
-                        lastUpdated: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                        updatedBy: adminName || 'Admin BebCom',
-                        source: source || 'direct'
-                    }
-                },
-                { upsert: true }
-            );
-            
-            await db.collection('admin_logs').insertOne({
-                action: 'update_flavors',
-                admin: adminName || 'Admin BebCom',
-                count: Object.keys(flavorAvailability).length,
-                source: source || 'direct',
-                timestamp: new Date().toISOString()
-            });
-            
-            res.json({
-                success: true,
-                message: 'Sabores atualizados com sucesso',
-                timestamp: new Date().toISOString(),
-                count: Object.keys(flavorAvailability).length,
-                upsertedId: result.upsertedId
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                error: `Erro ao salvar sabores: ${error.message}`
-            });
-        }
-    });
-    
     // Sincronizar dados
     app.get('/api/sync-all', async (req, res) => {
         try {
@@ -506,19 +438,9 @@ function checkAdminPassword(req, res, next) {
     }
 }
 
-// ========== REMOVER ROTAS DUPLICADAS E APLICAR MIDDLEWARE ==========
-// Remover as rotas existentes e recriar com middleware
-app._router.stack = app._router.stack.filter(layer => {
-    // Remover as rotas admin existentes
-    if (layer.route) {
-        const path = layer.route.path;
-        return !(path === '/api/admin/product-availability/bulk' || 
-                path === '/api/admin/flavor-availability/bulk');
-    }
-    return true;
-});
+// ========== ROTAS ADMIN COM AUTENTICAÇÃO ==========
 
-// Recriar rotas admin com middleware de autenticação
+// Atualizar produtos (admin) com autenticação
 app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req, res) => {
     try {
         const db = app.locals.db;
@@ -576,6 +498,7 @@ app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req,
     }
 });
 
+// Atualizar sabores (admin) com autenticação
 app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, res) => {
     try {
         const db = app.locals.db;
