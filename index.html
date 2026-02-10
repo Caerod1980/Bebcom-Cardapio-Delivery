@@ -461,10 +461,10 @@
             transition: all 0.3s ease;
             margin: 10px 0;
             display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-            }
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
 
             .secondary-button:hover:not(:disabled) {
                 transform: translateY(-3px);
@@ -559,7 +559,6 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -605,7 +604,6 @@
                 font-weight: bold;
             }
 
-            /* Estilo para opções de sabor indisponíveis */
             .flavor-option.unavailable {
                 opacity: 0.5;
                 pointer-events: none;
@@ -956,7 +954,6 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -996,7 +993,6 @@
                 opacity: 0;
                 transform: scale(0.9);
             }
-
             to {
                 opacity: 1;
                 transform: scale(1);
@@ -1154,7 +1150,6 @@
 
         /* ====== CORREÇÕES PARA ADMIN NO MOBILE ====== */
         @media (max-width: 768px) {
-            /* Ajustes para modal administrativo no mobile */
             .admin-modal {
                 padding: 10px !important;
             }
@@ -1190,7 +1185,6 @@
                 align-self: flex-end !important;
             }
 
-            /* Correção específica para gerenciador de sabores no mobile */
             #flavorsList > div {
                 grid-template-columns: 1fr !important;
             }
@@ -1200,7 +1194,6 @@
                 font-size: 16px !important;
             }
 
-            /* Garantir que o modal de sabores seja legível no mobile */
             .flavor-modal-overlay {
                 align-items: flex-start !important;
                 padding-top: 20px !important;
@@ -1219,7 +1212,6 @@
                 grid-template-columns: 1fr !important;
             }
 
-            /* Indicador de indisponibilidade no mobile */
             .flavor-option.unavailable {
                 opacity: 0.7 !important;
             }
@@ -1236,7 +1228,6 @@
                     width: 100% !important;
                 }
 
-            /* Botões modais no mobile */
             .modal-buttons {
                 flex-direction: column !important;
             }
@@ -1246,7 +1237,6 @@
             }
         }
 
-        /* Correção adicional para telas muito pequenas */
         @media (max-width: 480px) {
             .admin-button {
                 width: 45px !important;
@@ -1268,7 +1258,6 @@
                 font-size: 14px !important;
             }
 
-            /* Modal de sabores - melhor visualização */
             .flavor-modal-title {
                 font-size: 18px !important;
             }
@@ -1279,7 +1268,6 @@
             }
         }
 
-        /* Garantir que o estado de indisponibilidade seja visível em todos os dispositivos */
         .product-card.unavailable::after {
             font-size: 14px !important;
             padding: 10px 20px !important;
@@ -1296,14 +1284,12 @@
             max-width: 90% !important;
         }
 
-        /* Scroll suave para modais no mobile */
         .admin-main,
         .flavor-modal-content,
         .age-modal-content {
             -webkit-overflow-scrolling: touch !important;
         }
 
-        /* Responsivo para o modal de idade */
         @media (max-width: 768px) {
             .age-modal-content {
                 max-width: 95%;
@@ -1327,7 +1313,6 @@
             }
         }
 
-        /* Responsivo geral */
         @media (max-width: 1024px) {
             .main-container {
                 flex-direction: column;
@@ -1744,6 +1729,14 @@
                         style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); margin-top: 10px;">
                     🔄 Sincronizar Agora
                 </button>
+                <button class="admin-action-btn" onclick="showSyncStatus()"
+                        style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); margin-top: 10px;">
+                    📊 Status da Sincronização
+                </button>
+                <button class="admin-action-btn" onclick="showBackendStatus()"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); margin-top: 10px;">
+                    📡 Status do Backend
+                </button>
             </div>
         </div>
     </div>
@@ -1886,125 +1879,6 @@
             // 🔒 SENHA ADMINISTRATIVA - Altere para uma senha forte!
             adminPassword: 'Bebcom25*'
         };
-
-        // ============================================
-        // FUNÇÕES UTILITÁRIAS DE HASH (SEGURANÇA)
-        // ============================================
-        async function sha256(message) {
-            // Converte string para ArrayBuffer
-            const msgBuffer = new TextEncoder().encode(message);
-            
-            // Calcula o hash usando Web Crypto API
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            
-            // Converte ArrayBuffer para hex string
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            
-            return hashHex;
-        }
-
-        // Fallback para navegadores mais antigos
-        function sha256Fallback(text) {
-            // Implementação JS pura de SHA-256
-            function rightRotate(value, amount) {
-                return (value >>> amount) | (value << (32 - amount));
-            }
-
-            const K = [
-                0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
-                0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-                0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
-                0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-                0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
-                0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-                0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
-                0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-                0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
-                0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-                0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
-                0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-                0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
-                0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-                0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
-                0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
-            ];
-
-            let H = [
-                0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
-                0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
-            ];
-
-            const message = unescape(encodeURIComponent(text));
-            const messageLength = message.length;
-            const totalWords = ((messageLength + 8) >>> 6) + 1;
-            const words = new Array(totalWords * 16).fill(0);
-
-            for (let i = 0; i < messageLength; i++) {
-                words[i >>> 2] |= (message.charCodeAt(i) & 0xff) << (24 - (i % 4) * 8);
-            }
-
-            words[messageLength >>> 2] |= 0x80 << (24 - (messageLength % 4) * 8);
-            words[totalWords * 16 - 1] = messageLength * 8;
-
-            for (let block = 0; block < totalWords; block++) {
-                const schedule = new Array(64).fill(0);
-
-                for (let t = 0; t < 16; t++) {
-                    schedule[t] = words[block * 16 + t];
-                }
-
-                for (let t = 16; t < 64; t++) {
-                    const s0 = rightRotate(schedule[t - 15], 7) ^ 
-                              rightRotate(schedule[t - 15], 18) ^ 
-                              (schedule[t - 15] >>> 3);
-                    const s1 = rightRotate(schedule[t - 2], 17) ^ 
-                              rightRotate(schedule[t - 2], 19) ^ 
-                              (schedule[t - 2] >>> 10);
-                    schedule[t] = (schedule[t - 16] + s0 + schedule[t - 7] + s1) & 0xffffffff;
-                }
-
-                let a = H[0], b = H[1], c = H[2], d = H[3];
-                let e = H[4], f = H[5], g = H[6], h = H[7];
-
-                for (let t = 0; t < 64; t++) {
-                    const S1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);
-                    const ch = (e & f) ^ ((~e) & g);
-                    const temp1 = (h + S1 + ch + K[t] + schedule[t]) & 0xffffffff;
-                    const S0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);
-                    const maj = (a & b) ^ (a & c) ^ (b & c);
-                    const temp2 = (S0 + maj) & 0xffffffff;
-
-                    h = g;
-                    g = f;
-                    f = e;
-                    e = (d + temp1) & 0xffffffff;
-                    d = c;
-                    c = b;
-                    b = a;
-                    a = (temp1 + temp2) & 0xffffffff;
-                }
-
-                H[0] = (H[0] + a) & 0xffffffff;
-                H[1] = (H[1] + b) & 0xffffffff;
-                H[2] = (H[2] + c) & 0xffffffff;
-                H[3] = (H[3] + d) & 0xffffffff;
-                H[4] = (H[4] + e) & 0xffffffff;
-                H[5] = (H[5] + f) & 0xffffffff;
-                H[6] = (H[6] + g) & 0xffffffff;
-                H[7] = (H[7] + h) & 0xffffffff;
-            }
-
-            return H.map(h => h.toString(16).padStart(8, '0')).join('');
-        }
-
-        async function calculateHash(text) {
-            if (window.crypto && window.crypto.subtle) {
-                return await sha256(text);
-            } else {
-                return sha256Fallback(text);
-            }
-        }
 
         // ============================================
         // DADOS DOS PRODUTOS ATUALIZADOS (COMPLETO)
@@ -2494,7 +2368,178 @@
         };
 
         // ============================================
-        // INICIALIZAÇÃO DO SISTEMA ADMINISTRATIVO (INDEPENDENTE DA IDADE)
+        // SISTEMA DE FILA DE SINCRONIZAÇÃO PERSISTENTE
+        // ============================================
+
+        // Inicializar fila de sincronização
+        function initSyncQueue() {
+            if (!localStorage.getItem('bebcom_sync_queue')) {
+                localStorage.setItem('bebcom_sync_queue', JSON.stringify({
+                    pendingProducts: [],
+                    pendingFlavors: [],
+                    lastAttempt: null,
+                    retryCount: 0,
+                    maxRetries: 10
+                }));
+            }
+        }
+
+        // Adicionar produtos à fila de sincronização
+        function addToSyncQueue(type, data) {
+            const queue = getSyncQueue();
+            
+            if (type === 'products') {
+                // Evitar duplicados
+                const existingIndex = queue.pendingProducts.findIndex(item => 
+                    JSON.stringify(item.data) === JSON.stringify(data)
+                );
+                
+                if (existingIndex === -1) {
+                    queue.pendingProducts.push({
+                        data: data,
+                        timestamp: new Date().toISOString(),
+                        attempts: 0
+                    });
+                }
+            } else if (type === 'flavors') {
+                const existingIndex = queue.pendingFlavors.findIndex(item => 
+                    JSON.stringify(item.data) === JSON.stringify(data)
+                );
+                
+                if (existingIndex === -1) {
+                    queue.pendingFlavors.push({
+                        data: data,
+                        timestamp: new Date().toISOString(),
+                        attempts: 0
+                    });
+                }
+            }
+            
+            saveSyncQueue(queue);
+        }
+
+        // Obter fila de sincronização
+        function getSyncQueue() {
+            const queue = localStorage.getItem('bebcom_sync_queue');
+            return queue ? JSON.parse(queue) : {
+                pendingProducts: [],
+                pendingFlavors: [],
+                lastAttempt: null,
+                retryCount: 0,
+                maxRetries: 10
+            };
+        }
+
+        // Salvar fila de sincronização
+        function saveSyncQueue(queue) {
+            localStorage.setItem('bebcom_sync_queue', JSON.stringify(queue));
+        }
+
+        // Limpar item sincronizado da fila
+        function removeFromSyncQueue(type, data) {
+            const queue = getSyncQueue();
+            
+            if (type === 'products') {
+                queue.pendingProducts = queue.pendingProducts.filter(item => 
+                    JSON.stringify(item.data) !== JSON.stringify(data)
+                );
+            } else if (type === 'flavors') {
+                queue.pendingFlavors = queue.pendingFlavors.filter(item => 
+                    JSON.stringify(item.data) !== JSON.stringify(data)
+                );
+            }
+            
+            queue.lastAttempt = new Date().toISOString();
+            saveSyncQueue(queue);
+        }
+
+        // Verificar se há dados pendentes de sincronização
+        function hasPendingSync() {
+            const queue = getSyncQueue();
+            return queue.pendingProducts.length > 0 || queue.pendingFlavors.length > 0;
+        }
+
+        // ============================================
+        // MONITORAMENTO DO BACKEND
+        // ============================================
+
+        let backendMonitorInterval = null;
+        let backendOfflineSince = null;
+
+        // Função para verificar status do backend
+        async function checkBackendStatus() {
+            try {
+                const response = await fetch(`${CONFIG.backendUrl}/health`, {
+                    method: 'GET',
+                    headers: { 'Cache-Control': 'no-cache' }
+                });
+                
+                if (response.ok) {
+                    // Backend online
+                    if (backendOfflineSince) {
+                        const offlineTime = Math.round((Date.now() - backendOfflineSince) / 1000);
+                        console.log(`✅ Backend voltou após ${offlineTime} segundos offline`);
+                        backendOfflineSince = null;
+                        
+                        // Se estava offline, tentar sincronizar dados pendentes
+                        if (hasPendingSync()) {
+                            console.log('🔄 Backend voltou, sincronizando dados pendentes...');
+                            setTimeout(() => {
+                                syncPendingData();
+                            }, 2000);
+                        }
+                    }
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                // Backend offline
+                if (!backendOfflineSince) {
+                    backendOfflineSince = Date.now();
+                    console.warn('⚠️  Backend offline, trabalhando em modo local');
+                }
+                return false;
+            }
+        }
+
+        // Iniciar monitoramento do backend
+        function startBackendMonitor() {
+            if (backendMonitorInterval) clearInterval(backendMonitorInterval);
+            
+            // Verificar a cada 1 minuto
+            backendMonitorInterval = setInterval(() => {
+                checkBackendStatus();
+            }, 60000); // 1 minuto
+            
+            // Primeira verificação após 10 segundos
+            setTimeout(() => {
+                checkBackendStatus();
+            }, 10000);
+            
+            console.log('📡 Monitoramento do backend iniciado');
+        }
+
+        // ============================================
+        // SISTEMA DE RETRY AUTOMÁTICO INTELIGENTE
+        // ============================================
+        let syncRetryInterval = null;
+
+        function startAutoSyncRetry() {
+            if (syncRetryInterval) clearInterval(syncRetryInterval);
+            
+            syncRetryInterval = setInterval(async () => {
+                if (hasPendingSync()) {
+                    console.log('🔄 Tentando sincronização automática de dados pendentes...');
+                    await syncPendingData();
+                } else {
+                    clearInterval(syncRetryInterval);
+                    syncRetryInterval = null;
+                }
+            }, 30000); // Tentar a cada 30 segundos
+        }
+
+        // ============================================
+        // INICIALIZAÇÃO DO SISTEMA ADMINISTRATIVO
         // ============================================
         function initAdminSystem() {
             console.log('🔧 Inicializando sistema administrativo...');
@@ -2502,46 +2547,51 @@
         }
 
         // ============================================
-        // INICIALIZAÇÃO DA INTERFACE DO USUÁRIO (SÓ APÓS VERIFICAÇÃO DE IDADE)
+        // INICIALIZAÇÃO DA INTERFACE DO USUÁRIO
         // ============================================
         async function initUserInterface() {
             console.log('🚀 Inicializando interface do usuário...');
-
+            
             // Só inicializar o resto do sistema se a idade for verificada
             if (!state.ageVerified) return;
-
+            
+            // Inicializar sistema de fila de sincronização
+            initSyncQueue();
+            
+            // Iniciar monitoramento do backend
+            startBackendMonitor();
+            
             // Carregar dados persistentes
             loadCartFromLocalStorage();
-
+            
             try {
-                // Carregar disponibilidade do servidor
+                // Carregar disponibilidade do servidor (com fallback para localStorage)
                 await Promise.all([
                     loadProductAvailability(),
                     loadFlavorAvailability()
                 ]);
-
-                console.log('✅ Dados carregados do servidor');
+                
+                console.log('✅ Dados carregados');
             } catch (error) {
                 console.log('⚠️ Usando dados locais:', error.message);
-                // Continuar com dados locais
             }
-
+            
             // Inicializar componentes do usuário
             showCategory('drinks-whisky');
             setupEventListeners();
-
+            
             // Configurar delivery padrão
             selectDeliveryType('pickup');
-
+            
             // Configurar máscara de telefone
             setupPhoneMask();
-
+            
             // Configurar auto-save
             setupAutoSave();
-
+            
             // Configurar sincronização automática
             setupAutoSync();
-
+            
             console.log('✅ Interface do usuário inicializada com sucesso');
         }
 
@@ -2552,8 +2602,20 @@
         // Carregar disponibilidade de produtos do backend
         async function loadProductAvailability() {
             try {
+                // PRIMEIRO: Verificar se há dados pendentes de sincronização
+                const queue = getSyncQueue();
+                if (queue.pendingProducts.length > 0) {
+                    console.log('📤 Há dados de produtos pendentes de sincronização');
+                    
+                    // Tentar sincronizar automaticamente
+                    setTimeout(async () => {
+                        await syncPendingData();
+                    }, 2000);
+                }
+                
+                // SEGUNDO: Tentar carregar do servidor
                 const response = await fetch(`${CONFIG.backendUrl}/api/product-availability`);
-
+                
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success && data.productAvailability) {
@@ -2566,10 +2628,11 @@
                 throw new Error('Resposta inválida do servidor');
             } catch (error) {
                 console.log('⚠️ Fallback: Carregando produtos do localStorage');
+                
                 // Fallback para localStorage
                 const saved = localStorage.getItem('bebcom_product_availability');
                 state.productAvailability = saved ? JSON.parse(saved) : {};
-
+                
                 // Inicializar produtos faltantes como disponíveis
                 Object.keys(products).forEach(category => {
                     products[category].forEach(product => {
@@ -2578,7 +2641,7 @@
                         }
                     });
                 });
-
+                
                 return false;
             }
         }
@@ -2587,7 +2650,7 @@
         async function loadFlavorAvailability() {
             try {
                 const response = await fetch(`${CONFIG.backendUrl}/api/flavor-availability`);
-
+                
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success && data.flavorAvailability) {
@@ -3644,7 +3707,7 @@
         }
 
         // ============================================
-        // SISTEMA ADMINISTRATIVO (ATUALIZADO COM SEGURANÇA)
+        // SISTEMA ADMINISTRATIVO
         // ============================================
         function setupAdminListeners() {
             console.log('🔧 Configurando listeners administrativos...');
@@ -3719,9 +3782,8 @@
             button.disabled = true;
 
             try {
-                // 1. Primeiro tenta verificar com senha direta (para compatibilidade)
+                // 1. Primeiro tenta verificar com senha direta
                 if (password === CONFIG.adminPassword) {
-                    // Senha correta em texto puro
                     state.adminAuthenticated = true;
                     document.getElementById('passwordSection').style.display = 'none';
                     document.getElementById('adminMain').style.display = 'block';
@@ -3732,7 +3794,6 @@
                 }
 
                 // 2. Se não for a senha direta, tenta verificar com hash
-                // Primeiro busca os dados de hash do servidor
                 const hashResponse = await fetch(`${CONFIG.backendUrl}/api/admin-password`);
                 
                 if (!hashResponse.ok) {
@@ -3745,7 +3806,17 @@
                     throw new Error('Erro na resposta do servidor');
                 }
 
-                // Calcula o hash da senha digitada
+                // Função para calcular hash SHA-256
+                async function calculateHash(text) {
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(text);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    return hashHex;
+                }
+
+                // Calcula os hashes
                 const passwordHash = await calculateHash(password);
                 const passwordHashWithSalt = await calculateHash(password + hashData.salt);
                 
@@ -3753,7 +3824,6 @@
                 if (passwordHash === hashData.passwordHash || 
                     passwordHashWithSalt === hashData.passwordHash) {
                     
-                    // Acesso concedido!
                     state.adminAuthenticated = true;
                     document.getElementById('passwordSection').style.display = 'none';
                     document.getElementById('adminMain').style.display = 'block';
@@ -3762,7 +3832,6 @@
                     showNotification('✅ Acesso administrativo concedido');
                     
                 } else {
-                    // Senha incorreta
                     throw new Error('Senha incorreta');
                 }
 
@@ -3772,11 +3841,9 @@
                 document.getElementById('adminPassword').value = '';
                 document.getElementById('adminPassword').focus();
                 
-                // Restaurar estado de autenticação
                 state.adminAuthenticated = false;
                 
             } finally {
-                // Restaurar botão
                 button.innerHTML = originalText;
                 button.disabled = false;
             }
@@ -3892,9 +3959,9 @@
         }
 
         // ============================================
-        // SALVAR DISPONIBILIDADE NO BACKEND
+        // FUNÇÕES AUXILIARES DE SALVAMENTO
         // ============================================
-        async function saveProductAvailabilityToBackend() {
+        async function saveProductDataToBackend(productData) {
             try {
                 const response = await fetch(`${CONFIG.backendUrl}/api/admin/product-availability/bulk`, {
                     method: 'POST',
@@ -3903,26 +3970,24 @@
                         'x-admin-password': CONFIG.adminPassword
                     },
                     body: JSON.stringify({
-                        productAvailability: state.productAvailability,
-                        adminName: 'Admin BebCom'
+                        productAvailability: productData,
+                        adminName: 'Admin BebCom',
+                        source: 'sync_queue'
                     })
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.success) {
-                        localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
-                        return true;
-                    }
+                    return data.success === true;
                 }
                 return false;
             } catch (error) {
-                console.error('❌ Erro ao salvar produtos no backend:', error);
+                console.error('❌ Erro ao salvar produto no backend:', error);
                 return false;
             }
         }
 
-        async function saveFlavorAvailabilityToBackend() {
+        async function saveFlavorDataToBackend(flavorData) {
             try {
                 const response = await fetch(`${CONFIG.backendUrl}/api/admin/flavor-availability/bulk`, {
                     method: 'POST',
@@ -3931,25 +3996,116 @@
                         'x-admin-password': CONFIG.adminPassword
                     },
                     body: JSON.stringify({
-                        flavorAvailability: state.flavorAvailability,
-                        adminName: 'Admin BebCom'
+                        flavorAvailability: flavorData,
+                        adminName: 'Admin BebCom',
+                        source: 'sync_queue'
                     })
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.success) {
-                        localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
-                        return true;
-                    }
+                    return data.success === true;
                 }
                 return false;
             } catch (error) {
-                console.error('❌ Erro ao salvar sabores no backend:', error);
+                console.error('❌ Erro ao salvar sabor no backend:', error);
                 return false;
             }
         }
 
+        // ============================================
+        // FUNÇÃO PRINCIPAL DE SINCRONIZAÇÃO DE DADOS PENDENTES
+        // ============================================
+        async function syncPendingData() {
+            const queue = getSyncQueue();
+            
+            // Se não há dados pendentes, retornar
+            if (queue.pendingProducts.length === 0 && queue.pendingFlavors.length === 0) {
+                return { success: true, message: 'Nenhum dado pendente' };
+            }
+            
+            console.log(`🔄 Sincronizando ${queue.pendingProducts.length} produtos e ${queue.pendingFlavors.length} sabores pendentes...`);
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            // Tentar sincronizar produtos pendentes
+            for (let i = queue.pendingProducts.length - 1; i >= 0; i--) {
+                const item = queue.pendingProducts[i];
+                
+                try {
+                    const saved = await saveProductDataToBackend(item.data);
+                    if (saved) {
+                        removeFromSyncQueue('products', item.data);
+                        successCount++;
+                        console.log(`✅ Produto sincronizado: ${Object.keys(item.data).length} itens`);
+                    } else {
+                        item.attempts = (item.attempts || 0) + 1;
+                        errorCount++;
+                        
+                        // Se tentou muitas vezes, remover da fila (evitar ficar preso)
+                        if (item.attempts > 5) {
+                            console.log(`⚠️ Removendo produto após ${item.attempts} tentativas falhas`);
+                            removeFromSyncQueue('products', item.data);
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Erro ao sincronizar produto:', error);
+                    item.attempts = (item.attempts || 0) + 1;
+                    errorCount++;
+                }
+            }
+            
+            // Tentar sincronizar sabores pendentes
+            for (let i = queue.pendingFlavors.length - 1; i >= 0; i--) {
+                const item = queue.pendingFlavors[i];
+                
+                try {
+                    const saved = await saveFlavorDataToBackend(item.data);
+                    if (saved) {
+                        removeFromSyncQueue('flavors', item.data);
+                        successCount++;
+                        console.log(`✅ Sabor sincronizado: ${Object.keys(item.data).length} itens`);
+                    } else {
+                        item.attempts = (item.attempts || 0) + 1;
+                        errorCount++;
+                        
+                        if (item.attempts > 5) {
+                            console.log(`⚠️ Removendo sabor após ${item.attempts} tentativas falhas`);
+                            removeFromSyncQueue('flavors', item.data);
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Erro ao sincronizar sabor:', error);
+                    item.attempts = (item.attempts || 0) + 1;
+                    errorCount++;
+                }
+            }
+            
+            // Atualizar fila
+            saveSyncQueue(queue);
+            
+            // Mostrar notificação se sincronizou algo
+            if (successCount > 0) {
+                showNotification(`✅ ${successCount} ${successCount === 1 ? 'item' : 'itens'} sincronizado(s) com sucesso!`);
+                
+                // Atualizar interface se ainda estiver no admin
+                if (document.getElementById('adminModal').style.display === 'block') {
+                    updateMenuAvailability();
+                }
+            }
+            
+            return {
+                success: successCount > 0,
+                synced: successCount,
+                failed: errorCount,
+                stillPending: queue.pendingProducts.length + queue.pendingFlavors.length
+            };
+        }
+
+        // ============================================
+        // MODIFICAÇÃO DA FUNÇÃO saveAvailability()
+        // ============================================
         async function saveAvailability() {
             const saveButton = document.querySelector('.admin-action-btn.save-btn');
             const originalText = saveButton.innerHTML;
@@ -3958,34 +4114,67 @@
             saveButton.disabled = true;
 
             try {
-                // Salvar produtos e sabores no backend
-                const productsSaved = await saveProductAvailabilityToBackend();
-                const flavorsSaved = await saveFlavorAvailabilityToBackend();
+                // 1. PRIMEIRO: Tentar salvar no backend
+                const productsSaved = await saveProductDataToBackend(state.productAvailability);
+                const flavorsSaved = await saveFlavorDataToBackend(state.flavorAvailability);
 
                 if (productsSaved && flavorsSaved) {
+                    // SUCESSO TOTAL: Dados salvos no MongoDB
                     showNotification('✅ Todas as alterações salvas para todos os usuários!');
-
-                    // Atualizar interface
+                    
+                    // 2. Atualizar interface
                     updateMenuAvailability();
-
-                    // Fechar modal após 1.5 segundos
+                    
+                    // 3. Limpar fila de sincronização (se houver)
+                    const queue = getSyncQueue();
+                    queue.pendingProducts = [];
+                    queue.pendingFlavors = [];
+                    queue.retryCount = 0;
+                    saveSyncQueue(queue);
+                    
+                    // 4. Fechar modal após 1.5 segundos
                     setTimeout(() => {
                         closeAdminPanel();
                     }, 1500);
 
                     return true;
                 } else {
-                    showNotification('⚠️ Não foi possível salvar no servidor. Alterações salvas apenas localmente.', 'warning');
-
-                    // Fallback: salvar localmente
-                    localStorage.setItem('bebcom_product_availability', JSON.stringify(state.productAvailability));
-                    localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
-
+                    // FALHA PARCIAL OU TOTAL: Salvar localmente E na fila de sincronização
+                    const productData = state.productAvailability;
+                    const flavorData = state.flavorAvailability;
+                    
+                    // Salvar no localStorage (fallback)
+                    localStorage.setItem('bebcom_product_availability', JSON.stringify(productData));
+                    localStorage.setItem('bebcom_flavor_availability', JSON.stringify(flavorData));
+                    
+                    // Adicionar à fila de sincronização
+                    addToSyncQueue('products', productData);
+                    addToSyncQueue('flavors', flavorData);
+                    
+                    showNotification('⚠️ Alterações salvas localmente. Sincronização pendente com o servidor.', 'warning');
+                    
+                    // Iniciar tentativas de sincronização automática
+                    startAutoSyncRetry();
+                    
                     return false;
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                showNotification('❌ Erro ao salvar alterações', 'error');
+                
+                // FALHA TOTAL: Salvar apenas localmente e na fila
+                const productData = state.productAvailability;
+                const flavorData = state.flavorAvailability;
+                
+                localStorage.setItem('bebcom_product_availability', JSON.stringify(productData));
+                localStorage.setItem('bebcom_flavor_availability', JSON.stringify(flavorData));
+                
+                addToSyncQueue('products', productData);
+                addToSyncQueue('flavors', flavorData);
+                
+                showNotification('❌ Erro ao salvar. Dados salvos localmente e aguardando sincronização.', 'error');
+                
+                startAutoSyncRetry();
+                
                 return false;
             } finally {
                 saveButton.innerHTML = originalText;
@@ -4190,57 +4379,96 @@
         }
 
         async function saveFlavorChanges() {
-            const saved = await saveFlavorAvailabilityToBackend();
+            const saved = await saveFlavorDataToBackend(state.flavorAvailability);
 
             if (saved) {
                 showNotification('✅ Disponibilidade de sabores salva com sucesso!');
             } else {
                 showNotification('⚠️ Alterações salvas apenas localmente', 'warning');
                 localStorage.setItem('bebcom_flavor_availability', JSON.stringify(state.flavorAvailability));
+                addToSyncQueue('flavors', state.flavorAvailability);
+                startAutoSyncRetry();
             }
         }
 
         // ============================================
-        // SISTEMA DE SINCRONIZAÇÃO
+        // MODIFICAÇÃO DA FUNÇÃO syncAllFromServer()
         // ============================================
         async function syncAllFromServer() {
-            const syncButton = document.querySelector('.admin-action-btn:nth-child(7)');
+            const syncButton = document.querySelector('.admin-action-btn:nth-child(7)') || 
+                              document.querySelector('.admin-action-btn[onclick*="syncAllFromServer"]');
+            
+            if (!syncButton) {
+                console.error('Botão de sincronização não encontrado');
+                return;
+            }
+            
             const originalText = syncButton.innerHTML;
+            const isManualSync = syncButton.textContent.includes('Sincronizar');
 
             syncButton.innerHTML = '<span class="loading-spinner"></span> Sincronizando...';
             syncButton.disabled = true;
 
             try {
+                // 1. PRIMEIRO: Tentar sincronizar dados pendentes (se houver)
+                let pendingSyncResult = { synced: 0 };
+                
+                if (hasPendingSync()) {
+                    console.log('📤 Enviando dados pendentes primeiro...');
+                    pendingSyncResult = await syncPendingData();
+                    
+                    if (pendingSyncResult.synced > 0) {
+                        showNotification(`✅ ${pendingSyncResult.synced} dados pendentes sincronizados primeiro`);
+                    }
+                }
+                
+                // 2. DEPOIS: Buscar dados atualizados do servidor
+                console.log('📥 Buscando dados do servidor...');
                 const response = await fetch(`${CONFIG.backendUrl}/api/sync-all`);
-
+                
                 if (response.ok) {
                     const data = await response.json();
-
+                    
                     if (data.success) {
-                        // Atualizar produtos
+                        // Atualizar dados locais com os do servidor
                         if (data.productAvailability) {
                             state.productAvailability = data.productAvailability;
                             localStorage.setItem('bebcom_product_availability', JSON.stringify(data.productAvailability));
                         }
-
-                        // Atualizar sabores
+                        
                         if (data.flavorAvailability) {
                             state.flavorAvailability = data.flavorAvailability;
                             localStorage.setItem('bebcom_flavor_availability', JSON.stringify(data.flavorAvailability));
                         }
-
+                        
                         // Atualizar interface
                         updateMenuAvailability();
-                        loadAdminProducts();
-
-                        showNotification('🔄 Todos os dados sincronizados do servidor', 'success');
+                        
+                        if (document.getElementById('adminModal').style.display === 'block') {
+                            loadAdminProducts();
+                        }
+                        
+                        const message = pendingSyncResult.synced > 0 
+                            ? `🔄 ${pendingSyncResult.synced} dados enviados e recebidos do servidor`
+                            : '🔄 Todos os dados sincronizados do servidor';
+                        
+                        showNotification(message, 'success');
+                        
+                    } else {
+                        throw new Error('Falha na sincronização');
                     }
                 } else {
-                    throw new Error('Falha na sincronização');
+                    throw new Error('Falha na resposta do servidor');
                 }
+                
             } catch (error) {
                 console.error('❌ Erro na sincronização:', error);
-                showNotification('⚠️ Falha na sincronização. Usando dados locais.', 'warning');
+                
+                // Se for sincronização MANUAL, mostrar erro
+                if (isManualSync) {
+                    showNotification('⚠️ Falha na sincronização. Dados locais mantidos.', 'warning');
+                }
+                // Se for automática, só logar
             } finally {
                 syncButton.innerHTML = originalText;
                 syncButton.disabled = false;
@@ -4307,6 +4535,87 @@
                     });
                 });
             });
+        }
+
+        // ============================================
+        // FUNÇÕES DE STATUS
+        // ============================================
+        function showSyncStatus() {
+            const queue = getSyncQueue();
+            const pendingProducts = queue.pendingProducts.length;
+            const pendingFlavors = queue.pendingFlavors.length;
+            
+            let statusMessage = '';
+            
+            if (pendingProducts === 0 && pendingFlavors === 0) {
+                statusMessage = '✅ Todos os dados estão sincronizados com o servidor.';
+            } else {
+                statusMessage = `⚠️ Há dados pendentes de sincronização:\n`;
+                statusMessage += `• ${pendingProducts} alteração(ões) de produtos\n`;
+                statusMessage += `• ${pendingFlavors} alteração(ões) de sabores\n\n`;
+                statusMessage += `Clique em "Sincronizar Agora" para tentar novamente.`;
+            }
+            
+            alert(statusMessage);
+        }
+
+        async function showBackendStatus() {
+            try {
+                const response = await fetch(`${CONFIG.backendUrl}/health-full`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    const queue = getSyncQueue();
+                    const pendingProducts = queue.pendingProducts.length;
+                    const pendingFlavors = queue.pendingFlavors.length;
+                    
+                    let statusMessage = `📊 STATUS DO BACKEND\n`;
+                    statusMessage += `====================\n`;
+                    statusMessage += `✅ Status: ONLINE\n`;
+                    statusMessage += `🕒 Uptime: ${Math.floor(data.uptime / 60)} minutos\n`;
+                    statusMessage += `🗄️  MongoDB: ${data.dbConnected ? 'CONECTADO' : 'DESCONECTADO'}\n`;
+                    statusMessage += `🌐 Ambiente: ${data.environment}\n`;
+                    statusMessage += `\n📦 FILA DE SINCRONIZAÇÃO:\n`;
+                    
+                    if (pendingProducts === 0 && pendingFlavors === 0) {
+                        statusMessage += `✅ Nenhum dado pendente\n`;
+                    } else {
+                        statusMessage += `⚠️ ${pendingProducts} alteração(ões) de produtos\n`;
+                        statusMessage += `⚠️ ${pendingFlavors} alteração(ões) de sabores\n`;
+                    }
+                    
+                    alert(statusMessage);
+                } else {
+                    throw new Error('Backend offline');
+                }
+            } catch (error) {
+                const queue = getSyncQueue();
+                const pendingProducts = queue.pendingProducts.length;
+                const pendingFlavors = queue.pendingFlavors.length;
+                
+                let statusMessage = `📊 STATUS DO BACKEND\n`;
+                statusMessage += `====================\n`;
+                statusMessage += `❌ Status: OFFLINE\n`;
+                statusMessage += `🔄 Modo: LOCAL\n`;
+                
+                if (backendOfflineSince) {
+                    const offlineSeconds = Math.round((Date.now() - backendOfflineSince) / 1000);
+                    statusMessage += `⏱️  Offline há: ${offlineSeconds} segundos\n`;
+                }
+                
+                statusMessage += `\n📦 FILA DE SINCRONIZAÇÃO:\n`;
+                
+                if (pendingProducts === 0 && pendingFlavors === 0) {
+                    statusMessage += `✅ Nenhum dado pendente\n`;
+                } else {
+                    statusMessage += `⚠️ ${pendingProducts} alteração(ões) de produtos\n`;
+                    statusMessage += `⚠️ ${pendingFlavors} alteração(ões) de sabores\n`;
+                    statusMessage += `\n💡 Dica: Clique em "Sincronizar Agora" quando o backend voltar`;
+                }
+                
+                alert(statusMessage);
+            }
         }
 
         // ============================================
@@ -4439,6 +4748,20 @@
             
             // Inicializar verificação de idade (para usuários normais)
             initAgeVerification();
+            
+            // Testar conexão com backend
+            setTimeout(async () => {
+                try {
+                    const response = await fetch(`${CONFIG.backendUrl}/health`);
+                    if (response.ok) {
+                        console.log('✅ Backend online');
+                    } else {
+                        console.warn('⚠️  Backend offline ou lento');
+                    }
+                } catch (error) {
+                    console.warn('⚠️  Não foi possível conectar ao backend');
+                }
+            }, 2000);
         });
     </script>
 </body>
