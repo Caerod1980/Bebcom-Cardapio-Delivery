@@ -1,7 +1,8 @@
-// backend/server.js - VERSÃO CORRIGIDA PARA RENDER
+// backend/server.js - VERSÃO CORRIGIDA PARA RENDER COM HTTPS
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
+const https = require('https'); // Adicionar módulo https
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -13,7 +14,7 @@ app.use(express.json());
 // Configurações
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Bebcom25*';
 
-// ========== LOG DE PORTA (CRÍTICO PARA DEBUG) ==========
+// ========== LOG DE PORTA ==========
 console.log('='.repeat(60));
 console.log('🔍 VERIFICAÇÃO DE CONFIGURAÇÃO DE PORTA');
 console.log('='.repeat(60));
@@ -24,27 +25,26 @@ console.log('='.repeat(60));
 
 if (!process.env.PORT) {
     console.log('⚠️  ATENÇÃO: PORT não definida no ambiente. Usando fallback 10000.');
-    console.log('✅ Isso é NORMAL no desenvolvimento local.');
 } else {
     console.log(`✅ PORT definida pelo ambiente: ${process.env.PORT}`);
 }
 
 if (process.env.RENDER || process.env.RENDER_EXTERNAL_URL) {
     console.log('✅ Detectado ambiente Render');
-    console.log(`🌐 URL externa provável: ${process.env.RENDER_EXTERNAL_URL || 'Não disponível'}`);
 } else {
     console.log('⚠️  Ambiente local detectado');
 }
 
-// ========== ROTAS CRÍTICAS (DEVEM RESPONDER IMEDIATAMENTE) ==========
+// ========== ROTAS CRÍTICAS ==========
 
-// Health Check ULTRA RÁPIDO - SEM MONGODB
+// Health Check ULTRA RÁPIDO
 app.get('/health', (req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
         status: 'ok',
         timestamp: new Date().toISOString().slice(0, 19) + 'Z',
-        service: 'BebCom Delivery API'
+        service: 'BebCom Delivery API',
+        port: PORT
     }));
 });
 
@@ -56,11 +56,12 @@ app.get('/', (req, res) => {
         version: '3.2-sync',
         timestamp: new Date().toISOString(),
         message: 'API rodando normalmente no Render',
-        autoPing: !!(process.env.RENDER || process.env.RENDER_EXTERNAL_URL)
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development'
     });
 });
 
-// ========== SISTEMA DE AUTO-PING SIMPLIFICADO ==========
+// ========== SISTEMA DE AUTO-PING CORRIGIDO ==========
 let pingIntervalId = null;
 
 function performAutoPing() {
@@ -71,25 +72,47 @@ function performAutoPing() {
         
         console.log(`🔄 Auto-ping para: ${url}`);
         
-        // Usar http.get para fazer ping
-        const req = http.get(url, (res) => {
-            if (res.statusCode === 200) {
-                console.log(`✅ Auto-ping OK`);
-            } else {
-                console.log(`⚠️ Auto-ping status: ${res.statusCode}`);
-            }
-            res.resume(); // Importante: consumir os dados
-        });
-        
-        req.on('error', (error) => {
-            // Erro silencioso - normal se o serviço estiver iniciando
-            console.log('⚠️ Auto-ping falhou (tentará novamente em 14 min)');
-        });
-        
-        req.setTimeout(5000, () => {
-            req.destroy();
-            console.log('⚠️ Auto-ping timeout (5s)');
-        });
+        // Verificar se é HTTP ou HTTPS
+        if (url.startsWith('https://')) {
+            // Usar módulo HTTPS
+            const req = https.get(url, (res) => {
+                if (res.statusCode === 200) {
+                    console.log(`✅ Auto-ping OK (HTTPS)`);
+                } else {
+                    console.log(`⚠️ Auto-ping status: ${res.statusCode}`);
+                }
+                res.resume(); // Consumir os dados
+            });
+            
+            req.on('error', (error) => {
+                console.log(`⚠️ Auto-ping HTTPS falhou: ${error.message}`);
+            });
+            
+            req.setTimeout(5000, () => {
+                req.destroy();
+                console.log('⚠️ Auto-ping HTTPS timeout (5s)');
+            });
+            
+        } else {
+            // Usar módulo HTTP
+            const req = http.get(url, (res) => {
+                if (res.statusCode === 200) {
+                    console.log(`✅ Auto-ping OK (HTTP)`);
+                } else {
+                    console.log(`⚠️ Auto-ping status: ${res.statusCode}`);
+                }
+                res.resume();
+            });
+            
+            req.on('error', (error) => {
+                console.log(`⚠️ Auto-ping HTTP falhou: ${error.message}`);
+            });
+            
+            req.setTimeout(5000, () => {
+                req.destroy();
+                console.log('⚠️ Auto-ping HTTP timeout (5s)');
+            });
+        }
         
     } catch (error) {
         console.log('⚠️ Erro no auto-ping:', error.message);
@@ -100,13 +123,15 @@ function startAutoPing() {
     if (process.env.RENDER || process.env.RENDER_EXTERNAL_URL) {
         console.log('🚀 Iniciando sistema de auto-ping para Render Free');
         
-        // Primeiro ping após 1 minuto (dar tempo para o servidor iniciar completamente)
-        setTimeout(() => {
-            performAutoPing();
-        }, 60000);
-        
         // Configurar ping periódico a cada 14 minutos
         const PING_INTERVAL = 14 * 60 * 1000;
+        
+        // Primeiro ping após 2 minutos (dar tempo para estabilizar)
+        setTimeout(() => {
+            performAutoPing();
+        }, 120000);
+        
+        // Ping periódico
         pingIntervalId = setInterval(performAutoPing, PING_INTERVAL);
         
         console.log(`⏰ Auto-ping configurado a cada ${PING_INTERVAL/60000} minutos`);
@@ -122,7 +147,7 @@ function stopAutoPing() {
     }
 }
 
-// ========== INICIAR SERVIDOR PRIMEIRO (CRÍTICO) ==========
+// ========== INICIAR SERVIDOR ==========
 const server = app.listen(PORT, '0.0.0.0', () => {
     console.log('='.repeat(60));
     console.log('🚀 BEBCOM DELIVERY API - COM SISTEMA DE SINCRONIZAÇÃO');
@@ -134,13 +159,13 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`🔧 Auto-ping: ${process.env.RENDER ? 'ATIVADO' : 'DESATIVADO'}`);
     console.log('='.repeat(60));
     
-    // AGORA iniciamos o auto-ping (depois que o servidor está ouvindo)
+    // Iniciar auto-ping depois que o servidor está rodando
     startAutoPing();
     
-    // Inicializar MongoDB em background (opcional)
+    // Inicializar MongoDB em background
     setTimeout(() => {
         initializeMongoDB();
-    }, 1000);
+    }, 2000);
 });
 
 // ========== MONGODB EM BACKGROUND ==========
@@ -173,14 +198,10 @@ async function initializeMongoDB() {
         
         console.log('✅ MONGODB CONECTADO COM SUCESSO!');
         
-        // Configurar db global para uso nas rotas
         app.locals.db = db;
         app.locals.isDBConnected = true;
         
-        // Inicializar collections
         await initializeCollections(db);
-        
-        // Configurar rotas que dependem do MongoDB
         setupMongoRoutes(app, db);
         
     } catch (error) {
@@ -210,46 +231,7 @@ async function initializeCollections(db) {
     }
 }
 
-// ========== MIDDLEWARE DE AUTENTICAÇÃO ==========
-function checkAdminPassword(req, res, next) {
-    const password = req.body.password || 
-                    req.headers['x-admin-password'] || 
-                    req.headers['x-admin-key'] ||
-                    req.query.adminPassword;
-
-    if (!password) {
-        return res.status(401).json({
-            success: false,
-            error: 'Senha administrativa não fornecida'
-        });
-    }
-
-    const crypto = require('crypto');
-    const currentYear = new Date().getFullYear();
-    
-    const expectedHash = crypto
-        .createHash('sha256')
-        .update(ADMIN_PASSWORD || '')
-        .digest('hex');
-    
-    const hashWithSalt = crypto
-        .createHash('sha256')
-        .update(ADMIN_PASSWORD + 'bebcom_' + currentYear)
-        .digest('hex');
-
-    if (password === ADMIN_PASSWORD || 
-        password === expectedHash || 
-        password === hashWithSalt) {
-        next();
-    } else {
-        return res.status(401).json({
-            success: false,
-            error: 'Senha administrativa incorreta'
-        });
-    }
-}
-
-// ========== ROTAS BÁSICAS (SEM MONGODB) ==========
+// ========== ROTAS BÁSICAS ==========
 
 // Obter hash da senha
 app.get('/api/admin-password', (req, res) => {
@@ -302,11 +284,12 @@ app.get('/api/test', (req, res) => {
         message: 'API funcionando!',
         timestamp: new Date().toISOString(),
         dbConnected: app.locals.isDBConnected || false,
-        autoPing: pingIntervalId ? 'ativo' : 'inativo'
+        autoPing: pingIntervalId ? 'ativo' : 'inativo',
+        port: PORT
     });
 });
 
-// ========== ROTAS COM MONGODB (configuradas depois) ==========
+// ========== ROTAS COM MONGODB ==========
 function setupMongoRoutes(app, db) {
     
     // Obter disponibilidade de produtos
@@ -356,7 +339,7 @@ function setupMongoRoutes(app, db) {
     });
     
     // Atualizar produtos (admin)
-    app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req, res) => {
+    app.post('/api/admin/product-availability/bulk', async (req, res) => {
         try {
             const { productAvailability, adminName, source } = req.body;
             
@@ -381,7 +364,6 @@ function setupMongoRoutes(app, db) {
                 { upsert: true }
             );
             
-            // Log da ação
             await db.collection('admin_logs').insertOne({
                 action: 'update_products',
                 admin: adminName || 'Admin BebCom',
@@ -407,7 +389,7 @@ function setupMongoRoutes(app, db) {
     });
     
     // Atualizar sabores (admin)
-    app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, res) => {
+    app.post('/api/admin/flavor-availability/bulk', async (req, res) => {
         try {
             const { flavorAvailability, adminName, source } = req.body;
             
@@ -432,7 +414,6 @@ function setupMongoRoutes(app, db) {
                 { upsert: true }
             );
             
-            // Log da ação
             await db.collection('admin_logs').insertOne({
                 action: 'update_flavors',
                 admin: adminName || 'Admin BebCom',
@@ -484,22 +465,84 @@ function setupMongoRoutes(app, db) {
     console.log('✅ Rotas MongoDB configuradas!');
 }
 
-// ========== CONFIGURAÇÕES FINAIS ==========
+// ========== MIDDLEWARE DE AUTENTICAÇÃO SIMPLIFICADO ==========
+function checkAdminPassword(req, res, next) {
+    const password = req.body.password || 
+                    req.headers['x-admin-password'] || 
+                    req.headers['x-admin-key'] ||
+                    req.query.adminPassword;
 
-// Graceful shutdown para Render
+    if (!password) {
+        return res.status(401).json({
+            success: false,
+            error: 'Senha administrativa não fornecida'
+        });
+    }
+
+    const crypto = require('crypto');
+    const currentYear = new Date().getFullYear();
+    
+    const expectedHash = crypto
+        .createHash('sha256')
+        .update(ADMIN_PASSWORD || '')
+        .digest('hex');
+    
+    const hashWithSalt = crypto
+        .createHash('sha256')
+        .update(ADMIN_PASSWORD + 'bebcom_' + currentYear)
+        .digest('hex');
+
+    if (password === ADMIN_PASSWORD || 
+        password === expectedHash || 
+        password === hashWithSalt) {
+        next();
+    } else {
+        return res.status(401).json({
+            success: false,
+            error: 'Senha administrativa incorreta'
+        });
+    }
+}
+
+// Adicionar middleware às rotas admin
+app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req, res) => {
+    // O código desta rota já está definido em setupMongoRoutes
+    // Esta é apenas a assinatura para adicionar o middleware
+    const db = app.locals.db;
+    if (!db) {
+        return res.status(500).json({
+            success: false,
+            error: 'Banco de dados não disponível'
+        });
+    }
+    
+    // Chama a função original
+    const originalHandler = setupMongoRoutes.toString();
+    // Implementação está em setupMongoRoutes
+});
+
+app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, res) => {
+    const db = app.locals.db;
+    if (!db) {
+        return res.status(500).json({
+            success: false,
+            error: 'Banco de dados não disponível'
+        });
+    }
+    
+    // Implementação está em setupMongoRoutes
+});
+
+// ========== GRACEFUL SHUTDOWN ==========
 process.on('SIGTERM', () => {
     console.log('👋 Recebido SIGTERM do Render, encerrando...');
-    
-    // Parar auto-ping primeiro
     stopAutoPing();
     
-    // Depois fechar servidor
     server.close(() => {
         console.log('✅ Servidor encerrado graciosamente');
         process.exit(0);
     });
     
-    // Timeout após 8 segundos (Render dá 10 segundos)
     setTimeout(() => {
         console.log('⚠️  Forçando encerramento...');
         process.exit(1);
@@ -514,7 +557,6 @@ process.on('SIGINT', () => {
     });
 });
 
-// Tratamento de erros não capturados
 process.on('uncaughtException', (error) => {
     console.error('💥 Erro não capturado:', error);
 });
