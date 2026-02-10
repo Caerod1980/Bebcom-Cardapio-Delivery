@@ -1,6 +1,7 @@
-// backend/server.js - VERSÃO ULTRA-OTIMIZADA PARA RENDER
+// backend/server.js - VERSÃO ULTRA-OTIMIZADA PARA RENDER COM SINCRONIZAÇÃO
 const express = require('express');
 const cors = require('cors');
+const fetch = require('node-fetch');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -12,14 +13,105 @@ app.use(express.json());
 // Configurações
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Bebcom25*';
 
+// ========== LOG DE PORTA (CRÍTICO PARA DEBUG) ==========
+console.log('='.repeat(60));
+console.log('🔍 VERIFICAÇÃO DE CONFIGURAÇÃO DE PORTA');
+console.log('='.repeat(60));
+console.log(`process.env.PORT: ${process.env.PORT || 'NÃO DEFINIDO'}`);
+console.log(`Porta usada: ${PORT}`);
+console.log(`NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+console.log('='.repeat(60));
+
+if (!process.env.PORT) {
+    console.log('⚠️  ATENÇÃO: PORT não definida no ambiente. Usando fallback 10000.');
+    console.log('✅ Isso é NORMAL no desenvolvimento local.');
+} else {
+    console.log(`✅ PORT definida pelo ambiente: ${process.env.PORT}`);
+}
+
+if (process.env.RENDER || process.env.RENDER_EXTERNAL_URL) {
+    console.log('✅ Detectado ambiente Render');
+    console.log(`🌐 URL externa provável: ${process.env.RENDER_EXTERNAL_URL || 'Não disponível'}`);
+} else {
+    console.log('⚠️  Ambiente local detectado');
+}
+
+// ========== SISTEMA DE AUTO-PING PARA RENDER FREE ==========
+const PING_INTERVAL = 14 * 60 * 1000; // 14 minutos
+let pingIntervalId = null;
+
+async function performAutoPing() {
+    try {
+        const url = process.env.RENDER_EXTERNAL_URL 
+            ? `${process.env.RENDER_EXTERNAL_URL}/health`
+            : `http://localhost:${PORT}/health`;
+        
+        console.log(`🔄 Auto-ping iniciado para: ${url}`);
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            timeout: 10000
+        });
+        
+        if (response.ok) {
+            console.log(`✅ Auto-ping bem-sucedido: ${response.status}`);
+        } else {
+            console.log(`⚠️ Auto-ping com status ${response.status}`);
+        }
+    } catch (error) {
+        console.log('⚠️ Auto-ping falhou (normal se serviço estiver iniciando)');
+    }
+}
+
+function startAutoPing() {
+    if (process.env.RENDER || process.env.RENDER_EXTERNAL_URL) {
+        console.log('🚀 Iniciando sistema de auto-ping para Render Free');
+        
+        // Primeiro ping após 30 segundos
+        setTimeout(() => {
+            performAutoPing();
+        }, 30000);
+        
+        // Configurar ping periódico
+        pingIntervalId = setInterval(performAutoPing, PING_INTERVAL);
+        
+        console.log(`⏰ Auto-ping configurado a cada ${PING_INTERVAL/60000} minutos`);
+    } else {
+        console.log('💻 Ambiente local - auto-ping desativado');
+    }
+}
+
+function stopAutoPing() {
+    if (pingIntervalId) {
+        clearInterval(pingIntervalId);
+        console.log('🛑 Auto-ping parado');
+    }
+}
+
 // ========== ROTAS CRÍTICAS (DEVEM RESPONDER IMEDIATAMENTE) ==========
 
 // Health Check ULTRA RÁPIDO - SEM MONGODB
 app.get('/health', (req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+        status: 'ok',
+        timestamp: new Date().toISOString().slice(0, 19) + 'Z',
+        service: 'BebCom Delivery API'
+    }));
+});
+
+// Health Check completo
+app.get('/health-full', (req, res) => {
     res.status(200).json({
         status: 'ok',
         timestamp: new Date().toISOString(),
-        service: 'BebCom Delivery API'
+        service: 'BebCom Delivery API',
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development',
+        isRender: !!(process.env.RENDER || process.env.RENDER_EXTERNAL_URL),
+        dbConnected: app.locals.isDBConnected || false,
+        uptime: process.uptime(),
+        memory: process.memoryUsage()
     });
 });
 
@@ -28,22 +120,71 @@ app.get('/', (req, res) => {
     res.json({
         status: 'online',
         service: 'BebCom Delivery API',
-        version: '3.1-ultra',
+        version: '3.2-sync',
         timestamp: new Date().toISOString(),
-        message: 'API rodando normalmente no Render'
+        message: 'API rodando normalmente no Render',
+        autoPing: !!(process.env.RENDER || process.env.RENDER_EXTERNAL_URL)
     });
+});
+
+// Rota de informações da porta
+app.get('/api/port-info', (req, res) => {
+    res.json({
+        success: true,
+        port: PORT,
+        envPort: process.env.PORT || 'not_set',
+        environment: process.env.NODE_ENV || 'development',
+        isRender: !!(process.env.RENDER || process.env.RENDER_EXTERNAL_URL),
+        externalUrl: process.env.RENDER_EXTERNAL_URL || null,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Status do auto-ping
+app.get('/api/auto-ping-status', (req, res) => {
+    res.json({
+        success: true,
+        autoPingEnabled: !!(process.env.RENDER || process.env.RENDER_EXTERNAL_URL),
+        pingIntervalMinutes: PING_INTERVAL / 60000,
+        nextPingIn: pingIntervalId ? 'ativo' : 'inativo',
+        isRender: !!(process.env.RENDER || process.env.RENDER_EXTERNAL_URL),
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Status da sincronização
+app.get('/api/sync-status', async (req, res) => {
+    try {
+        const queueData = req.query.queueData || req.body.queueData;
+        
+        res.json({
+            success: true,
+            timestamp: new Date().toISOString(),
+            dbConnected: app.locals.isDBConnected || false,
+            queueStatus: queueData || 'No queue data provided'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao verificar status'
+        });
+    }
 });
 
 // ========== INICIAR SERVIDOR PRIMEIRO ==========
 const server = app.listen(PORT, '0.0.0.0', () => {
     console.log('='.repeat(60));
-    console.log('🚀 BEBCOM DELIVERY API - ULTRA OTIMIZADA');
+    console.log('🚀 BEBCOM DELIVERY API - COM SISTEMA DE SINCRONIZAÇÃO');
     console.log('='.repeat(60));
     console.log(`✅ SERVIDOR INICIADO NA PORTA ${PORT}`);
     console.log(`📅 ${new Date().toISOString()}`);
     console.log(`📡 Health Check: http://0.0.0.0:${PORT}/health`);
     console.log(`🌐 Acesso público: https://bebcom-cardapio-delivery.onrender.com`);
+    console.log(`🔧 Auto-ping: ${process.env.RENDER ? 'ATIVADO' : 'DESATIVADO'}`);
     console.log('='.repeat(60));
+    
+    // Iniciar auto-ping
+    startAutoPing();
     
     // Agora inicializa MongoDB em background
     setTimeout(initializeMongoDB, 100);
@@ -91,6 +232,7 @@ async function initializeMongoDB() {
         
     } catch (error) {
         console.log('⚠️  MongoDB offline - servidor funcionando em modo local');
+        console.log('Detalhes do erro:', error.message);
         app.locals.isDBConnected = false;
     }
 }
@@ -100,7 +242,7 @@ async function initializeCollections(db) {
         const collections = await db.listCollections().toArray();
         const collectionNames = collections.map(c => c.name);
         
-        const requiredCollections = ['products', 'flavors', 'orders', 'admin_logs'];
+        const requiredCollections = ['products', 'flavors', 'orders', 'admin_logs', 'sync_queue'];
         
         for (const name of requiredCollections) {
             if (!collectionNames.includes(name)) {
@@ -159,6 +301,7 @@ function checkAdminPassword(req, res, next) {
 // Obter hash da senha
 app.get('/api/admin-password', (req, res) => {
     const crypto = require('crypto');
+    const currentYear = new Date().getFullYear();
     const passwordHash = crypto
         .createHash('sha256')
         .update(ADMIN_PASSWORD || '')
@@ -167,7 +310,7 @@ app.get('/api/admin-password', (req, res) => {
     res.json({
         success: true,
         passwordHash: passwordHash,
-        salt: 'bebcom_' + new Date().getFullYear()
+        salt: 'bebcom_' + currentYear
     });
 });
 
@@ -177,7 +320,9 @@ app.get('/api/endpoints', (req, res) => {
         success: true,
         endpoints: [
             { path: '/', method: 'GET', description: 'Status do serviço' },
-            { path: '/health', method: 'GET', description: 'Health check' },
+            { path: '/health', method: 'GET', description: 'Health check rápido' },
+            { path: '/health-full', method: 'GET', description: 'Health check completo' },
+            { path: '/api/port-info', method: 'GET', description: 'Informações da porta' },
             { path: '/api/admin-password', method: 'GET', description: 'Obter hash da senha admin' },
             { path: '/api/test', method: 'GET', description: 'Teste simples' }
         ],
@@ -205,7 +350,8 @@ app.get('/api/test', (req, res) => {
         success: true,
         message: 'API funcionando!',
         timestamp: new Date().toISOString(),
-        dbConnected: app.locals.isDBConnected || false
+        dbConnected: app.locals.isDBConnected || false,
+        autoPing: pingIntervalId ? 'ativo' : 'inativo'
     });
 });
 
@@ -221,14 +367,16 @@ function setupMongoRoutes(app, db) {
                 success: true,
                 productAvailability: productData?.data || {},
                 lastUpdated: productData?.lastUpdated || new Date().toISOString(),
-                offline: false
+                offline: false,
+                dbStatus: 'connected'
             });
         } catch (error) {
             res.status(500).json({
                 success: false,
                 error: 'Erro ao buscar produtos',
                 productAvailability: {},
-                offline: true
+                offline: true,
+                dbStatus: 'disconnected'
             });
         }
     });
@@ -242,14 +390,16 @@ function setupMongoRoutes(app, db) {
                 success: true,
                 flavorAvailability: flavorData?.data || {},
                 lastUpdated: flavorData?.lastUpdated || new Date().toISOString(),
-                offline: false
+                offline: false,
+                dbStatus: 'connected'
             });
         } catch (error) {
             res.status(500).json({
                 success: false,
                 error: 'Erro ao buscar sabores',
                 flavorAvailability: {},
-                offline: true
+                offline: true,
+                dbStatus: 'disconnected'
             });
         }
     });
@@ -257,7 +407,7 @@ function setupMongoRoutes(app, db) {
     // Atualizar produtos (admin)
     app.post('/api/admin/product-availability/bulk', checkAdminPassword, async (req, res) => {
         try {
-            const { productAvailability } = req.body;
+            const { productAvailability, adminName, source } = req.body;
             
             if (!productAvailability || typeof productAvailability !== 'object') {
                 return res.status(400).json({
@@ -272,17 +422,29 @@ function setupMongoRoutes(app, db) {
                     $set: {
                         data: productAvailability,
                         lastUpdated: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
+                        updatedAt: new Date().toISOString(),
+                        updatedBy: adminName || 'Admin BebCom',
+                        source: source || 'direct'
                     }
                 },
                 { upsert: true }
             );
             
+            // Log da ação
+            await db.collection('admin_logs').insertOne({
+                action: 'update_products',
+                admin: adminName || 'Admin BebCom',
+                count: Object.keys(productAvailability).length,
+                source: source || 'direct',
+                timestamp: new Date().toISOString()
+            });
+            
             res.json({
                 success: true,
                 message: 'Produtos atualizados com sucesso',
                 timestamp: new Date().toISOString(),
-                count: Object.keys(productAvailability).length
+                count: Object.keys(productAvailability).length,
+                upsertedId: result.upsertedId
             });
             
         } catch (error) {
@@ -296,7 +458,7 @@ function setupMongoRoutes(app, db) {
     // Atualizar sabores (admin)
     app.post('/api/admin/flavor-availability/bulk', checkAdminPassword, async (req, res) => {
         try {
-            const { flavorAvailability } = req.body;
+            const { flavorAvailability, adminName, source } = req.body;
             
             if (!flavorAvailability || typeof flavorAvailability !== 'object') {
                 return res.status(400).json({
@@ -311,17 +473,29 @@ function setupMongoRoutes(app, db) {
                     $set: {
                         data: flavorAvailability,
                         lastUpdated: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
+                        updatedAt: new Date().toISOString(),
+                        updatedBy: adminName || 'Admin BebCom',
+                        source: source || 'direct'
                     }
                 },
                 { upsert: true }
             );
             
+            // Log da ação
+            await db.collection('admin_logs').insertOne({
+                action: 'update_flavors',
+                admin: adminName || 'Admin BebCom',
+                count: Object.keys(flavorAvailability).length,
+                source: source || 'direct',
+                timestamp: new Date().toISOString()
+            });
+            
             res.json({
                 success: true,
                 message: 'Sabores atualizados com sucesso',
                 timestamp: new Date().toISOString(),
-                count: Object.keys(flavorAvailability).length
+                count: Object.keys(flavorAvailability).length,
+                upsertedId: result.upsertedId
             });
         } catch (error) {
             res.status(500).json({
@@ -350,7 +524,8 @@ function setupMongoRoutes(app, db) {
         } catch (error) {
             res.status(500).json({
                 success: false,
-                error: 'Erro na sincronização'
+                error: 'Erro na sincronização',
+                dbStatus: 'disconnected'
             });
         }
     });
@@ -446,6 +621,11 @@ function setupMongoRoutes(app, db) {
 // Graceful shutdown para Render
 process.on('SIGTERM', () => {
     console.log('👋 Recebido SIGTERM do Render, encerrando...');
+    
+    // Parar auto-ping primeiro
+    stopAutoPing();
+    
+    // Depois fechar servidor
     server.close(() => {
         console.log('✅ Servidor encerrado graciosamente');
         process.exit(0);
@@ -460,6 +640,7 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
     console.log('👋 Recebido SIGINT, encerrando...');
+    stopAutoPing();
     server.close(() => {
         process.exit(0);
     });
@@ -474,4 +655,4 @@ process.on('unhandledRejection', (error) => {
     console.error('💥 Promise rejeitada não tratada:', error);
 });
 
-console.log('🔄 Inicializando BebCom Delivery API...');
+console.log('🔄 Inicializando BebCom Delivery API com sistema de sincronização...');
